@@ -1,0 +1,7 @@
+numpy
+jax
+playground
+
+[dev]
+pytest
+black

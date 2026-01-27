@@ -1,0 +1,71 @@
+name: test
+save_dir: dec2025/SO-MOHopper
+description: "Reformatted feet flat reward"
+algorithm: "ppo"
+env: "MOPlayground-Hopper"
+robot: "DMHopper"
+backend: np # jnp or np. Always uses jnp for training
+mo2so:
+  enabled: true
+  weighting: [1.0, 0.1]
+env_config:
+  ctrl_dt: 0.01
+  sim_dt: 0.005
+  action_scale: 3.0
+  history_length: 5
+  ideal_base_height: 0.5
+  ideal_base_vel: 0.5
+  min_base_height: 0.3
+  add_random_joint_state: False
+  add_random_pitch: False
+  reward:
+    weights: 
+      run:        1.5
+      jump:       12.0
+      ctrl_cost: -0.0002
+      alive:      2.0
+      done:       0
+    sigmas:
+      height:     0.01
+      speed:      0.01
+      energy:     0.1
+      imitation:  0.03
+    optimization:
+      objectives:        ['run', 'jump']
+      shared_objectives: ['alive', 'ctrl_cost']
+  termination:
+    enabled: true        # Enable or disable early termination
+    base_height: 0.2
+learning_params:
+  ppo_params:
+    action_repeat: 1
+    batch_size: 64
+    clipping_epsilon: 0.1
+    discounting: 0.995
+    entropy_cost: 0.01
+    episode_length: 1000
+    learning_rate: 0.0001
+    max_grad_norm: 1.0
+    normalize_observations: true
+    num_envs: 512
+    num_evals: 15
+    num_minibatches: 8
+    num_timesteps: 300000000
+    num_updates_per_batch: 4
+    reward_scaling: 1.0
+    unroll_length: 30
+  hypermorl_params:
+    alpha: 1.0
+    k: 6
+    sampling: dense
+    warmup_frac: 0.0
+  warmup_params:
+    enabled: false
+    policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
+  network_params:
+    policy_hidden_layer_sizes: [64, 64]
+    value_hidden_layer_sizes:  [64, 64]
+  hypernetwork_params:
+    hypertype: ActorCritic
+    hypersize: [128, 128]
+    num_features: 16
