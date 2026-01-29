@@ -7,10 +7,10 @@ from ml_collections import config_dict
 from mujoco import mjx
 from mujoco_playground._src import mjx_env
 
-from minimal_mjx.envs.generic.base import MultiObjectiveBase
-from moplayground.dmcontrol.interface import CheetahInterface
+from moplayground.envs.generic.mobase import MultiObjectiveBase
+from moplayground.envs.dmcontrol.interface import CheetahInterface
 
-class MOHalfCheetah(MultiObjectiveBase):
+class MOCheetah(MultiObjectiveBase):
     """Hopper environment."""
 
     def __init__(

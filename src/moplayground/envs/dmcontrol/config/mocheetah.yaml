@@ -2,7 +2,7 @@ name: trying-for-timing
 save_dir: "ppo-hypernet/MOCheetah-HyperActorCritic"
 description: ""
 algorithm: "ppo"
-env: "MOPlayground-Cheetah"
+env: "MOCheetah"
 robot: "DMHopper"
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
