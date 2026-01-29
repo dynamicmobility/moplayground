@@ -1,7 +1,7 @@
 name: longer-4e8-lr-2e5
 save_dir: ppo-hypernet/MOHopper-Jan3-2026
 description: N/A
-env: MOPlayground-Hopper
+env: MOAnt
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false

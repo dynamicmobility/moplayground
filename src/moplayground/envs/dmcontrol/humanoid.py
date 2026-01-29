@@ -2,8 +2,8 @@ import jax
 from ml_collections import config_dict
 from mujoco import mjx
 from mujoco_playground._src import mjx_env
-from moplayground.dmcontrol.interface import HumanoidInterface
-from minimal_mjx.envs.generic.base import MultiObjectiveBase
+from moplayground.envs.dmcontrol.interface import HumanoidInterface
+from moplayground.envs.generic.mobase import MultiObjectiveBase
 
 class MOHumanoid(MultiObjectiveBase):
     """Humanoid environment."""
@@ -27,7 +27,7 @@ class MOHumanoid(MultiObjectiveBase):
             HumanoidInterface.DEFAULT_JT
         ])
         qvel = self._np.zeros(self.mj_model.nv)
-        ctrl = qpos[self.num_free:].copy()
+        ctrl = qpos[self.qpos_free:].copy()
 
         data = self._data_init_fn(
             qpos         = qpos,
@@ -65,7 +65,6 @@ class MOHumanoid(MultiObjectiveBase):
         return (self._np.sum(mass * xpos, 0) / self._np.sum(mass))[0]
 
     def step(self, state: mjx_env.State, action: jax.Array) -> mjx_env.State:
-        action = self._np.ones(self.action_size)
         action = self.params.action_scale * action
         state.info['posbefore'] = self.mass_center(state.data)
         data = self._step_fn(state.data, action)
@@ -148,7 +147,7 @@ class MOHumanoid(MultiObjectiveBase):
 
     def joint_angles(self, data: mjx.Data) -> jax.Array:
         """Returns the state without global orientation or position."""
-        return data.qpos[self.num_free:]
+        return data.qpos[self.qpos_free:]
 
     def torso_vertical_orientation(self, data: mjx.Data) -> jax.Array:
         """Returns the z-projection of the torso orientation matrix."""

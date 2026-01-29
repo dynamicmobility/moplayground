@@ -2,7 +2,7 @@ name: 0005-lr-995-discount-2e8-timesteps
 save_dir: "ppo-hypernet/MOAnt/first-try"
 description: ""
 algorithm: "ppo"
-env: "MOPlayground-Ant"
+env: "MOAnt"
 robot: "DMHopper"
 backend: np # jnp or np. Always uses jnp for training
 mo2so:

@@ -1,7 +1,7 @@
 name: lr2e-5_clip01_length2e8-rollout500-envs1024
 save_dir: ppo-hypernet/MOWalker-first-try
 description: N/A
-env: MOPlayground-Walker
+env: MOWalker
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false

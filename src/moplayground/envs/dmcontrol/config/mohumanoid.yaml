@@ -1,7 +1,7 @@
 name: test
 save_dir: ppo-hypernet/MOHumanoid-SO/only-energy
 description: N/A
-env: MOPlayground-Humanoid
+env: MOHumanoid
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: true

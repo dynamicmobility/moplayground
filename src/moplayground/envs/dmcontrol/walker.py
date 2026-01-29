@@ -7,8 +7,8 @@ from ml_collections import config_dict
 from mujoco import mjx
 from mujoco_playground._src import mjx_env
 
-from minimal_mjx.envs.generic.base import MultiObjectiveBase
-from moplayground.dmcontrol.interface import WalkerInterface
+from moplayground.envs.generic.mobase import MultiObjectiveBase
+from moplayground.envs.dmcontrol.interface import WalkerInterface
 
 class MOWalker(MultiObjectiveBase):
     """Hopper environment."""
@@ -31,7 +31,7 @@ class MOWalker(MultiObjectiveBase):
             WalkerInterface.DEFAULT_JT
         ])
         qvel = self._np.zeros(self.mj_model.nv)
-        ctrl = qpos[self.num_free:].copy()
+        ctrl = qpos[self.qpos_free:].copy()
 
         data = self._data_init_fn(
             qpos         = qpos,
