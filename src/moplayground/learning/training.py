@@ -26,23 +26,24 @@ import numpy as np
 from minimal_mjx.utils.plotting import get_subplot_grid
 from minimal_mjx.learning.training import initialize_wandb
 from moplayground.utils.plotting import plot_squential_paretos
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-@dataclass
+@dataclass(frozen=False)
 class MOTrainingInfo:
-    times         : list
-    iterations    : list
-    paretos       : list
-    directives    : list
-    labels        : list
+    start_time    : float
+    times         : list = field(default_factory=list)
+    iterations    : list = field(default_factory=list)
+    paretos       : list = field(default_factory=list)
+    directives    : list = field(default_factory=list)
+    labels        : list = field(default_factory=list)
     
-    def save_to_df(self, save_dir):
+    def save(self, save_dir, create_time=True):
         pd.DataFrame(
             {
-                'times': self.times,
-                'iters': self.iterations
+                'times': [self.start_time] + self.times if create_time else self.times,
+                'iters': [0] + self.iterations if create_time else self.iterations
             }
-        ).to_csv(save_dir / 'progress.csv')
+        ).to_csv(save_dir)
 
 def plot_mo_progress(
     num_steps       : int,
@@ -111,21 +112,19 @@ def mo_train(
         network_factory=network_factory,
     )
     run = initialize_wandb(name=f'{config_yaml['save_dir']}/{config_yaml['name']}')
-    x_data, y_data, directives = [], [], []
-    times = [time.time()]
+    training_data = MOTrainingInfo(
+        start_time = time.time(),
+        labels = env.params.reward.optimization.objectives
+    )
     train_fn = functools.partial(
         train_algo, **dict(moppo_params),
         network_factory=network_factory,
         progress_fn=lambda num_steps, metrics: plot_mo_progress(
-            run         = run,
-            num_steps   = num_steps,
-            metrics     = metrics,
-            times       = times,
-            x_data      = x_data,
-            y_data      = y_data,
-            directives  = directives,
-            save_dir    = output_dir,
-            labels      = env.params.reward.optimization.objectives
+            run             = run,
+            num_steps       = num_steps,
+            metrics         = metrics,
+            save_dir        = output_dir,
+            training_data   = training_data
         ),
         policy_params_fn=lambda current_step, make_policy, params: checkpoint.save(
             path   = output_dir.resolve(),

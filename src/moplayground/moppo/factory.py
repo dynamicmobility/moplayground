@@ -35,7 +35,8 @@ from brax.training.spectral_norm import SNDense
 from flax import linen
 import jax
 import jax.numpy as jnp
-from learning.networks import Hypernet, HypernetMLP, FakeHypernet, ActorCriticHypernet, DualA2CHypernet
+from moplayground.moppo.networks import Hypernet, HypernetMLP, FakeHypernet
+from moplayground.moppo.networks import ActorCriticHypernet, DualA2CHypernet
 
 ActivationFn = Callable[[jnp.ndarray], jnp.ndarray]
 Initializer  = Callable[..., Any]

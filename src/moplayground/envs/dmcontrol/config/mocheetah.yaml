@@ -1,5 +1,5 @@
-name: trying-for-timing
-save_dir: "ppo-hypernet/MOCheetah-HyperActorCritic"
+name: test
+save_dir: results/MOCheetah
 description: ""
 algorithm: "ppo"
 env: "MOCheetah"
