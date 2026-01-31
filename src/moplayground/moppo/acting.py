@@ -25,7 +25,8 @@ from brax.training.types import Policy
 from brax.training.types import PolicyParams
 from brax.training.types import PRNGKey
 from brax.training.types import Transition
-from learning.wrappers import MultiObjectiveEvalWrapper
+from moplayground.learning.wrappers import MultiObjectiveEvalWrapper
+
 import jax
 import numpy as np
 from jax import numpy as jnp

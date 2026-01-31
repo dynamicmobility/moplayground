@@ -7,13 +7,14 @@ from typing import Any, Tuple, NamedTuple
 from brax.training.acme.types import NestedArray
 from brax.training.agents.ppo import losses
 from brax.training import types
-from brax_custom import networks
 from brax.training.agents.ppo.losses import compute_gae, compute_ppo_loss
 from brax.training.types import Params
-from brax_custom.acting import MultiObjectiveTransition
 import flax
 import jax
 import jax.numpy as jnp
+
+from moplayground.moppo import factory
+from moplayground.moppo.acting import MultiObjectiveTransition
 
 
 @flax.struct.dataclass
@@ -94,7 +95,7 @@ def compute_mo_ppo_loss(
     normalizer_params   : Any,
     data                : MultiObjectiveTransition,
     rng                 : jnp.ndarray,
-    moppo_network       : networks.MOPPONetworks,
+    moppo_network       : factory.MOPPONetworks,
     entropy_cost        : float = 1e-4,
     discounting         : float = 0.9,
     reward_scaling      : float = 1.0,

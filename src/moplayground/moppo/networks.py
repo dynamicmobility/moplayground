@@ -1,19 +1,8 @@
-# Copyright 2025 The Brax Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""PPO networks."""
-
+import jax
+import jax.numpy as jnp
+import flax.linen as nn
+from flax.core.frozen_dict import FrozenDict
+from flax import traverse_util
 from typing import Literal, Sequence, Tuple
 
 from brax.training import distribution
@@ -21,256 +10,401 @@ from brax.training import networks
 from brax.training import types
 from brax.training.types import PRNGKey
 import flax
-from flax import linen
+import numpy as np
+from typing import Sequence
+
+class MLP(nn.Module):
+    obs_dim: int                
+    hidden_sizes: Sequence[int] 
+    action_dim: int             
+
+    @nn.compact
+    def __call__(self, x):
+        x = x.reshape(-1, self.obs_dim)
+
+        # Hidden layers
+        for h in self.hidden_sizes:
+            # x = nn.LayerNorm()(x)
+            x = nn.Dense(h)(x)
+            x = nn.swish(x)
+
+        # Output layer
+        x = nn.Dense(self.action_dim)(x)
+        return x
+
+def flatten_model(target_params):
+    flat_params_list = []
+    num_params = 0
+    target_policy_info = []
+
+    def flatten_dict(d, prefix=""):
+        items = []
+        for k, v in d.items():
+            if isinstance(v, (dict, FrozenDict)):
+                items.extend(flatten_dict(v, prefix + k + "/"))
+            else:
+                items.append((prefix + k, v))
+        items.sort()
+        return items
+
+    for name, param in flatten_dict(target_params):
+        shape = param.shape
+        target_policy_info.append((name, shape))
+        num_params += np.prod(shape)
+        flat_params_list.append(param.reshape(-1))
+
+    flat_init = jnp.concatenate(flat_params_list)
+
+    return flat_init, num_params, target_policy_info
 
 
-import dataclasses
-import functools
-from typing import Any, Callable, Literal, Mapping, Sequence, Tuple
-import warnings
+class Hypernet(nn.Module):
+    target_model_dict: nn.Module
+    num_objs: int
+    obs_dim: int
+    hypersize: tuple
+    num_features: int = 8
+    W_variance: float = 0.0
 
-from brax.training import types
-from brax.training.acme import running_statistics
-from brax.training.spectral_norm import SNDense
-from flax import linen
-import jax
-import jax.numpy as jnp
-from learning.networks import Hypernet, HypernetMLP, FakeHypernet, ActorCriticHypernet, DualA2CHypernet
+    def setup(self):
+        # Init target policy params
+        target_params = self.target_model_dict['params']
 
-ActivationFn = Callable[[jnp.ndarray], jnp.ndarray]
-Initializer  = Callable[..., Any]
+        num_params = 0
+        target_policy_info = []
+
+        _, num_params, target_policy_info = flatten_model(target_params)
+
+        # Save as immutable attributes
+        self.target_policy_info = tuple(target_policy_info)
+        self.num_params = num_params
+
+        # Hypernetwork MLP
+        self.pref_mlp = MLP(
+            obs_dim      = self.num_objs,
+            hidden_sizes = self.hypersize,
+            action_dim   = self.num_features
+        )
+        
+        flat_init, num_params, target_policy_info = flatten_model(target_params)
+        # print(target_policy_info)
+        # target_policy_info = [('hidden_0/bias', (64,)), ('hidden_0/kernel', (17, 64)), ('hidden_1/bias', (64,)), ('hidden_1/kernel', (64, 64)), ('hidden_2/bias', (12,)), ('hidden_2/kernel', (64, 12))]
 
 
+        self.target_policy_info = tuple(target_policy_info)
+        self.num_params = num_params
 
-@flax.struct.dataclass
-class MOPPONetworks:
-    hypernetwork                   : networks.FeedForwardNetwork
-    policy_network                 : networks.FeedForwardNetwork
-    value_network                  : networks.FeedForwardNetwork
-    parametric_action_distribution : distribution.ParametricDistribution
+        # Hypernet params
+        self.W = self.param(
+            "W",
+            lambda key: (
+                jax.random.uniform(key, (self.num_features, self.num_params), minval=-1, maxval=1)
+                * self.W_variance
+            ),
+        )
+        self.b = self.param("b", lambda key: flat_init)
 
+    def __call__(self, pref, single=False):
+        features = self.pref_mlp(pref)  # (..., num_features)
+        flat_params = jnp.dot(features, self.W) + self.b  # (..., num_params)
 
-def make_mo_inference_fn(ppo_networks: MOPPONetworks):
-    """Creates params and inference function for the PPO agent."""
+        # Reshape back into dict
+        sorted_params = {}
+        cnt = 0
+        for name, shape in self.target_policy_info:
+            size = np.prod(shape)
+            sorted_params[name] = flat_params[..., cnt:cnt+size].reshape((-1,) + shape)
+            cnt += size
 
-    def make_so_policy(
-        params: types.Params, directive: jax.Array, single_policy: bool = False, deterministic: bool = False
-    ) -> types.Policy:
-        normalizer_params, hypernet_params = params
-        policy_network = ppo_networks.policy_network
-        policy_params = ppo_networks.hypernetwork.apply(hypernet_params, directive, single_policy)[0]
+        nested_params = traverse_util.unflatten_dict({
+            tuple(k.split("/")): v if not single else v[0] for k, v in sorted_params.items()
+        })
+        nested_params = FrozenDict(nested_params)
 
-        if single_policy:
-            policy_apply = policy_network.apply
-        else:
-            policy_apply = jax.vmap(policy_network.apply, in_axes=(None, 0, 0))
-        parametric_action_distribution = ppo_networks.parametric_action_distribution
-       
+        # Wrap under "params" collection for Flax
+        return flat_params, {"params": nested_params}
+    
+    
+class HypernetMLP(nn.Module):
+    target_model_dict: dict
+    num_objs: int
+    obs_dim: int
+    hypersize: tuple
 
-        def policy(
-            observations: types.Observation, key_sample: PRNGKey
-        ) -> Tuple[types.Action, types.Extra]:
-            param_subset = (normalizer_params, policy_params)  # normalizer and policy params
-            logits = policy_apply(*param_subset, observations)
-            if deterministic:
-                return ppo_networks.parametric_action_distribution.mode(logits), {}
-            raw_actions = parametric_action_distribution.sample_no_postprocessing(
-                logits, key_sample
+    def setup(self):
+        # Init target policy params
+        target_params = self.target_model_dict['params']
+
+        num_params = 0
+        target_policy_info = []
+
+        _, num_params, target_policy_info = flatten_model(target_params)
+        
+        # Save as immutable attributes
+        self.target_policy_info = tuple(target_policy_info)
+        self.num_params = num_params
+
+        # Hypernetwork MLP
+        self.mlp = MLP(
+            obs_dim      = self.num_objs,
+            hidden_sizes = self.hypersize,
+            action_dim   = self.num_params
+        )
+
+    def __call__(self, pref, single=False):
+        flat_params = self.mlp(pref)
+
+        # Reshape back into dict
+        sorted_params = {}
+        cnt = 0
+        for name, shape in self.target_policy_info:
+            size = np.prod(shape)
+            sorted_params[name] = flat_params[..., cnt:cnt+size].reshape((-1,) + shape)
+            cnt += size
+
+        nested_params = traverse_util.unflatten_dict({
+            tuple(k.split("/")): v if not single else v[0] for k, v in sorted_params.items()
+        })
+        nested_params = FrozenDict(nested_params)
+
+        # Wrap under "params" collection for Flax
+        return flat_params, {"params": nested_params}
+
+class FakeHypernet(nn.Module):
+    target_model_dict: dict
+    num_objs: int
+    obs_dim: int
+    hypersize: tuple
+
+    def setup(self):
+        # Init target policy params
+        target_params = self.target_model_dict['params']
+
+        num_params = 0
+        target_policy_info = []
+
+        flat_params, num_params, target_policy_info = flatten_model(target_params)
+        
+        # Save as immutable attributes
+        self.target_policy_info = tuple(target_policy_info)
+        self.num_params = num_params
+        self.flat_params = self.param(
+            'flat_params',
+            lambda key: flat_params
+        )
+
+    def __call__(self, pref, single=False):
+        flat_params = self.flat_params
+        if not single:
+            flat_params = jnp.repeat(
+                flat_params[jnp.newaxis, :], 
+                pref.shape[0], 
+                axis=0
             )
-            log_prob = parametric_action_distribution.log_prob(logits, raw_actions)
-            postprocessed_actions = parametric_action_distribution.postprocess(
-                raw_actions
-            )
-            return postprocessed_actions, {
-                'log_prob'   : log_prob,
-                'raw_action' : raw_actions,
-            }
+        
+        # Reshape back into dict
+        sorted_params = {}
+        cnt = 0
+        for name, shape in self.target_policy_info:
+            size = np.prod(shape)
+            sorted_params[name] = flat_params[..., cnt:cnt+size].reshape((-1,) + shape)
+            cnt += size
 
-        return policy
+        nested_params = traverse_util.unflatten_dict({
+            tuple(k.split("/")): v if not single else v[0] for k, v in sorted_params.items()
+        })
+        nested_params = FrozenDict(nested_params)
 
-    return make_so_policy
-
-
-def make_moppo_networks(
-    observation_size          : types.ObservationSize,
-    action_size               : int,
-    num_objectives            : int,
-    hypersize                 : tuple,
-    key                       : jax.Array,
-    target_policy_params      : dict = None,
-    target_value_params       : dict = None,
-    preprocess_observations_fn: types.PreprocessObservationFn = types.identity_observation_preprocessor,
-    policy_hidden_layer_sizes : Sequence[int] = (32,) * 4,
-    value_hidden_layer_sizes  : Sequence[int] = (256,) * 5,
-    activation                : networks.ActivationFn = linen.swish,
-    policy_obs_key            : str = 'state',
-    value_obs_key             : str = 'state',
-    distribution_type         : Literal['normal', 'tanh_normal'] = 'tanh_normal',
-    noise_std_type            : Literal['scalar', 'log'] = 'scalar',
-    init_noise_std            : float = 1.0,
-    state_dependent_std       : bool = False,
-    hypertype                 : str = 'MLP',
-    num_features              : int = 8
-) -> MOPPONetworks:
-    """Make PPO networks with preprocessor."""
-    parametric_action_distribution: distribution.ParametricDistribution
-    if distribution_type == 'normal':
-        parametric_action_distribution = distribution.NormalDistribution(
-            event_size=action_size
-        )
-    elif distribution_type == 'tanh_normal':
-        parametric_action_distribution = distribution.NormalTanhDistribution(
-            event_size=action_size
-        )
-    else:
-        raise ValueError(
-            f'Unsupported distribution type: {distribution_type}. Must be one'
-            ' of "normal" or "tanh_normal".'
-        )
-    policy_network = networks.make_policy_network(
-        param_size                 = parametric_action_distribution.param_size,
-        obs_size                   = observation_size,
-        preprocess_observations_fn = preprocess_observations_fn,
-        hidden_layer_sizes         = policy_hidden_layer_sizes,
-        activation                 = activation,
-        obs_key                    = policy_obs_key,
-        distribution_type          = distribution_type,
-        noise_std_type             = noise_std_type,
-        init_noise_std             = init_noise_std,
-        state_dependent_std        = state_dependent_std,
-        # layer_norm                 = True
-    )
+        # Wrap under "params" collection for Flax
+        return flat_params, {"params": nested_params}
     
-    # value_network = make_mo_value_network(
-    #     obs_size                   = observation_size,
-    #     num_objectives             = num_objectives,
-    #     preprocess_observations_fn = preprocess_observations_fn,
-    #     hidden_layer_sizes         = value_hidden_layer_sizes,
-    #     activation                 = activation,
-    #     obs_key                    = value_obs_key,
-    # )
-    value_network = networks.make_value_network(
-        obs_size                   = observation_size,
-        preprocess_observations_fn = preprocess_observations_fn,
-        hidden_layer_sizes         = value_hidden_layer_sizes,
-        activation                 = activation,
-        obs_key                    = value_obs_key,
-    )
 
-    if target_policy_params is None:
-        target_policy_params = policy_network.init(key)
-    if target_value_params is None:
-        target_value_params = value_network.init(key)
+class ActorCriticHypernet(nn.Module):
+    target_policy_dict: dict
+    target_value_dict: dict
+    num_objs: int
+    obs_dim: int
+    hypersize: tuple = (128, 128)
+    num_features: int = 8
+    W_variance: float = 0.0
 
-    hypernetwork = make_hypernetwork(
-        observation_size   = observation_size,
-        num_objectives     = num_objectives,
-        target_policy_dict = target_policy_params,
-        target_value_dict  = target_value_params,
-        hypersize          = hypersize,
-        hypertype          = hypertype,
-        policy_obs_key     = policy_obs_key,
-        num_features       = num_features
-    )
+    def setup(self):
+        # Init target policy params
+        target_policy_params = self.target_policy_dict['params']
+        target_value_params  = self.target_value_dict['params']
 
-    return MOPPONetworks(
-        hypernetwork                   = hypernetwork,
-        policy_network                 = policy_network,
-        value_network                  = value_network,
-        parametric_action_distribution = parametric_action_distribution,
-    )
+        target_policy_info = []
+        target_value_info  = []
 
-def make_hypernetwork(
-    observation_size   : int,
-    num_objectives     : int,
-    target_policy_dict : dict,
-    hypersize          : tuple,
-    hypertype          : str = 'MLP',
-    policy_obs_key     : str = 'state',
-    num_features       : int = 8,
-    target_value_dict  : dict = None,
-):
-    obs_dim = networks._get_obs_state_size(observation_size, policy_obs_key)
-    if hypertype == 'MLP':
-        hypernet = HypernetMLP(
-            target_model_dict = target_policy_dict,
-            num_objs          = num_objectives,
-            obs_dim           = obs_dim,
-            hypersize         = hypersize
+        policy_flat_init, num_policy_params, target_policy_info = flatten_model(target_policy_params)
+        value_flat_init, num_value_params, target_value_info    = flatten_model(target_value_params)
+        
+        # Save as immutable attributes
+        self.target_policy_info = tuple(target_policy_info)
+        self.target_value_info  = tuple(target_value_info)
+        self.num_policy_params  = num_policy_params
+        self.num_value_params   = num_value_params
+        self.num_params         = num_policy_params + num_value_params
+
+        # Hypernetwork MLP
+        self.mlp = MLP(
+            obs_dim      = self.num_objs,
+            hidden_sizes = self.hypersize,
+            action_dim   = self.num_features
         )
-    elif hypertype == 'affine':
-        hypernet = Hypernet(
-            target_model_dict = target_policy_dict,
-            num_objs          = num_objectives,
-            obs_dim           = obs_dim,
-            hypersize         = hypersize,
-            num_features      = num_features
+
+        # Hypernet params
+        self.W = self.param(
+            "W",
+            lambda key: (
+                jax.random.uniform(key, (self.num_features, self.num_params), minval=-1, maxval=1)
+                * self.W_variance
+            ),
         )
-    elif hypertype == 'ActorCritic':
-        hypernet = DualA2CHypernet(
-            target_policy_dict = target_policy_dict,
-            target_value_dict  = target_value_dict,
-            num_objs           = num_objectives,
-            obs_dim            = obs_dim,
-            hypersize          = hypersize,
-            num_features       = num_features
-        )        
-    elif hypertype == 'fake':
-        print('WARNING. Fake Hypernetwork in use.')
-        hypernet = FakeHypernet(
-            target_model_dict = target_policy_dict,
-            num_objs          = num_objectives,
-            obs_dim           = obs_dim,
-            hypersize         = hypersize
+        self.b = self.param(
+            "b",
+            lambda key: jnp.hstack((policy_flat_init, value_flat_init))
         )
-    else:
-        raise Exception(f'Invalid hypertype {hypertype}')
-    
-    dummy_pref = jnp.zeros(num_objectives)
-    def init(key):
-        return hypernet.init(key, dummy_pref)
-    
-    def apply(params, prefs, single=False):
-        if single:
-            prefs = prefs / jnp.sum(prefs)
-        else:
-            prefs = prefs / jnp.sum(prefs, axis=1)[:, jnp.newaxis]
-        return hypernet.apply(params, prefs, single)
-    
-    wrapped_hypernet = networks.FeedForwardNetwork(
-        init  = init,
-        apply = apply
-    )
-    
-    return wrapped_hypernet
 
+    def unflatten_params(self, flat_params, target_network, single):
+        # Reshape back into dict
+        sorted_params = {}
+        cnt = 0
+        for name, shape in target_network:
+            size = np.prod(shape)
+            sorted_params[name] = flat_params[..., cnt:cnt+size].reshape((-1,) + shape)
+            cnt += size
 
-def make_mo_value_network(
-    obs_size: types.ObservationSize,
-    num_objectives: int,
-    preprocess_observations_fn: types.PreprocessObservationFn = types.identity_observation_preprocessor,
-    hidden_layer_sizes: Sequence[int] = (256, 256),
-    activation: ActivationFn = linen.relu,
-    obs_key: str = 'state',
-) -> networks.FeedForwardNetwork:
-    """Creates a value network."""
-    value_module = networks.MLP(
-        layer_sizes=list(hidden_layer_sizes) + [num_objectives],
-        activation=activation,
-        kernel_init=jax.nn.initializers.lecun_uniform(),
-    )
+        nested_params = traverse_util.unflatten_dict({
+            tuple(k.split("/")): v if not single else v[0] for k, v in sorted_params.items()
+        })
+        nested_params = FrozenDict(nested_params)
 
-    def apply(processor_params, value_params, obs):
-        if isinstance(obs, Mapping):
-            obs = preprocess_observations_fn(
-                obs[obs_key], networks.normalizer_select(processor_params, obs_key)
-            )
-        else:
-            obs = preprocess_observations_fn(obs, processor_params)
-        return value_module.apply(value_params, obs)
+        # Wrap under "params" collection for Flax
+        return {"params": nested_params}
 
-    obs_size = networks._get_obs_state_size(obs_size, obs_key)
-    dummy_obs = jnp.zeros((1, obs_size))
-    return networks.FeedForwardNetwork(
-        init=lambda key: value_module.init(key, dummy_obs), apply=apply
-    )
+    def __call__(self, pref, single=False):
+        features = self.mlp(pref)
+        flat_params = jnp.dot(features, self.W) + self.b
+
+        policy_flat_params = flat_params[:self.num_policy_params]
+        policy_sort_params = self.unflatten_params(
+            flat_params    = policy_flat_params,
+            target_network = self.target_policy_info,
+            single         = single
+        )
+
+        value_flat_params  = flat_params[-self.num_value_params:]
+        value_sort_params  = self.unflatten_params(
+            flat_params    = value_flat_params,
+            target_network = self.target_value_info,
+            single         = single
+        )
+
+        return policy_sort_params, value_sort_params
+    
+    
+class DualA2CHypernet(nn.Module):
+    target_policy_dict: dict
+    target_value_dict: dict
+    num_objs: int
+    obs_dim: int
+    hypersize: tuple = (128, 128)
+    num_features: int = 8
+    W_variance: float = 0.0
+
+    def setup(self):
+        # Init target policy params
+        target_policy_params = self.target_policy_dict['params']
+        target_value_params  = self.target_value_dict['params']
+
+        target_policy_info = []
+        target_value_info  = []
+
+        policy_flat_init, num_policy_params, target_policy_info = flatten_model(target_policy_params)
+        value_flat_init, num_value_params, target_value_info    = flatten_model(target_value_params)
+        
+        # Save as immutable attributes
+        self.target_policy_info = tuple(target_policy_info)
+        self.target_value_info  = tuple(target_value_info)
+        self.num_policy_params  = num_policy_params
+        self.num_value_params   = num_value_params
+
+        # Hypernetwork MLP
+        self.policy_mlp = MLP(
+            obs_dim      = self.num_objs,
+            hidden_sizes = self.hypersize,
+            action_dim   = self.num_features
+        )
+        self.value_mlp = MLP(
+            obs_dim      = self.num_objs,
+            hidden_sizes = self.hypersize,
+            action_dim   = self.num_features
+        )
+
+        # Hypernet params
+        self.policy_W = self.param(
+            "policy_W",
+            lambda key: (
+                jax.random.uniform(key, (self.num_features, self.num_policy_params), minval=-1, maxval=1)
+                * self.W_variance
+            ),
+        )
+        self.policy_b = self.param(
+            "policy_b",
+            lambda key: policy_flat_init
+        )
+        
+        # Hypernet params
+        self.value_W = self.param(
+            "value_W",
+            lambda key: (
+                jax.random.uniform(key, (self.num_features, self.num_value_params), minval=-1, maxval=1)
+                * self.W_variance
+            ),
+        )
+        self.value_b = self.param(
+            "value_b",
+            lambda key: value_flat_init
+        )
+
+    def unflatten_params(self, flat_params, target_network, single):
+        # Reshape back into dict
+        sorted_params = {}
+        cnt = 0
+        for name, shape in target_network:
+            size = np.prod(shape)
+            sorted_params[name] = flat_params[..., cnt:cnt+size].reshape((-1,) + shape)
+            cnt += size
+
+        nested_params = traverse_util.unflatten_dict({
+            tuple(k.split("/")): v if not single else v[0] for k, v in sorted_params.items()
+        })
+        nested_params = FrozenDict(nested_params)
+
+        # Wrap under "params" collection for Flax
+        return {"params": nested_params}
+
+    def __call__(self, pref, single=False):
+        policy_features = self.policy_mlp(pref)
+        value_features  = self.value_mlp(pref)
+        policy_flat_params = jnp.dot(policy_features, self.policy_W) + self.policy_b
+        value_flat_params  = jnp.dot(value_features,  self.value_W) + self.value_b
+
+        policy_sort_params = self.unflatten_params(
+            flat_params    = policy_flat_params,
+            target_network = self.target_policy_info,
+            single         = single
+        )
+
+        value_sort_params  = self.unflatten_params(
+            flat_params    = value_flat_params,
+            target_network = self.target_value_info,
+            single         = single
+        )
+
+        return policy_sort_params, value_sort_params
+
+def count_params(params):
+    """Count the total number of parameters in a Flax model."""
+    return sum(jnp.size(p) for p in jax.tree_util.tree_leaves(params))

@@ -24,8 +24,6 @@ from typing import Any, Callable, Mapping, Optional, Tuple, Union
 from absl import logging
 from brax import base
 from brax import envs
-from brax_custom import acting
-from brax_custom import networks
 from brax.training.agents.ppo import networks as ppo_networks
 from brax.training import gradients
 from brax.training import logger as metric_logger
@@ -34,7 +32,6 @@ from brax.training import types
 from brax.training.acme import running_statistics
 from brax.training.acme import specs
 from brax.training.agents.ppo import checkpoint
-from brax_custom import losses
 from brax.training.types import Params
 from brax.training.types import PRNGKey
 import flax
@@ -42,7 +39,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
-from brax_custom.acting import MultiObjectiveTransition
+
+from moplayground.moppo import acting
+from moplayground.moppo import factory
+from moplayground.moppo import losses
 
 
 InferenceParams = Tuple[running_statistics.NestedMeanStd, Params]
@@ -252,8 +252,8 @@ def train(
     sampling                : str = 'dense',
     k                       : int = 4,
     network_factory: types.NetworkFactory[
-        networks.MOPPONetworks
-    ]                       = networks.make_moppo_networks,
+        factory.MOPPONetworks
+    ]                       = factory.make_moppo_networks,
     init_policy_params      : dict = None,
     init_normalizer_params  : dict = None,
     init_value_params       : dict = None,
@@ -323,7 +323,7 @@ def train(
     normalize = lambda x, y: x
     if normalize_observations:
         normalize = running_statistics.normalize
-    moppo_network: networks.MOPPONetworks = network_factory(
+    moppo_network: factory.MOPPONetworks = network_factory(
         key                        = key_policy,
         observation_size           = obs_shape,
         action_size                = env.action_size,
@@ -332,7 +332,7 @@ def train(
         target_policy_params       = init_policy_params,
         target_value_params        = init_value_params
     )
-    make_policy = networks.make_mo_inference_fn(moppo_network)
+    make_policy = factory.make_mo_inference_fn(moppo_network)
 
     optimizer = optax.adam(learning_rate=learning_rate)
     if max_grad_norm is not None:
@@ -449,7 +449,7 @@ def train(
         )
         # Have leading dimensions (batch_size * num_minibatches, unroll_length)
         data = jax.tree_util.tree_map(lambda x: jnp.swapaxes(x, 1, 2), data)
-        data: MultiObjectiveTransition = jax.tree_util.tree_map(
+        data: acting.MultiObjectiveTransition = jax.tree_util.tree_map(
             lambda x: jnp.reshape(x, (-1,) + x.shape[2:]), data
         )
         

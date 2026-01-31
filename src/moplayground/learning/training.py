@@ -15,7 +15,8 @@ import functools
 from brax.training.agents.ppo import checkpoint
 
 from moplayground.moppo import moppo
-from moplayground.moppo import networks
+from moplayground.moppo import factory
+from moplayground.learning.wrappers import MultiObjectiveEpisodeWrapper
 from brax.envs.wrappers.training import VmapWrapper
 
 # jax and MJX imports
@@ -23,60 +24,62 @@ from mujoco_playground import wrapper
 from mujoco_playground._src import mjx_env
 import numpy as np
 from minimal_mjx.utils.plotting import get_subplot_grid
+from minimal_mjx.learning.training import initialize_wandb
+from moplayground.utils.plotting import plot_squential_paretos
+from dataclasses import dataclass
+
+@dataclass
+class MOTrainingInfo:
+    times         : list
+    iterations    : list
+    paretos       : list
+    directives    : list
+    labels        : list
+    
+    def save_to_df(self, save_dir):
+        pd.DataFrame(
+            {
+                'times': self.times,
+                'iters': self.iterations
+            }
+        ).to_csv(save_dir / 'progress.csv')
 
 def plot_mo_progress(
-    run, num_steps, metrics, times, x_data, y_data, directives, save_dir, labels
+    num_steps       : int,
+    metrics         : dict,
+    training_data   : MOTrainingInfo,
+    save_dir        : Path,
+    run             : wandb.Run = None
 ):
+    # print current itme
     tz = ZoneInfo("America/New_York")
     now = datetime.now(tz)
     print(now.strftime("%Y-%m-%d %H:%M:%S %Z"))
-
-    x_data.append(num_steps)
-    y_data.append(metrics['reward'])
-    directives.append(metrics['directive'])
-    times.append(time.time())
-    pd.DataFrame({'times': times, 'iters': [0] + x_data}).to_csv(save_dir / 'progress.csv')
     
-    nrows, ncols = get_subplot_grid(len(x_data))
-    fig, axs = plt.subplots(nrows=nrows, ncols=ncols)
-    if type(axs) == np.ndarray:
-        axs = axs.flatten()
-    else:
-        axs = [axs]
+    # save data from iteration
+    training_data.iterations.append(num_steps)
+    training_data.paretos.append(metrics['reward'])
+    training_data.directives.append(metrics['directive'])
+    training_data.times.append(time.time())
+    training_data.save(save_dir / 'progress.csv')
     
-    x_data = np.array(x_data)
-    y_data = np.array(y_data)
-    directives = np.array(directives)
-    xlim   = np.array((np.min(y_data[..., 0]), np.max(y_data[..., 0])))
-    ylim   = np.array((np.min(y_data[..., 1]), np.max(y_data[..., 1])))
-    border = np.array([-1., 1.])
-    xlim   = xlim + border * np.abs(xlim[1] - xlim[0]) * 0.1
-    ylim   = ylim + border * np.abs(ylim[1] - ylim[0]) * 0.1
-    for ax, x, y, d in zip(axs, x_data, y_data, directives):
-        c = np.zeros((y_data.shape[1], 3))
-        c[:, 0] = d[:, 0]
-        c[:, 2] = d[:, 1]
-        ax.scatter(
-            y[:, 0],
-            y[:, 1],
-            s=4,
-            c=c
-        )
-        ax.set_title(x)
-        ax.set_xlabel(labels[0])
-        ax.set_ylabel(labels[1])
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
-        
-    fig.set_size_inches((4 * ncols, 4 * nrows))
-    fig.tight_layout()
-    fig.savefig(save_dir / 'progress.svg')
-    with open(save_dir / 'progress.svg', "r") as f:
-        svg = f.read()
-    run.log(
-        {"reward_plot": wandb.Html(svg)},
-        step=num_steps,
+    # create the plot
+    fig, axs = plot_squential_paretos(
+        ax_titles   = training_data.iterations,
+        paretos     = training_data.paretos,
+        directives  = training_data.directives,
+        objectives  = training_data.labels
     )
+    
+    # save and upload to wandb
+    fig.savefig(save_dir / 'progress.svg')
+    if run:
+        with open(save_dir / 'progress.svg', "r") as f:
+            svg = f.read()
+        run.log(
+            {"reward_plot": wandb.Html(svg)},
+            step=num_steps,
+        )
     
 
 def mo_wrapper(
@@ -97,7 +100,7 @@ def mo_train(
 ):
     train_algo = moppo.train
     network_factory = functools.partial(
-        networks.make_moppo_networks,
+        factory.make_moppo_networks,
         **config_yaml['learning_params']['hypernetwork_params'],
         **network_params
     )
