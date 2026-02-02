@@ -1,0 +1,122 @@
+name: test-higher-sim-dt-1000ts #low-noise-old
+save_dir: results/first-try-again
+description: ""
+algorithm: ppo
+env: NaviGait
+robot: BRUCE
+backend: np 
+gaitlib_path: envs/bruce/gaits/BRUCE_GL_4bar_noarms_v10
+env_config:
+  ctrl_dt:          0.02    # Control (RL) timestep
+  sim_dt:           0.004   # Simulation (mujoco) timestep
+  jt_scale:         0.20    # Scales the joint position commands
+  vel_scale:        0.20    # Scales the velocity commands
+  history_length:   5       # Number of previous joint observations to stack
+  noise_scale:      1.0     # Scales the sensor noise
+  terrain:          "flat"  # TODO IMPLEMENT THIS
+  filter_tau:       0.03    # time constant of filter for pos/vel desired
+  tracking:         position-velocity # or position or position-velocity
+  ankle_offsets:    [0.0, 0.0]
+  start_stance:     either   # right, left, or either
+  recurrent_states: 0
+  initialization:
+    strategy: "random-with-zero" # manual, random-with-zero
+    vdes: [0.0, 0.0, 0.0]
+    add_random_yaw: false
+    add_random_jt:
+      enabled: false
+      minval: -0.03
+      maxval: 0.03
+    random_jt_calibration:
+      enabled: false
+      minval: -0.03
+      maxval: 0.03
+    chance_default: 0.4
+  curriculum:
+    enabled: false
+    scale: 1.0
+    scaling_iterations: 75.0 
+  domain_randomization:
+    enabled: true
+    obs_delay:
+      enabled: true
+      gyro:    [1, 2]
+      accel:   [1, 2]
+      qpos:    [1, 2]
+    action_delay:
+      enabled: true
+      val:     [0, 1]
+    params: # [nominal, low, high]
+      floor_friction:   0.4 #0.8         # Scales the floor friction
+      dof_frictionloss: 0.0 #0.8    # Scales the joint friction loss
+      dof_armature:     0.0 #0.2    # Scales the joint armature
+      dof_damping:      0.0 #0.0 #0.95   # Scales the joint damping
+      torso_mass:       0.3 #0.4    # Scales the torso mass
+      torso_com:        0.05   # Scales the torso center of mass
+      body_com:         0.01 #0.01  # Scales the torso center of mass
+      gain_multiplier:  0.2 #0.6         # Scales the gains by a multiplier
+      timeconst:        0.2 #0.4
+      forcerange:       0.2 #0.3
+      z0:               0.02 #0.03
+  reward:
+    weights:
+      gait_tracking:       1.00  # Tracking the reference gait
+      base_xyz_tracking:   1.00  # Tracking the desired base position
+      base_quat_tracking:  1.00  # Tracking the desired base orientation
+      base_vel_tracking:   0.00  # Tracking the desired base linear and angular velocity
+      vel_residual_size:   0.85  # Minimize the deviation in reference selection
+      vel_residual_rate:   0.20  # Minimize the rate of change in reference selection
+      minimize_energy:     0.50  # Minimize motor torques
+      alive:               0.00  # Alive bonus
+      foot_contact:        0.00  # Aligning to foot contact of the reference motion
+      foot_impact:        -3.00
+      global_xy_tracking:  0.00  # Tracking global xy starting position
+      global_z_tracking:   0.00  # Tracking initial yaw angle
+      res_jt_rate:        -0.20  # Minimize the change in residual joint torques
+    sigmas:                      # For sigmas, please see above.
+      gait_tracking:      0.13
+      base_xyz_tracking:  0.004
+      base_quat_tracking: 0.02 #0.04
+      vel_residual_size:  0.001
+      vel_residual_rate:  0.002
+      base_vel_tracking:  0.05
+      minimize_energy:    60.0
+      global_xy_tracking: 0.05
+      global_z_tracking:  0.13
+  termination:
+    enabled: true        # Enable or disable early termination
+  command:
+    enabled:       true             # Enable or disable random commands
+    lin_vel_x:     [-0.2, 0.2]      # Linear velocity in x direction
+    lin_vel_y:     [-0.1, 0.1]  # Linear velocity in y direction
+    ang_vel_z:     [0.0, 0.0]       # Angular velocity in yaw direction
+    vdes_duration: 22.5              # Duration of each desired vel command (sec)
+  push:
+    enabled:         true  # Enable or disable the push
+    major_lim:       4.0   # Major push limit in x direction in Newtons
+    minor_lim:       4.0   # Minor push limit in y direction in Newtons
+    annulus_width:   0.1    # Width of the annulus around the robot for push (0-1)
+    nopush_duration: 5.0   # Duration of no push in seconds
+    push_duration:   0.3    # Duration of each push in seconds
+    max_vdes:        [0.15, 0.08, 0.01]
+learning_params:
+  ppo_params:
+    action_repeat: 1
+    batch_size: 256
+    clipping_epsilon: 0.2
+    discounting: 0.97
+    entropy_cost: 0.01
+    episode_length: 2000
+    learning_rate: 0.0003
+    max_grad_norm: 1.0
+    normalize_observations: false
+    num_envs: 8192
+    num_evals: 20
+    num_minibatches: 32
+    num_timesteps: 100000000
+    num_updates_per_batch: 4
+    reward_scaling: 1.0
+    unroll_length: 32
+  network_params:
+    policy_hidden_layer_sizes: [256, 128, 64]
+    value_hidden_layer_sizes: [256, 128, 64]
