@@ -1,6 +1,6 @@
 """Hopper environment."""
 
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import jax
 from ml_collections import config_dict
@@ -124,10 +124,14 @@ class MOCheetah(MultiObjectiveBase):
         rewards = {
             'alive'  : self.reward_alive(),
             'energy' : self.reward_energy(action),
+            'height' : self.reward_height(data),
             'run'    : self.reward_run(info),
             'done'   : self.reward_done(done)
         }
         return rewards
+    
+    def reward_height(self, data: mjx.Data):
+        return data.qpos[1] - CheetahInterface.DEFAULT_FF[1] + 0.2
     
     def reward_alive(self):
         return 1.0

@@ -24,7 +24,7 @@ from mujoco_playground import wrapper
 from mujoco_playground._src import mjx_env
 import numpy as np
 from minimal_mjx.utils.plotting import get_subplot_grid
-from minimal_mjx.learning.training import initialize_wandb
+from minimal_mjx.learning.training import initialize_wandb, save_model
 from moplayground.utils.plotting import plot_squential_paretos
 from dataclasses import dataclass, field
 
@@ -111,7 +111,7 @@ def mo_train(
         normalize_observations=moppo_params.normalize_observations,
         network_factory=network_factory,
     )
-    run = initialize_wandb(name=f'{config_yaml['save_dir']}/{config_yaml['name']}')
+    run = initialize_wandb(name=f'{config_yaml['save_dir']}/{config_yaml['name']}') # move this outside...
     training_data = MOTrainingInfo(
         start_time = time.time(),
         labels = env.params.reward.optimization.objectives
@@ -126,11 +126,10 @@ def mo_train(
             save_dir        = output_dir,
             training_data   = training_data
         ),
-        policy_params_fn=lambda current_step, make_policy, params: checkpoint.save(
-            path   = output_dir.resolve(),
-            step   = current_step,
-            params = params,
-            config = network_config
+        policy_params_fn=functools.partial(
+            save_model,
+            output_dir    = output_dir,
+            run           = run
         ),
     )
     
