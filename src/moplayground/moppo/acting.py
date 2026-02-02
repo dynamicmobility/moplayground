@@ -102,6 +102,7 @@ class Evaluator:
     def __init__(
         self,
         eval_env: envs.Env,
+        num_objs: int,
         eval_policy_fn,
         num_eval_envs: int,
         episode_length: int,
@@ -130,6 +131,7 @@ class Evaluator:
         self._generate_eval_unroll = jax.jit(generate_eval_unroll)
         self._steps_per_unroll = episode_length * num_eval_envs
         self.num_eval_envs = num_eval_envs
+        self.num_objs = num_objs
 
     def run_evaluation(
         self,
@@ -143,9 +145,7 @@ class Evaluator:
         t = time.time()
         _, w_key = jax.random.split(self._key)
         # directives = jax.random.dirichlet(key=w_key, alpha=jnp.ones(2), shape=self.num_eval_envs)
-        directives = jnp.linspace(0, 1, num=self.num_eval_envs)
-        directives = jnp.array([directives, 1 - directives]).T
-        # directives = jnp.ones((self.num_eval_envs, 2)) * 0.5
+        directives = jnp.ones((self.num_eval_envs, self.num_objs)) / self.num_objs
         eval_state = self._generate_eval_unroll(policy_params, unroll_key, directives)
         eval_metrics = eval_state.info['eval_metrics']
         eval_metrics.active_episodes.block_until_ready()

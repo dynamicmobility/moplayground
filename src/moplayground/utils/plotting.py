@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from minimal_mjx.utils.plotting import get_subplot_grid
+from moplayground.eval.pareto import get_pareto_statistics
 
 def plot_squential_paretos(
     ax_titles: list[str],
@@ -44,4 +45,25 @@ def plot_squential_paretos(
     fig.set_size_inches((4 * ncols, 4 * nrows))
     fig.tight_layout()
 
+    return fig, ax
+
+def plot_sequential_hypervolume(
+    iterations: list[int] | np.ndarray,
+    paretos: np.ndarray
+):
+    fig, ax = plt.subplots()
+    hvs = []
+    sps = []
+    for p in paretos:
+        hv, sp = get_pareto_statistics(np.array(p.block_until_ready()))
+        hvs.append(hv)
+        sps.append(sp)
+    
+    ax2 = ax.twinx()
+    ax.plot(iterations, hvs, label='Hypervolume')
+    ax2.plot(iterations, sps, 'r-', label='Sparsity')
+    fig.set_size_inches((10, 7))
+    ax.set_xlabel('Iterations')
+    ax.set_ylabel('Hypervolume')
+    ax2.set_ylabel('Sparsity')
     return fig, ax

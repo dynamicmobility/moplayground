@@ -114,14 +114,11 @@ def _maybe_wrap_env(
     return env
 
 
-def sample_preferences(key, it, sampling, k, warmup_frac, alpha, num_evals, num_envs):
+def sample_preferences(key, it, sampling, k, warmup_frac, alpha, num_evals, num_envs, num_objs):
     cond = it < np.round(warmup_frac * num_evals)
     def warmup_fn(_):
         print('WARMUP')
-        w = jnp.vstack(
-            [jnp.ones(num_envs),
-                jnp.ones(num_envs)]
-        ).T[jnp.newaxis, :] / 2
+        w = jnp.ones((1, num_envs, num_objs)) / num_objs
         return w
     
     def morl_fn(_):
@@ -129,35 +126,32 @@ def sample_preferences(key, it, sampling, k, warmup_frac, alpha, num_evals, num_
             _, w_key = jax.random.split(key)
             w = jax.random.dirichlet(
                 key=w_key,
-                alpha=jnp.ones(2) * alpha,
+                alpha=jnp.ones(num_objs) * alpha,
                 shape=(1, num_envs)
             )
         elif sampling == 'sparse':
             _, w_key = jax.random.split(key)
             w = jax.random.dirichlet(
                 key=w_key,
-                alpha=jnp.ones(2) * alpha,
+                alpha=jnp.ones(num_objs) * alpha,
                 shape=k
             )
             w = jnp.repeat(w, num_envs // (k + 2), axis=0)[jnp.newaxis, :]
         elif sampling == 'sparse-heavytail':
+            k = 8 - num_objs
             _, w_key = jax.random.split(key)
             w = jax.random.dirichlet(
                 key=w_key,
-                alpha=jnp.ones(2) * alpha,
+                alpha=jnp.ones(num_objs) * alpha,
                 shape=k
             )
             w = jnp.concat(
-                (w, jnp.eye(2)),
+                (w, jnp.eye(num_objs)),
                 axis=0
             )
-            w = jnp.repeat(w, num_envs // (k + 2), axis=0)[jnp.newaxis, :]
-        elif sampling == 'even2d':
-            w = jnp.linspace(0, 1, num=k)
-            w = jnp.array([w, 1 - w]).T
-            w = jnp.repeat(w, num_envs // (k), axis=0)[jnp.newaxis, :]
+            w = jnp.repeat(w, num_envs // (k + num_objs), axis=0)[jnp.newaxis, :]
         elif sampling == 'single-avg':
-            w = jnp.ones((1, num_envs, 2)) / 0.5
+            w = jnp.ones(1, num_envs, num_objs) / num_objs
         else:
             raise Exception(f'Sampling type {sampling} not implemented')
         return w
@@ -416,7 +410,8 @@ def train(
             warmup_frac = warmup_frac,
             alpha       = alpha,
             num_evals   = num_evals,
-            num_envs    = num_envs
+            num_envs    = num_envs,
+            num_objs   = state.reward.shape[1]
         )[0]
 
         policy = make_policy(
@@ -619,6 +614,7 @@ def train(
         episode_length = episode_length,
         action_repeat  = action_repeat,
         key            = eval_key,
+        num_objs       = num_objectives
     )
 
     training_metrics = {}

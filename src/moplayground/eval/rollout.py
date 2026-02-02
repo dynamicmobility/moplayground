@@ -7,8 +7,10 @@ from minimal_mjx.utils.plotting import save_video, save_metrics
 from moplayground.envs.create import create_environment
 from moplayground.learning.inference import load_mo_policy
 
-def main(save_dir):
+def main(save_dir, directive = None):
     config            = read_config()
+    if directive is None:
+        directive = np.ones(len(config.env_config.reward.optimization.objectives))
     env, env_params   = create_environment(config)
     if config['mo2so']['enabled']:
         print('Loading single objective policy')
@@ -17,7 +19,7 @@ def main(save_dir):
         print('Loading multi-objective policy')
         inference_fn      = load_mo_policy(
             config          = config,
-            directive       = np.array([0.5, 0.5]),
+            directive       = directive,
             deterministic   = True
         )
     inference_fn = jax.jit(inference_fn)

@@ -31,7 +31,7 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        ['run', 'height']
+      objectives:        ['run', 'height', 'energy']
       shared_objectives: ['alive']
   termination:
     enabled: true        # Enable or disable early termination

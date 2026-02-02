@@ -25,7 +25,7 @@ from mujoco_playground._src import mjx_env
 import numpy as np
 from minimal_mjx.utils.plotting import get_subplot_grid
 from minimal_mjx.learning.training import initialize_wandb, save_model
-from moplayground.utils.plotting import plot_squential_paretos
+from moplayground.utils.plotting import plot_squential_paretos, plot_sequential_hypervolume
 from dataclasses import dataclass, field
 
 @dataclass(frozen=False)
@@ -64,13 +64,19 @@ def plot_mo_progress(
     training_data.times.append(time.time())
     training_data.save(save_dir / 'progress.csv')
     
-    # create the plot
-    fig, axs = plot_squential_paretos(
-        ax_titles   = training_data.iterations,
-        paretos     = training_data.paretos,
-        directives  = training_data.directives,
-        objectives  = training_data.labels
-    )
+    if np.array(training_data.directives).shape[1] == 2:
+        # create the plot
+        fig, axs = plot_squential_paretos(
+            ax_titles   = training_data.iterations,
+            paretos     = training_data.paretos,
+            directives  = training_data.directives,
+            objectives  = training_data.labels
+        )
+    else:
+        fig, axs = plot_sequential_hypervolume(
+            iterations    = training_data.iterations,
+            paretos       = training_data.paretos
+        )
     
     # save and upload to wandb
     fig.savefig(save_dir / 'progress.svg')
@@ -128,8 +134,9 @@ def mo_train(
         ),
         policy_params_fn=functools.partial(
             save_model,
-            output_dir    = output_dir,
-            run           = run
+            output_dir        = output_dir,
+            run               = run,
+            network_config    = network_config
         ),
     )
     
