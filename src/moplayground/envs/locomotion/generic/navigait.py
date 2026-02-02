@@ -129,7 +129,7 @@ class NaviGait(BipedalBase):
         )
         ff_state = gaitlib.ff_evaluate(0)
         jt_state = gaitlib(0)
-        des_qpos = self._np.hstack([ff_state[:geo.FREE3D_POS], jt_state[:ndof]])
+        des_qpos = self._np.hstack([ff_state[:self.qpos_free], jt_state[:ndof]])
         vdes_is_zero = self._np.all(chosen_vdes[:2] == self._np.zeros(2))
         qpos = self._np.where(
             vdes_is_zero,
@@ -139,13 +139,13 @@ class NaviGait(BipedalBase):
         qvel = self._np.where(
             vdes_is_zero,
             self._np.zeros(self.nv),
-            self._np.hstack([ff_state[geo.FREE3D_POS:], jt_state[ndof:]])
+            self._np.hstack([ff_state[self.qpos_free:], jt_state[ndof:]])
         )
 
         
         if self.params.initialization.strategy == 'manual':
             qpos = des_qpos
-            qvel = self._np.hstack([ff_state[geo.FREE3D_POS:], jt_state[ndof:]])
+            qvel = self._np.hstack([ff_state[self.qpos_free:], jt_state[ndof:]])
 
 
         return rng, gaitlib, qpos, qvel
@@ -185,7 +185,6 @@ class NaviGait(BipedalBase):
         num_resets: int,
         njoint = None,
     ) -> mjx_env.State:        
-        print('1')
         data = self._data_init_fn(
             time         = 0.0,
             qpos         = global_qpos,
@@ -194,16 +193,14 @@ class NaviGait(BipedalBase):
             xfrc_applied = self._np.zeros((self._mj_model.nbody, 6)),
         )
         state = super().reset(rng, data, torso_id, floor_id, ndof, num_resets, njoint = njoint)
-        print('2')
         # Calculate offset transform
         relative_base_des = gaitlib.ff_evaluate(0)
         base2global = geo.solve_transform(
             self._np, 
-            relative_base_des[:geo.FREE3D_POS], 
-            global_qpos[:geo.FREE3D_POS],
+            relative_base_des[:self.qpos_free], 
+            global_qpos[:self.qpos_free],
             reset_yaw=True
         )
-        print('3')
         # Initialize history buffers.
         his_len = self.params.history_length
         gait_des = gaitlib(0)
@@ -235,7 +232,6 @@ class NaviGait(BipedalBase):
             min_idx=9,
             max_idx=10
         )
-        print('4')
         additional_info = {
             "rng":                rng,
             'standing':           0.0,
@@ -265,7 +261,6 @@ class NaviGait(BipedalBase):
         obs = None
         reward, done = self._np.zeros(2)
         state = self._state_init_fn(data, obs, reward, done, metrics, info)
-        print('5')
         return state
     
     def update_info(
@@ -293,8 +288,8 @@ class NaviGait(BipedalBase):
         accel_history = self.make_history(noisy_accel, accel_history_len)
         
         motor_targets = self._np.hstack([
-            global_hzd_qpos[geo.FREE3D_POS:],
-            global_hzd_qvel[geo.FREE3D_VEL:]
+            global_hzd_qpos[self.qpos_free:],
+            global_hzd_qvel[self.qvel_free:]
         ])
         motor_target_history = self.make_history(motor_targets, self.params.domain_randomization.action_delay.val[1] + 1)
         additional_info = {
@@ -341,12 +336,12 @@ class NaviGait(BipedalBase):
     def animate_data(self, state, data, jtpos_des):
         base_qpos = geo.apply_transform(
             self._np,
-            state.info['base_history'][0][:geo.FREE3D_POS],
+            state.info['base_history'][0][:self.qpos_free],
             state.info['base2global']
         )
         data.qpos = self._np.hstack([base_qpos, jtpos_des])
         data.qvel = self._np.zeros(self._mj_model.nv)
-        data.qvel[:geo.FREE3D_VEL] = state.info['base_history'][0][geo.FREE3D_POS:]
+        data.qvel[:self.qvel_free] = state.info['base_history'][0][self.qpos_free:]
 
         return data
         
@@ -445,8 +440,8 @@ class NaviGait(BipedalBase):
         base2global
     ):
         relative_qpos = self._np.hstack([
-            geo.apply_transform(self._np, qpos[:FREE3D_POS], geo.inv_transform(self._np, base2global)),
-            qpos[FREE3D_POS:],
+            geo.apply_transform(self._np, qpos[:self.qpos_free], geo.inv_transform(self._np, base2global)),
+            qpos[self.qpos_free:],
         ])
         return relative_qpos
     
@@ -497,15 +492,15 @@ class NaviGait(BipedalBase):
         
         # Update the state info with the new gait object and the desired gait targets
         gait_phase = new_gaitlib.get_phase(time)
-        # base_pos = state.info['base_des'][:FREE3D_POS] + state.info['base_offset']
+        # base_pos = state.info['base_des'][:self.qpos_free] + state.info['base_offset']
         new_gait_des = new_gaitlib(gait_phase)
         new_base_des = new_gaitlib.ff_evaluate(gait_phase)
         switched = self._np.astype((ground_contact), self._np.int32)
 
         base2global = geo.solve_transform(
             self._np,
-            new_base_des[:geo.FREE3D_POS],
-            qpos[:geo.FREE3D_POS],
+            new_base_des[:self.qpos_free],
+            qpos[:self.qpos_free],
             cmd_yaw_offset=info['vdes'][2]
         )
         info['old_base2global'] = info['base2global'].copy()
@@ -516,7 +511,7 @@ class NaviGait(BipedalBase):
         relative_qpos = self.get_relative_qpos(qpos, info['base2global'])
         info['rng'], noisy_jt = self.noisy(
             rng        = info['rng'],
-            value      = relative_qpos[geo.FREE3D_POS:],
+            value      = relative_qpos[self.qpos_free:],
             lim        = qpos_noise,
             curr_level = self.get_curriculum_level(info)
         )
@@ -528,7 +523,7 @@ class NaviGait(BipedalBase):
             curr_level = self.get_curriculum_level(info)
         )
         noisy_quat_additional = geo.euler2quat(self._np, noisy_omega)
-        noisy_quat = geo.quat_mul(self._np, noisy_quat_additional, relative_qpos[3:geo.FREE3D_POS])
+        noisy_quat = geo.quat_mul(self._np, noisy_quat_additional, relative_qpos[3:self.qpos_free])
         noisy_qpos = self._np.hstack([
             relative_qpos[:3],
             noisy_quat,
@@ -596,7 +591,7 @@ class NaviGait(BipedalBase):
         ])
         references = self._np.hstack([
             info['gait_history'][0][ndof:],
-            info['base_history'][0][geo.FREE3D_POS:],
+            info['base_history'][0][self.qpos_free:],
             info['gaitlib'].swing_leg,
             info['gaitlib'].get_phase(time)
         ])
@@ -610,7 +605,7 @@ class NaviGait(BipedalBase):
         history = self._np.hstack([
             self._splice(info['noisy_qpos_history'], (qpos_delay, 3), (his_len, self.nq - 3)).flatten(),
             info['gait_history'][:his_len, :ndof].flatten(),
-            info['base_history'][:his_len, :geo.FREE3D_POS].flatten(),
+            info['base_history'][:his_len, :self.qpos_free].flatten(),
         ])
 
         privileged_history = self._np.hstack([

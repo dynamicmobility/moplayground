@@ -1,4 +1,4 @@
-from control.bezier import P1Bezier, Leg
+from moplayground.envs.locomotion.control.bezier import P1Bezier, Leg
 import numpy as np
 from enum import IntEnum
 from scipy.spatial import KDTree

@@ -5,7 +5,7 @@ from jax import numpy as jnp
 from enum import IntEnum
 from scipy.special import comb, factorial
 from dataclasses import dataclass, field
-from utils.geometry import euler2quat, quat2euler
+from minimal_mjx.utils.geometry import euler2quat, quat2euler
 
 def bezier_basis_matrix(n):
     """

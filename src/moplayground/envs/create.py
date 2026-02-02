@@ -24,6 +24,15 @@ def create_environment(config, for_training=False):
         case 'MOHumanoid':
             from moplayground.envs.dmcontrol.humanoid import MOHumanoid
             env = MOHumanoid(**common_kwargs)
+        case 'NaviGait':
+            from moplayground.envs.locomotion.bruce.navigait import Bruce
+            env = Bruce(
+                gaitlib_path    = config['gaitlib_path'],
+                gait_type       = 'P2',
+                idealistic      = True,
+                animate         = False,
+                **common_kwargs
+            )
         case _:
             raise Exception(f'Unknown enviornment {config["env"]}.')
     return env, env_params
