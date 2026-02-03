@@ -11,11 +11,12 @@ import numpy as np
 
 from minimal_mjx.utils import geometry as geo
 from minimal_mjx.utils.state import MujocoState
-from minimal_mjx.envs.generic.base import SwappableBase
+# from minimal_mjx.envs.generic.base import SwappableBase
+from moplayground.envs.generic.mobase import MultiObjectiveBase
 
 CHILD_ERROR = 'Please implement in child class'    
 
-class BipedalBase(SwappableBase):
+class BipedalBase(MultiObjectiveBase):
     """Atalante walker task."""
 
     def __init__(self,

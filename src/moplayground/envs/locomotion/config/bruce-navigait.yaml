@@ -1,11 +1,14 @@
-name: test-higher-sim-dt-1000ts #low-noise-old
-save_dir: results/first-try-again
+name: more-parallelized #low-noise-old
+save_dir: results/Bruce-first-try
 description: ""
 algorithm: ppo
 env: NaviGait
 robot: BRUCE
 backend: np 
 gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10
+mo2so:
+  enabled: false
+  weighting: [0.5, 0.5]
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
   sim_dt:           0.004   # Simulation (mujoco) timestep
@@ -37,14 +40,14 @@ env_config:
     scale: 1.0
     scaling_iterations: 75.0 
   domain_randomization:
-    enabled: true
+    enabled: false
     obs_delay:
-      enabled: true
+      enabled: false
       gyro:    [1, 2]
       accel:   [1, 2]
       qpos:    [1, 2]
     action_delay:
-      enabled: true
+      enabled: false
       val:     [0, 1]
     params: # [nominal, low, high]
       floor_friction:   0.4 #0.8         # Scales the floor friction
@@ -59,6 +62,9 @@ env_config:
       forcerange:       0.2 #0.3
       z0:               0.02 #0.03
   reward:
+    optimization:
+      objectives:        ['gait_tracking', 'gait_tracking']
+      shared_objectives: ['base_xyz_tracking', 'base_quat_tracking', 'vel_residual_size', 'vel_residual_rate', 'minimize_energy', 'res_jt_rate']
     weights:
       gait_tracking:       1.00  # Tracking the reference gait
       base_xyz_tracking:   1.00  # Tracking the desired base position
@@ -92,7 +98,7 @@ env_config:
     ang_vel_z:     [0.0, 0.0]       # Angular velocity in yaw direction
     vdes_duration: 22.5              # Duration of each desired vel command (sec)
   push:
-    enabled:         true  # Enable or disable the push
+    enabled:         false  # Enable or disable the push
     major_lim:       4.0   # Major push limit in x direction in Newtons
     minor_lim:       4.0   # Minor push limit in y direction in Newtons
     annulus_width:   0.1    # Width of the annulus around the robot for push (0-1)
@@ -102,21 +108,34 @@ env_config:
 learning_params:
   ppo_params:
     action_repeat: 1
-    batch_size: 256
-    clipping_epsilon: 0.2
-    discounting: 0.97
+    batch_size: 64
+    clipping_epsilon: 0.1
+    deterministic_eval: true
+    discounting: 0.98
     entropy_cost: 0.01
-    episode_length: 2000
-    learning_rate: 0.0003
+    episode_length: 500
+    learning_rate: 0.00005
     max_grad_norm: 1.0
-    normalize_observations: false
-    num_envs: 8192
-    num_evals: 20
-    num_minibatches: 32
-    num_timesteps: 100000000
+    normalize_observations: true
+    num_envs: 1024
+    num_evals: 15
+    num_minibatches: 16
+    num_timesteps: 50000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
-    unroll_length: 32
+    unroll_length: 30
+  hypermorl_params:
+    alpha: 1.0
+    k: 6
+    sampling: sparse-heavytail
+    warmup_frac: 0.0
+  warmup_params:
+    enabled: false
+    policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
   network_params:
-    policy_hidden_layer_sizes: [256, 128, 64]
-    value_hidden_layer_sizes: [256, 128, 64]
+    policy_hidden_layer_sizes: [64, 64]
+    value_hidden_layer_sizes:  [64, 64]
+  hypernetwork_params:
+    hypertype: ActorCritic
+    hypersize: [128, 128]
+    num_features: 16

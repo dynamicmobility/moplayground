@@ -63,8 +63,8 @@ def plot_mo_progress(
     training_data.directives.append(metrics['directive'])
     training_data.times.append(time.time())
     training_data.save(save_dir / 'progress.csv')
-    
-    if np.array(training_data.directives).shape[1] == 2:
+
+    if np.array(training_data.directives).shape[2] == 2:
         # create the plot
         fig, axs = plot_squential_paretos(
             ax_titles   = training_data.iterations,

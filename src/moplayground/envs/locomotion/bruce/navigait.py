@@ -143,7 +143,16 @@ class Bruce(NaviGait):
             info        = updated_info,
             ndof        = bruce.NDOF
         )
-        return parent_state.replace(obs=obs, info=updated_info)
+        rewards = self.reward_function(
+            parent_state.data,
+            updated_info['act_history'][0],
+            updated_info,
+            parent_state.done
+        )
+        reward, metrics = self.get_reward_and_metrics(
+            rewards, parent_state.metrics
+        )
+        return parent_state.replace(obs=obs, info=updated_info, reward=reward)
 
     def get_sensor_values(
         self,
@@ -340,9 +349,14 @@ class Bruce(NaviGait):
             base_height_min = bruce.MIN_BASE_HEIGHT,  
         )
         
-        # Compute rewards
+        rewards = self.reward_function(
+            data,
+            res_action,
+            updated_info,
+            done
+        )
         reward, metrics = self.get_reward_and_metrics(
-            data, updated_info, state.metrics, state.done, res_action
+            rewards, state.metrics
         )
         
         done = done.astype(self._np.float32)

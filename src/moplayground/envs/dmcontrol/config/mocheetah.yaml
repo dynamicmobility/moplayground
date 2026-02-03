@@ -1,5 +1,5 @@
 name: test
-save_dir: results/MOCheetah-run-height
+save_dir: results/MOCheetah-run-energy
 description: ""
 algorithm: "ppo"
 env: "MOCheetah"
@@ -31,7 +31,7 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        ['run', 'height', 'energy']
+      objectives:        ['run', 'energy']
       shared_objectives: ['alive']
   termination:
     enabled: true        # Enable or disable early termination
