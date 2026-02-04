@@ -1,4 +1,4 @@
-name: random-with-zero #low-noise-old
+name: emphasized-arms #low-noise-old
 save_dir: results/Bruce-arm-swing
 description: ""
 algorithm: ppo
@@ -13,7 +13,7 @@ mo2so:
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
   sim_dt:           0.004   # Simulation (mujoco) timestep
-  jt_scale:         0.25    # Scales the joint position commands
+  jt_scale:         [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
   vel_scale:        0.20    # Scales the velocity commands
   history_length:   5       # Number of previous joint observations to stack
   noise_scale:      1.0     # Scales the sensor noise
@@ -65,9 +65,9 @@ env_config:
   reward:
     optimization:
       objectives:        ['gait_tracking', 'arm_swinging']
-      shared_objectives: ['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking', 'vel_residual_size', 'vel_residual_rate', 'minimize_energy', 'res_jt_rate']
+      shared_objectives: ['base_xyz_tracking', 'base_quat_tracking', 'vel_residual_size', 'vel_residual_rate', 'minimize_energy', 'res_jt_rate']
     weights:
-      gait_tracking:       0.50  # Tracking the reference gait
+      gait_tracking:       1.00  # Tracking the reference gait
       base_xyz_tracking:   1.00  # Tracking the desired base position
       base_quat_tracking:  1.00  # Tracking the desired base orientation
       base_vel_tracking:   0.00  # Tracking the desired base linear and angular velocity

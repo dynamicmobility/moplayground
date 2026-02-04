@@ -461,8 +461,8 @@ class Bruce(NaviGait):
         )
         rewards = {
             'gait_tracking' : self.reward_euclidean_imitation(
-                qpos            = global_qpos_act[self.qpos_free:10+self.qpos_free],
-                reference       = gait_des[:10],
+                qpos            = global_qpos_act[self.qpos_free:],
+                reference       = gait_des[:16],
                 imitation_sigma = sigmas.gait_tracking
             ),
             'base_xyz_tracking': self.reward_euclidean_imitation(

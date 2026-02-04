@@ -30,7 +30,7 @@ def create_environment(config, for_training=False):
                 gaitlib_path    = config['gaitlib_path'],
                 gait_type       = 'P2',
                 idealistic      = True,
-                animate         = False,
+                animate         = True,
                 **common_kwargs
             )
         case _:
