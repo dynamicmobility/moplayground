@@ -71,7 +71,7 @@ class NaviGait(BipedalBase):
         # compute the initial positions and velocities of gait
         self._lowers = self._mj_model.jnt_range[1:, 0]
         self._uppers = self._mj_model.jnt_range[1:, 1]
-        self._jt_scale = self.params.jt_scale
+        self._jt_scale = self._np.array(self.params.jt_scale)
         self._vel_scale = self.params.vel_scale
 
     def set_initial_data(
