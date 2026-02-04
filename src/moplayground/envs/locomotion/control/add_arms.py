@@ -29,8 +29,16 @@ def add_arms(gait):
     RF = get_coeffs('RightSS', gait, 10)
     # print(LF.shape)
     # quit()
-    gait['LeftSS']['coeff_jt']  = np.concat((LF, np.zeros((LF.shape[0], 3)))).flatten().tolist()
-    gait['RightSS']['coeff_jt'] = np.concat((RF, np.zeros((LF.shape[0], 3)))).flatten().tolist()
+    arm_pos = np.concat(
+        (np.zeros((LF.shape[0], 1)),
+         np.ones((LF.shape[0], 1)),
+         np.zeros((LF.shape[0], 1))),
+        axis=1
+    )
+    arm_L = (LF, arm_pos.copy()) + (-arm_pos.copy(),)
+    arm_R = (RF, arm_pos.copy()) + (-arm_pos.copy(),)
+    gait['LeftSS']['coeff_jt']  = np.concat(arm_L, axis=1).flatten().tolist()
+    gait['RightSS']['coeff_jt'] = np.concat(arm_R, axis=1).flatten().tolist()
     return gait
     
 def write_to_file(gait, filename):

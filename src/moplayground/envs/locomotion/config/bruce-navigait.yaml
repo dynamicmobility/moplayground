@@ -5,7 +5,8 @@ algorithm: ppo
 env: NaviGait
 robot: BRUCE
 backend: np 
-gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10
+# gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10
+gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10_witharms
 mo2so:
   enabled: false
   weighting: [0.5, 0.5]

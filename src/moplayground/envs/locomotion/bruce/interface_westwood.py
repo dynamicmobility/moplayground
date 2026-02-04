@@ -30,8 +30,8 @@ LEFT_FOOT_ID    = _interface_model.body(LEFT_FOOT).id
 RF_COLLISION_ID = _interface_model.geom('right_foot_collision').id 
 LF_COLLISION_ID = _interface_model.geom('left_foot_collision').id 
 
-NDOF = 10
-NJOINT = 18
+NDOF = 16 #10
+NJOINT = 18 + 6
 
 FEET_SENSORS = [
     'opto1',
@@ -76,7 +76,7 @@ BASE_VEL = 'base_velocimeter'
 # DEFAULT_JT = [0.0] * 10
 # DEFAULT_JT = [-0.008,  0.469,  0.018, -0.947, -0.469,  0.008,  0.469, -0.018, -0.947, -0.469]
 DEFAULT_JT = [-0.008,  0.469,  0.018, -0.947, -0.469, 
-               0.008,  0.469, -0.018, -0.947, -0.469]
+               0.008,  0.469, -0.018, -0.947, -0.469] + [0.0] * 6
 DEFAULT_FF = [0.0, 0.0, 0.455, 1.0, 0.0, 0.0, 0.0]
 
 ACCEL_NOISE       = 0.1
@@ -103,12 +103,6 @@ def ext(_np, func, q, num_free):
     robot_q = q[num_free:]
     transformed_q = func(_np, robot_q)
     return _np.hstack([free_q, transformed_q])
-
-def check_arms(_np, post_transform, pre_transform):
-    if pre_transform.shape[0] == 16:
-        return _np.hstack((post_transform, pre_transform[10:]))
-    else:
-        return post_transform
         
 
 ##################################

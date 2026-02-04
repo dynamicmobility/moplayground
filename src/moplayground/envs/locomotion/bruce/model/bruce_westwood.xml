@@ -4,6 +4,9 @@
     <default class="passive-joint">
       <joint damping="0.001" armature="0.0013" limited="true"/>
     </default>
+    <default class="dynamixel">
+      <joint damping="0.1" armature="0.1" limited="true"/>
+    </default>
     <default class="unused"/>
     <default class="bear-jt">
       <joint armature="1.82000000e-02" damping="1.10816751e-03" stiffness="0.0" frictionloss="0.0" actuatorfrcrange="-6 6"/>
@@ -193,6 +196,42 @@
       <!-- <body name="ball" pos="0.0 0.0 0.03">
           <geom name="ball_geom" type="box" size="0.015 0.02 0.015" rgba="0.2 0.6 0.8 1" density="2000"/>
       </body> -->
+      <body name="shoulder_pitch_link_r" pos="0.029215999999999999 -0.12375 0.15298500000000001" euler="-89.999789540083242 -89.999789541765594 180">
+        <inertial pos="0 -0.00038299999999999999 -0.014137" mass="0.049316899999999997" fullinertia="2.5069999999999999e-05 2.4029999999999999e-05 8.32e-06 0 0 1.8e-07"/>
+        <!-- <geom name="shoulder_pitch_link_r_collision" class="unused" type="mesh" group="3" friction="1 0.0050000000000000001 0.0001" pos="0 3.8163916471489756e-17 0" euler="0 -0 0" mesh="shoulder_pitch_link_r"/> -->
+        <geom name="shoulder_pitch_link_r_visual" class="unused" type="mesh" contype="0" conaffinity="0" group="0" pos="0 3.8163916471489756e-17 0" euler="0 -0 0" mesh="shoulder_pitch_link_r"/>
+        <joint name="shoulder_pitch_r" class="dynamixel" type="hinge" pos="0 3.8163916471489756e-17 0" axis="0 0 1" limited="true" range="-179.99469134034814 179.99469134034814" damping="0.002"/>
+        <body name="shoulder_roll_link_r" pos="0 3.8163916471489756e-17 0" euler="-89.999789540083242 -89.999789538302082 180">
+          <inertial pos="0.057093999999999999 -0.0041949999999999999 0.00093700000000000001" mass="0.024" fullinertia="7.7500000000000003e-06 0.00012556000000000001 0.00012619000000000001 -6.9e-06 2.6199999999999999e-06 -1.1000000000000001e-07"/>
+          <!-- <geom name="shoulder_roll_link_r_collision" class="unused" type="mesh" group="3" friction="1 0.0050000000000000001 0.0001" pos="1.3877787807814457e-17 0 -1.3877787807814457e-17" euler="0 3.180554681463516e-15 0" mesh="shoulder_roll_link_r"/> -->
+          <geom name="shoulder_roll_link_r_visual" class="unused" type="mesh" contype="0" conaffinity="0" group="0" pos="1.3877787807814457e-17 0 -1.3877787807814457e-17" euler="0 3.180554681463516e-15 0" mesh="shoulder_roll_link_r"/>
+          <joint name="shoulder_roll_r" class="dynamixel" type="hinge" pos="1.3877787807814457e-17 0 -1.3877787807814457e-17" axis="1.1102230246251565e-16 0 1" limited="true" range="-179.99469134034814 179.99469134034814" damping="0.002"/>
+          <body name="elbow_pitch_link_r" pos="0.11460000000000002 -0.0050000000000000044 0.0049999999999999767" euler="90.000210459149727 6.5571044696735299e-15 -2.4388550995442297e-15">
+            <inertial pos="0.021787999999999998 0 0.00036000000000000002" mass="0.052440399999999998" fullinertia="7.5299999999999999e-06 7.2609999999999998e-05 7.1030000000000003e-05 0 1.8e-07 0"/>
+            <!-- <geom name="elbow_pitch_link_r_collision" class="unused" type="mesh" group="3" friction="1 0.0050000000000000001 0.0001" pos="2.7755575615628914e-17 6.9388939039072284e-17 0" euler="0 4.8531412986198681e-20 0" mesh="elbow_pitch_link_r"/> -->
+            <geom name="elbow_pitch_link_r_visual" class="unused" type="mesh" contype="0" conaffinity="0" group="0" pos="2.7755575615628914e-17 6.9388939039072284e-17 0" euler="0 4.8531412986198681e-20 0" mesh="elbow_pitch_link_r"/>
+            <joint name="elbow_pitch_r" class="dynamixel" type="hinge" pos="2.7755575615628914e-17 6.9388939039072284e-17 0" axis="1.6940658945086007e-21 0 1" limited="true" range="-179.99469134034814 179.99469134034814" damping="0.002"/>
+          </body>
+        </body>
+      </body>
+      <body name="shoulder_pitch_link_l" pos="0.029215999999999999 0.12375 0.15298500000000001" euler="89.999789540083242 89.999789541765594 180">
+        <inertial pos="0 0.00038299999999999999 -0.014137" mass="0.049316899999999997" fullinertia="2.5069999999999999e-05 2.4029999999999999e-05 8.32e-06 0 0 -1.8e-07"/>
+        <!-- <geom name="shoulder_pitch_link_l_collision" class="unused" type="mesh" group="3" friction="1 0.0050000000000000001 0.0001" pos="-2.7755575615628914e-17 -5.2041704279304213e-17 -1.3877787807814457e-17" euler="0 -0 0" mesh="shoulder_pitch_link_l"/> -->
+        <geom name="shoulder_pitch_link_l_visual" class="unused" type="mesh" contype="0" conaffinity="0" group="0" pos="-2.7755575615628914e-17 -5.2041704279304213e-17 -1.3877787807814457e-17" euler="0 -0 0" mesh="shoulder_pitch_link_l"/>
+        <joint name="shoulder_pitch_l" class="dynamixel" type="hinge" pos="-2.7755575615628914e-17 -5.2041704279304213e-17 -1.3877787807814457e-17" axis="0 0 1" limited="true" range="-179.99469134034814 179.99469134034814" damping="0.002"/>
+        <body name="shoulder_roll_link_l" pos="-2.7755575615628914e-17 -5.2041704279304213e-17 -1.3877787807814457e-17" euler="-89.999789538351479 -89.999789540033831 179.99999999826824">
+          <inertial pos="0.057093999999999999 0.0041949999999999999 0.00094200000000000002" mass="0.031365200000000003" fullinertia="1.013e-05 0.00016409000000000001 0.00016490999999999999 9.02e-06 3.4199999999999999e-06 1.4999999999999999e-07"/>
+          <!-- <geom name="shoulder_roll_link_l_collision" class="unused" type="mesh" group="3" friction="1 0.0050000000000000001 0.0001" pos="1.3877787807814457e-17 2.7755575615628914e-17 -3.4694469519536142e-17" euler="0 -0 0" mesh="shoulder_roll_link_l"/> -->
+          <geom name="shoulder_roll_link_l_visual" class="unused" type="mesh" contype="0" conaffinity="0" group="0" pos="1.3877787807814457e-17 2.7755575615628914e-17 -3.4694469519536142e-17" euler="0 -0 0" mesh="shoulder_roll_link_l"/>
+          <joint name="shoulder_roll_l" class="dynamixel" type="hinge" pos="1.3877787807814457e-17 2.7755575615628914e-17 -3.4694469519536142e-17" axis="0 0 1" limited="true" range="-179.99469134034814 179.99469134034814" damping="0.002"/>
+          <body name="elbow_pitch_link_l" pos="0.11459999999999999 0.0050000000000000044 0.0049999999999999906" euler="-90.000210459149713 1.4198072913902969e-15 -1.4198125066432634e-15">
+            <inertial pos="0.021787999999999998 0 0.00036000000000000002" mass="0.052440399999999998" fullinertia="7.5299999999999999e-06 7.2609999999999998e-05 7.1030000000000003e-05 0 1.8e-07 0"/>
+            <!-- <geom name="elbow_pitch_link_l_collision" class="unused" type="mesh" group="3" friction="1 0.0050000000000000001 0.0001" pos="-2.7755575615628914e-17 -4.163336342344337e-17 -2.7755575615628914e-17" euler="0 -0 0" mesh="elbow_pitch_link_l"/> -->
+            <geom name="elbow_pitch_link_l_visual" class="unused" type="mesh" contype="0" conaffinity="0" group="0" pos="-2.7755575615628914e-17 -4.163336342344337e-17 -2.7755575615628914e-17" euler="0 -0 0" mesh="elbow_pitch_link_l"/>
+            <joint name="elbow_pitch_l" class="dynamixel" type="hinge" pos="-2.7755575615628914e-17 -4.163336342344337e-17 -2.7755575615628914e-17" axis="0 0 1" limited="true" range="-179.99469134034814 179.99469134034814" damping="0.002"/>
+          </body>
+        </body>
+      </body>
     </body> 
 
   </worldbody>
@@ -261,12 +300,12 @@
     <position class="bear" joint="knee_pitch_l"    name="knee_pitch_l_pos"/>
     <position class="bear" joint="ankle_crank_l"   name="ankle_crank_l_pos"/>
 
-    <!-- <position name="shoulder_pitch_r"  joint="shoulder_pitch_r" kp="700" kv="5" forcerange="-1 1"/>
-    <position name="shoulder_roll_r"   joint="shoulder_roll_r"  kp="700" kv="5" forcerange="-1 1"/>
-    <position name="elbow_pitch_r"     joint="elbow_pitch_r"    kp="700" kv="5" forcerange="-1 1"/>
-    <position name="shoulder_pitch_l"  joint="shoulder_pitch_l" kp="700" kv="5" forcerange="-1 1"/>
-    <position name="shoulder_roll_l"   joint="shoulder_roll_l"  kp="700" kv="5" forcerange="-1 1"/>
-    <position name="elbow_pitch_l"     joint="elbow_pitch_l"    kp="700" kv="5" forcerange="-1 1"/> -->
+    <position name="shoulder_pitch_r"  joint="shoulder_pitch_r" kp="5" forcerange="-1 1"/>
+    <position name="shoulder_roll_r"   joint="shoulder_roll_r"  kp="5" forcerange="-1 1"/>
+    <position name="elbow_pitch_r"     joint="elbow_pitch_r"    kp="5" forcerange="-1 1"/>
+    <position name="shoulder_pitch_l"  joint="shoulder_pitch_l" kp="5" forcerange="-1 1"/>
+    <position name="shoulder_roll_l"   joint="shoulder_roll_l"  kp="5" forcerange="-1 1"/>
+    <position name="elbow_pitch_l"     joint="elbow_pitch_l"    kp="5" forcerange="-1 1"/>
 
 
     <velocity class="bear-vel" joint="hip_yaw_r"       name="hip_yaw_r_vel"/>
@@ -281,12 +320,12 @@
     <velocity class="bear-vel" joint="knee_pitch_l"    name="knee_pitch_l_vel"/>
     <velocity class="bear-vel" joint="ankle_crank_l"   name="ankle_crank_l_vel"/>
 
-    <!-- <velocity  name="shoulder_pitch_r_vel"  joint="shoulder_pitch_r"  forcerange="-1 1" kv="1"/>
-    <velocity  name="shoulder_roll_r_vel"   joint="shoulder_roll_r"   forcerange="-1 1" kv="1"/>
-    <velocity  name="elbow_pitch_r_vel"     joint="elbow_pitch_r"     forcerange="-1 1" kv="1"/>
-    <velocity  name="shoulder_pitch_l_vel"  joint="shoulder_pitch_l"  forcerange="-1 1" kv="1"/>
-    <velocity  name="shoulder_roll_l_vel"   joint="shoulder_roll_l"   forcerange="-1 1" kv="1"/>
-    <velocity  name="elbow_pitch_l_vel"     joint="elbow_pitch_l"     forcerange="-1 1" kv="1"/> -->
+    <velocity  name="shoulder_pitch_r_vel"  joint="shoulder_pitch_r"  forcerange="-1 1" kv="0.1"/>
+    <velocity  name="shoulder_roll_r_vel"   joint="shoulder_roll_r"   forcerange="-1 1" kv="0.1"/>
+    <velocity  name="elbow_pitch_r_vel"     joint="elbow_pitch_r"     forcerange="-1 1" kv="0.1"/>
+    <velocity  name="shoulder_pitch_l_vel"  joint="shoulder_pitch_l"  forcerange="-1 1" kv="0.1"/>
+    <velocity  name="shoulder_roll_l_vel"   joint="shoulder_roll_l"   forcerange="-1 1" kv="0.1"/>
+    <velocity  name="elbow_pitch_l_vel"     joint="elbow_pitch_l"     forcerange="-1 1" kv="0.1"/>
   </actuator>
   
   <sensor>
