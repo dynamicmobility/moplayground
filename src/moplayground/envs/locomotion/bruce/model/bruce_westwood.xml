@@ -261,6 +261,13 @@
     <position class="bear" joint="knee_pitch_l"    name="knee_pitch_l_pos"/>
     <position class="bear" joint="ankle_crank_l"   name="ankle_crank_l_pos"/>
 
+    <!-- <position name="shoulder_pitch_r"  joint="shoulder_pitch_r" kp="700" kv="5" forcerange="-1 1"/>
+    <position name="shoulder_roll_r"   joint="shoulder_roll_r"  kp="700" kv="5" forcerange="-1 1"/>
+    <position name="elbow_pitch_r"     joint="elbow_pitch_r"    kp="700" kv="5" forcerange="-1 1"/>
+    <position name="shoulder_pitch_l"  joint="shoulder_pitch_l" kp="700" kv="5" forcerange="-1 1"/>
+    <position name="shoulder_roll_l"   joint="shoulder_roll_l"  kp="700" kv="5" forcerange="-1 1"/>
+    <position name="elbow_pitch_l"     joint="elbow_pitch_l"    kp="700" kv="5" forcerange="-1 1"/> -->
+
 
     <velocity class="bear-vel" joint="hip_yaw_r"       name="hip_yaw_r_vel"/>
     <velocity class="bear-vel" joint="hip_actuatorR_r" name="hip_actuatorR_r_vel"/>
@@ -273,6 +280,13 @@
     <velocity class="bear-vel" joint="hip_actuatorL_l" name="hip_actuatorL_l_vel"/>
     <velocity class="bear-vel" joint="knee_pitch_l"    name="knee_pitch_l_vel"/>
     <velocity class="bear-vel" joint="ankle_crank_l"   name="ankle_crank_l_vel"/>
+
+    <!-- <velocity  name="shoulder_pitch_r_vel"  joint="shoulder_pitch_r"  forcerange="-1 1" kv="1"/>
+    <velocity  name="shoulder_roll_r_vel"   joint="shoulder_roll_r"   forcerange="-1 1" kv="1"/>
+    <velocity  name="elbow_pitch_r_vel"     joint="elbow_pitch_r"     forcerange="-1 1" kv="1"/>
+    <velocity  name="shoulder_pitch_l_vel"  joint="shoulder_pitch_l"  forcerange="-1 1" kv="1"/>
+    <velocity  name="shoulder_roll_l_vel"   joint="shoulder_roll_l"   forcerange="-1 1" kv="1"/>
+    <velocity  name="elbow_pitch_l_vel"     joint="elbow_pitch_l"     forcerange="-1 1" kv="1"/> -->
   </actuator>
   
   <sensor>

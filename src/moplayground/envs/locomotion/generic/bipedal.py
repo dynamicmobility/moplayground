@@ -521,8 +521,8 @@ class BipedalBase(MultiObjectiveBase):
             maxval: jax.Array
         ):
         # TODO: This does not appropriately handle joints with no limits
-        val = self._uniform(jt_key, qpos[geo.FREE3D_POS:].shape[0], minval=minval, maxval=maxval)
-        val = self._np.clip(val + qpos[geo.FREE3D_POS:], *self._jt_lims)
+        val = self._uniform(jt_key, qpos[self.qpos_free:].shape[0], minval=minval, maxval=maxval)
+        val = self._np.clip(val + qpos[self.qpos_free:], *self._jt_lims)
         qpos = self._set_val_fn(qpos, val, min_idx=geo.FREE3D_POS, max_idx=None)
         return qpos
     

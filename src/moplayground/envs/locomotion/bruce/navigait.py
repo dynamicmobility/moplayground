@@ -74,17 +74,15 @@ class Bruce(NaviGait):
         rng, ff_key, jt_key = self._split(rng, 3)
         if self.params.initialization.add_random_yaw:
             global_hzd_qpos = self.add_random_ff(ff_key, global_hzd_qpos)
-        
-        global_hzd_qpos = self._np.where(
-            self.params.initialization.add_random_jt.enabled,
-            self.add_random_joint_state(
+            
+        if self.params.initialization.add_random_jt.enabled:
+            global_full_qpos = self.add_random_joint_state(
                 jt_key = jt_key, 
-                qpos   = global_hzd_qpos,
+                qpos   = bruce.ext(self._np, bruce.crank2full, global_hzd_qpos, self.qpos_free),
                 minval = self.params.initialization.add_random_jt.minval,
                 maxval = self.params.initialization.add_random_jt.maxval
-            ),
-            global_hzd_qpos
-        )
+            )
+            global_hzd_qpos = bruce.ext(self._np, bruce.full2crank, global_full_qpos, self.qpos_free)
         
         motor_targets_linkage = self._np.hstack((
             global_hzd_qpos[geo.FREE3D_POS:],
@@ -433,7 +431,7 @@ class Bruce(NaviGait):
             self._np,
             bruce.full2crank,
             data.qpos,
-            geo.FREE3D_POS
+            self.qpos_free
         )
         # rel_qpos_act = self.get_relative_qpos(
         #     qpos        = global_qpos_act,

@@ -104,20 +104,27 @@ def ext(_np, func, q, num_free):
     transformed_q = func(_np, robot_q)
     return _np.hstack([free_q, transformed_q])
 
+def check_arms(_np, post_transform, pre_transform):
+    if pre_transform.shape[0] == 16:
+        return _np.hstack((post_transform, pre_transform[10:]))
+    else:
+        return post_transform
+        
+
 ##################################
 def crank2pitch(
     _np,
     jt_pos: jax.Array
 ):
     """Convert crank to  pitch"""
-    return _np.hstack((jt_pos[0:4], -jt_pos[3] + jt_pos[4], jt_pos[5:9], -jt_pos[8] + jt_pos[9]))
+    return _np.hstack((jt_pos[0:4], -jt_pos[3] + jt_pos[4], jt_pos[5:9], -jt_pos[8] + jt_pos[9], jt_pos[10:]))
 
 def pitch2crank(
     _np,
     jt_pos: jax.Array
 ):
     """Convert pitch to crank"""
-    return _np.hstack((jt_pos[0:4], jt_pos[4] + jt_pos[3], jt_pos[5:9], jt_pos[9] + jt_pos[8]))
+    return _np.hstack((jt_pos[0:4], jt_pos[4] + jt_pos[3], jt_pos[5:9], jt_pos[9] + jt_pos[8], jt_pos[10:]))
 
 ##################################
 def full2bear(
@@ -131,7 +138,7 @@ def full2bear(
         ankle_crank = leg_jt[6]
         return _np.hstack([hip_yaw, hip_diff, knee_pitch, ankle_crank])
     
-    bears = _np.hstack([by_leg(jt_pos[:9]), by_leg(jt_pos[9:])])
+    bears = _np.hstack([by_leg(jt_pos[:9]), by_leg(jt_pos[9:18]), jt_pos[18:]])
     return bears
 
 def bear2full(
@@ -146,7 +153,8 @@ def bear2full(
     crank = pitch2crank(_np, pitch)
     full = _np.hstack([
         by_leg(bears[:5], pitch[:5], crank[:5]),
-        by_leg(bears[5:], pitch[5:], crank[5:])
+        by_leg(bears[5:10], pitch[5:10], crank[5:10]),
+        bears[10:]
     ])
     return full
 
@@ -155,13 +163,13 @@ def bear2pitch(
     _np,
     bears
 ):
-    return _np.hstack([T_bear2joint @ bears[:5], T_bear2joint @ bears[5:]])
+    return _np.hstack([T_bear2joint @ bears[:5], T_bear2joint @ bears[5:10], bears[10:]])
 
 def pitch2bear(
     _np,
     pitch
 ):
-    return _np.hstack([T_joint2bear @ pitch[:5], T_joint2bear @ pitch[5:]])
+    return _np.hstack([T_joint2bear @ pitch[:5], T_joint2bear @ pitch[5:10], pitch[10:]])
 
 
 ##################################
@@ -183,22 +191,27 @@ def crank2bear(
 
 
 ##################################
-def full2crank(
-    _np,
-    jt_pos: jax.Array
-):
-    """Convert full to crank"""
-    def by_leg(leg_jt):
-        hip_yaw = leg_jt[0]
-        hip_diff = leg_jt[7:9]
-        knee_pitch = leg_jt[3]
-        ankle_crank = leg_jt[6]
-        return _np.hstack([hip_yaw, hip_diff, knee_pitch, ankle_crank])
+# def full2crank(
+#     _np,
+#     jt_pos: jax.Array
+# ):
+#     quit()
+#     print('ehhlo')
+#     """Convert full to crank"""
+#     def by_leg(leg_jt):
+#         hip_yaw = leg_jt[0]
+#         hip_diff = leg_jt[7:9]
+#         knee_pitch = leg_jt[3]
+#         ankle_crank = leg_jt[6]
+#         return _np.hstack([hip_yaw, hip_diff, knee_pitch, ankle_crank])
     
-    bears = _np.hstack([by_leg(jt_pos[:9]), by_leg(jt_pos[9:])])
-    pitch = bear2pitch(_np, bears)
-    crank = pitch2crank(_np, pitch)
-    return crank
+#     bears = _np.hstack([by_leg(jt_pos[:9]), by_leg(jt_pos[9:18])])
+#     print('1',bears.shape)
+#     pitch = bear2pitch(_np, bears)
+#     print('2',pitch.shape)
+#     crank = pitch2crank(_np, pitch)
+#     print('3',crank.shape)
+#     return _np.hstack([crank])#, jt_pos[18:]])
 
 def crank2full(
     _np,
@@ -207,9 +220,9 @@ def crank2full(
     pitch = crank2pitch(_np, crank)
     bears = _np.hstack([
         T_bear2joint @ pitch[:5],
-        T_bear2joint @ pitch[5:]
+        T_bear2joint @ pitch[5:10]
     ])
-    return bears
+    return _np.hstack([bears, crank[10:]])
 
 ##################################
 def full2pitch(
@@ -217,7 +230,7 @@ def full2pitch(
     jt_pos
 ):
     bears = full2bear(_np, jt_pos)
-    pitch = _np.hstack([T_bear2joint @ bears[:5], T_bear2joint @ bears[5:]]) 
+    pitch = _np.hstack([T_bear2joint @ bears[:5], T_bear2joint @ bears[5:10], jt_pos[18:]]) 
     return pitch
 
 
