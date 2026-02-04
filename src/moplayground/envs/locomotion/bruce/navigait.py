@@ -295,6 +295,9 @@ class Bruce(NaviGait):
         
         if self.animate:
             jtpos_des = bruce.crank2full(self._np, state.info['gait_history'][0, :bruce.NDOF])
+            phase = state.info['gaitlib'].get_step_phase(data.time)
+            des_arm_L, des_arm_R = self.get_desired_arm_swing(phase, state.info['gaitlib'].swing_leg)
+            jtpos_des = self._np.hstack([jtpos_des[:18], des_arm_L, des_arm_R])
             data      = self.animate_data(state, data, jtpos_des)
         if False:
             data.qpos[2] = 1.0
@@ -458,8 +461,8 @@ class Bruce(NaviGait):
         )
         rewards = {
             'gait_tracking' : self.reward_euclidean_imitation(
-                qpos            = global_qpos_act[geo.FREE3D_POS:],
-                reference       = gait_des[:bruce.NDOF],
+                qpos            = global_qpos_act[self.qpos_free:10+self.qpos_free],
+                reference       = gait_des[:10],
                 imitation_sigma = sigmas.gait_tracking
             ),
             'base_xyz_tracking': self.reward_euclidean_imitation(
@@ -524,9 +527,49 @@ class Bruce(NaviGait):
                 )**2,
                 sigma = sigmas.global_z_tracking
             ),
+            'arm_swinging': self.reward_arm_swinging(
+                qpos_crank        = global_qpos_act[self.qpos_free:],
+                step_phase        = info['gaitlib'].get_step_phase(data.time),
+                swing_foot        = info['gaitlib'].swing_leg,
+                arm_swing_sigma   = sigmas.arm_swing_sigma
+            )
         }
         return rewards
     
+    def get_desired_arm_swing(
+        self,
+        step_phase,
+        swing_foot
+    ):
+        SHLDR_AMP = 0.4
+        ELBW_AMP  = 0.3
+        des_arm_L = self._np.array([
+            -SHLDR_AMP * self._np.cos(self._np.pi * step_phase + self._np.pi * swing_foot),
+            1.0,
+            ELBW_AMP * (-self._np.cos(self._np.pi * step_phase + self._np.pi * swing_foot) + 1)
+        ])
+        des_arm_R = self._np.array([
+            -SHLDR_AMP * self._np.cos(self._np.pi * step_phase + self._np.pi * swing_foot),
+            -1.0,
+            -ELBW_AMP * (-self._np.cos(self._np.pi * step_phase + self._np.pi * (swing_foot + 1)) + 1)
+        ])
+        return des_arm_L, des_arm_R
+    
+    def reward_arm_swinging(
+        self,
+        qpos_crank,
+        step_phase,
+        swing_foot,
+        arm_swing_sigma
+    ):
+        arm_swing_des = self._np.hstack(self.get_desired_arm_swing(
+            step_phase, swing_foot
+        ))
+        return self.reward_euclidean_imitation(
+            qpos_crank[10:],
+            arm_swing_des,
+            arm_swing_sigma
+        )
     
     def reward_foot_contact(
         self,

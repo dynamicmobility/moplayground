@@ -1,5 +1,5 @@
-name: more-parallelized #low-noise-old
-save_dir: results/Bruce-first-try
+name: random-with-zero #low-noise-old
+save_dir: results/Bruce-arm-swing
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -13,7 +13,7 @@ mo2so:
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
   sim_dt:           0.004   # Simulation (mujoco) timestep
-  jt_scale:         0.20    # Scales the joint position commands
+  jt_scale:         0.25    # Scales the joint position commands
   vel_scale:        0.20    # Scales the velocity commands
   history_length:   5       # Number of previous joint observations to stack
   noise_scale:      1.0     # Scales the sensor noise
@@ -24,7 +24,7 @@ env_config:
   start_stance:     either   # right, left, or either
   recurrent_states: 0
   initialization:
-    strategy: "random-with-zero" # manual, random-with-zero
+    strategy: random-with-zero # manual, random-with-zero
     vdes: [0.0, 0.0, 0.0]
     add_random_yaw: false
     add_random_jt:
@@ -64,10 +64,10 @@ env_config:
       z0:               0.02 #0.03
   reward:
     optimization:
-      objectives:        ['gait_tracking', 'gait_tracking']
-      shared_objectives: ['base_xyz_tracking', 'base_quat_tracking', 'vel_residual_size', 'vel_residual_rate', 'minimize_energy', 'res_jt_rate']
+      objectives:        ['gait_tracking', 'arm_swinging']
+      shared_objectives: ['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking', 'vel_residual_size', 'vel_residual_rate', 'minimize_energy', 'res_jt_rate']
     weights:
-      gait_tracking:       1.00  # Tracking the reference gait
+      gait_tracking:       0.50  # Tracking the reference gait
       base_xyz_tracking:   1.00  # Tracking the desired base position
       base_quat_tracking:  1.00  # Tracking the desired base orientation
       base_vel_tracking:   0.00  # Tracking the desired base linear and angular velocity
@@ -80,6 +80,7 @@ env_config:
       global_xy_tracking:  0.00  # Tracking global xy starting position
       global_z_tracking:   0.00  # Tracking initial yaw angle
       res_jt_rate:        -0.20  # Minimize the change in residual joint torques
+      arm_swinging:        2.00  # Encourage arm swinging
     sigmas:                      # For sigmas, please see above.
       gait_tracking:      0.13
       base_xyz_tracking:  0.004
@@ -90,6 +91,7 @@ env_config:
       minimize_energy:    60.0
       global_xy_tracking: 0.05
       global_z_tracking:  0.13
+      arm_swing_sigma:    0.15
   termination:
     enabled: true        # Enable or disable early termination
   command:
@@ -134,9 +136,9 @@ learning_params:
     enabled: false
     policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
   network_params:
-    policy_hidden_layer_sizes: [64, 64]
-    value_hidden_layer_sizes:  [64, 64]
+    policy_hidden_layer_sizes: [128, 128]
+    value_hidden_layer_sizes:  [128, 128]
   hypernetwork_params:
     hypertype: ActorCritic
-    hypersize: [128, 128]
-    num_features: 16
+    hypersize: [256, 256]
+    num_features: 32

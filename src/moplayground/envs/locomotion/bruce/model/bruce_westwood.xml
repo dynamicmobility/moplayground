@@ -5,7 +5,7 @@
       <joint damping="0.001" armature="0.0013" limited="true"/>
     </default>
     <default class="dynamixel">
-      <joint damping="0.1" armature="0.1" limited="true"/>
+      <joint damping="0.05" armature="0.01" limited="true"/>
     </default>
     <default class="unused"/>
     <default class="bear-jt">
@@ -300,12 +300,12 @@
     <position class="bear" joint="knee_pitch_l"    name="knee_pitch_l_pos"/>
     <position class="bear" joint="ankle_crank_l"   name="ankle_crank_l_pos"/>
 
-    <position name="shoulder_pitch_r"  joint="shoulder_pitch_r" kp="5" forcerange="-1 1"/>
-    <position name="shoulder_roll_r"   joint="shoulder_roll_r"  kp="5" forcerange="-1 1"/>
-    <position name="elbow_pitch_r"     joint="elbow_pitch_r"    kp="5" forcerange="-1 1"/>
-    <position name="shoulder_pitch_l"  joint="shoulder_pitch_l" kp="5" forcerange="-1 1"/>
-    <position name="shoulder_roll_l"   joint="shoulder_roll_l"  kp="5" forcerange="-1 1"/>
-    <position name="elbow_pitch_l"     joint="elbow_pitch_l"    kp="5" forcerange="-1 1"/>
+    <position name="shoulder_pitch_r"  joint="shoulder_pitch_r" kp="5" forcerange="-3 3"/>
+    <position name="shoulder_roll_r"   joint="shoulder_roll_r"  kp="5" forcerange="-3 3"/>
+    <position name="elbow_pitch_r"     joint="elbow_pitch_r"    kp="5" forcerange="-3 3"/>
+    <position name="shoulder_pitch_l"  joint="shoulder_pitch_l" kp="5" forcerange="-3 3"/>
+    <position name="shoulder_roll_l"   joint="shoulder_roll_l"  kp="5" forcerange="-3 3"/>
+    <position name="elbow_pitch_l"     joint="elbow_pitch_l"    kp="5" forcerange="-3 3"/>
 
 
     <velocity class="bear-vel" joint="hip_yaw_r"       name="hip_yaw_r_vel"/>
