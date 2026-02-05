@@ -24,7 +24,7 @@ env_config:
   start_stance:     either   # right, left, or either
   recurrent_states: 0
   initialization:
-    strategy: random-with-zero # manual, random-with-zero
+    strategy: manual #random-with-zero # manual, random-with-zero
     vdes: [0.0, 0.0, 0.0]
     add_random_yaw: false
     add_random_jt:
