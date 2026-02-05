@@ -1,8 +1,8 @@
 #!/bin/bash
 
 SESSION_NAME="MOPLAYGROUND"
-PYTHON_SCRIPT="startup"
-MODULE_NAME="moplayground.learning"
+PYTHON_SCRIPT="train"
+MODULE_NAME="scripts"
 CONDA_ENV_NAME="moplayground"
 YAML_FILE=$1
 

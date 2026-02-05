@@ -21,7 +21,7 @@ def mo2so(env, weighting):
         weighting = weighting
     )
     
-def train_policy(config, env):
+def train_policy(config, env, eval_env):
     run_setup()
     
     # Initialize stuff
@@ -48,7 +48,10 @@ def train_policy(config, env):
     
     # Train
     print('Training...')
-    eval_env, env_cfg = create_environment(config, for_training=False)
+    eval_env, env_cfg = create_environment(
+        config, 
+        for_training    = True,
+    )
     if config.mo2so.enabled:
         make_inference_fn, params, metrics = train(
             config, output_dir, env, eval_env, ppo_params, network_params
@@ -70,4 +73,7 @@ def train_policy(config, env):
 if __name__ == "__main__":
     config = read_config()
     env, env_cfg = create_environment(config, for_training=True)
+    eval_env, _ = create_environment(
+        config, for_training=True, manual_speed=True
+    )
     train_policy(config, env)

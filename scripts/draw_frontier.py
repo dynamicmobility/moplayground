@@ -5,7 +5,12 @@ from moplayground.utils.plotting import plot_squential_paretos
 import jax
 
 config = read_config()
-env, env_config = create_environment(config, for_training = True)
+env, env_config = create_environment(
+    config, 
+    for_training = True, 
+    manual_speed = True,
+    idealistic   = True
+)
 rewards_over_iters, directives = run_experiments(
     config    = config,
     rng       = jax.random.PRNGKey(95),

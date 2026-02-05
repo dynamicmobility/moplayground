@@ -1,4 +1,4 @@
-name: emphasized-arms #low-noise-old
+name: eval-env-config-fixed #low-noise-old
 save_dir: results/Bruce-arm-swing
 description: ""
 algorithm: ppo
@@ -24,7 +24,7 @@ env_config:
   start_stance:     either   # right, left, or either
   recurrent_states: 0
   initialization:
-    strategy: manual #random-with-zero # manual, random-with-zero
+    strategy: random-with-zero # manual, random-with-zero
     vdes: [0.0, 0.0, 0.0]
     add_random_yaw: false
     add_random_jt:

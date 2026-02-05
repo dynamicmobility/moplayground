@@ -29,7 +29,8 @@ class Bruce(NaviGait):
         gait_type='P2',
         backend='jnp',
         idealistic=False,
-        animate=False
+        animate=False,
+        manual_speed=False
     ):  
         # Initialize the parent class
         super().__init__(
@@ -48,10 +49,12 @@ class Bruce(NaviGait):
             self.params.noise_scale = 0.0
             self.params.curriculum.enabled = False
             self.params.start_stance = 'left'
-            # self.params.initialization.strategy = 'manual'
             self.params.initialization.add_random_jt.enabled = False
             self.params.initialization.random_jt_calibration.enabled = False
             self.params.command.enabled = False
+        
+        if manual_speed:
+            self.params.initialization.strategy = 'manual'
             
         self.nq = geo.FREE3D_POS + bruce.NDOF
         self.nv = geo.FREE3D_VEL + bruce.NDOF

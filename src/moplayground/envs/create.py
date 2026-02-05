@@ -1,6 +1,6 @@
 from minimal_mjx.learning.startup import create_config_dict
 
-def create_environment(config, for_training=False):
+def create_environment(config, for_training=False, **env_kwargs):
     env_params = create_config_dict(config['env_config'])
     backend = 'jnp' if for_training else config['backend']
     common_kwargs = {
@@ -29,9 +29,9 @@ def create_environment(config, for_training=False):
             env = Bruce(
                 gaitlib_path    = config['gaitlib_path'],
                 gait_type       = 'P2',
-                idealistic      = True,
                 animate         = False,
-                **common_kwargs
+                **common_kwargs,
+                **env_kwargs
             )
         case _:
             raise Exception(f'Unknown enviornment {config["env"]}.')
