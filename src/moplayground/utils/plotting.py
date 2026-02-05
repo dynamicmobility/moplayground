@@ -12,7 +12,8 @@ def plot_squential_paretos(
     if len(ax_titles) != len(paretos) != len(directives):
         raise Exception('Incompatible lengths of input arrays')
 
-    if not directives: directives = np.zeros_like(paretos)
+    if directives is None: directives = np.zeros_like(paretos)
+    if objectives is None: objectives = [''] * paretos[0].shape[1]
     
     nrows, ncols = get_subplot_grid(len(ax_titles))
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols)

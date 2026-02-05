@@ -7,5 +7,5 @@ from minimal_mjx.learning.startup import read_config
 from pathlib import Path
 
 # main(Path('output/videos'), directive = np.array([0.0, 0.5]))
-main(Path('output/videos'), directive = np.array([0.5, 0.0]))
+main(Path('output/videos'), directive = np.array([0.5, 0.15]))
 # main(Path('output/videos'), directive = np.array([0.0, 0.5, 0.0]))

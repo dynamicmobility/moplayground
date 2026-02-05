@@ -1,5 +1,5 @@
 name: test
-save_dir: results/MOCheetah-run-energy
+save_dir: results/MOCheetah
 description: ""
 algorithm: "ppo"
 env: "MOCheetah"

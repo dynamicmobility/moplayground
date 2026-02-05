@@ -14,7 +14,7 @@ from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 
 from minimal_mjx.learning.startup import read_config
 from minimal_mjx.learning.inference import get_all_models
-from moplayground.learning.inference import make_mo_inference_fn
+from moplayground.learning.inference import load_hypernetwork
 
 def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False):
     def step_fn(carry, x, policy):
@@ -48,17 +48,22 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False):
          1 - directives[:,jnp.newaxis]],
         axis=1
     )
-    model_files = get_all_models(config)
+    model_files = [get_all_models(config)[-1]]
     for i, file in enumerate(tqdm(model_files)):
-        make_policy, moppo_params = get_make_so_policy_fn(config, path=file, silent=True)
+        make_policy, moppo_params = load_hypernetwork(config, path=file)
         (_, rewards), _ = run_rollouts(keys, directives, moppo_params)
         rewards_over_iters.append(rewards)
         if save_results:
             pd.DataFrame.from_dict(
                 {f'obj{i}' : objs for i, objs in enumerate(rewards.T)}
             ).to_csv(Path(config['save_dir']) / config['name'] / f'obj{i}.txt')
-
-    return rewards_over_iters, directives
+    
+    rewards_over_iters = np.array(rewards_over_iters)
+    return rewards_over_iters, np.repeat(
+        directives[np.newaxis, :, :], 
+        rewards_over_iters.shape[0], 
+        axis=0
+    )
 
 
 def get_nondominated(F):

@@ -13,8 +13,25 @@ def load_mo_policy(
     network_factory = make_moppo_networks,
     deterministic: bool = True,
 ):
+    make_inference_fn, params = load_hypernetwork(
+        config,
+        network_factory,
+    )
+    return make_inference_fn(
+        params        = params,
+        deterministic = deterministic,
+        directive     = directive,
+        single_policy = True
+    )
+    
+def load_hypernetwork(
+    config,
+    network_factory = make_moppo_networks,
+    path = None
+):
     """Loads policy inference function from PPO checkpoint."""
-    path = get_last_model(config)
+    if path is None:
+        path = get_last_model(config)
     print(f'Loading model at {path.as_posix()}')
     fullpath = path.resolve()
     
@@ -25,15 +42,9 @@ def load_mo_policy(
     network_factory = functools.partial(
         network_factory, 
         key            = jax.random.PRNGKey(0),
-        num_objectives = directive.shape[0],
+        num_objectives = len(config['env_config']['reward']['optimization']['objectives']),
         **hyperconfig
     )
     moppo_network = get_network(params_config, network_factory)
     make_inference_fn = make_mo_inference_fn(moppo_network)
-
-    return make_inference_fn(
-        params        = params,
-        deterministic = deterministic,
-        directive     = directive,
-        single_policy = True
-    )
+    return make_inference_fn, params
