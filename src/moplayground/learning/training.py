@@ -146,8 +146,8 @@ def mo_train(
         wrap_env_fn=mo_wrapper,
         init_policy_params=policy_init_params[1],
         init_normalizer_params=policy_init_params[0],
-        init_value_params=policy_init_params[2]
-        # eval_env=eval_env,
+        init_value_params=policy_init_params[2],
+        eval_env=eval_env
     )
     # print(f"time to jit: {times[1] - times[0]}")
     # print(f"time to train: {times[-1] - times[1]}")

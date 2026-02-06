@@ -144,8 +144,8 @@ class Evaluator:
 
         t = time.time()
         _, w_key = jax.random.split(self._key)
-        # directives = jax.random.dirichlet(key=w_key, alpha=jnp.ones(2), shape=self.num_eval_envs)
-        directives = jnp.ones((self.num_eval_envs, self.num_objs)) / self.num_objs
+        directives = jax.random.dirichlet(key=w_key, alpha=jnp.ones(self.num_objs), shape=self.num_eval_envs)
+        # directives = jnp.ones((self.num_eval_envs, self.num_objs)) / self.num_objs
         eval_state = self._generate_eval_unroll(policy_params, unroll_key, directives)
         eval_metrics = eval_state.info['eval_metrics']
         eval_metrics.active_episodes.block_until_ready()

@@ -1,4 +1,4 @@
-name: eval-env-config-fixed #low-noise-old
+name: test #low-noise-old
 save_dir: results/Bruce-arm-swing
 description: ""
 algorithm: ppo

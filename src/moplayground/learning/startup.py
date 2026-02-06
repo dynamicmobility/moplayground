@@ -48,10 +48,6 @@ def train_policy(config, env, eval_env):
     
     # Train
     print('Training...')
-    eval_env, env_cfg = create_environment(
-        config, 
-        for_training    = True,
-    )
     if config.mo2so.enabled:
         make_inference_fn, params, metrics = train(
             config, output_dir, env, eval_env, ppo_params, network_params

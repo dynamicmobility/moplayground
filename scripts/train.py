@@ -14,14 +14,21 @@ match args.env:
         )
         env, env_cfg = create_environment(config, for_training=True)
         eval_env, _ = create_environment(
-            config, for_training=True, manual_speed=True
+            config, for_training=True, manual_speed=True, idealistic=True
         )
     case 'MOCheetah':
         config = read_config()
         env, env_cfg = create_environment(config, for_training=True)
         eval_env, _ = create_environment(
-            config, for_training=True, manual_speed=True
+            config, for_training=True
         )
+    # case _:
+    #     config = read_config(args.env)
+    #     env, env_cfg = create_environment(config, for_training=True)
+    #     eval_env, _ = create_environment(
+    #         config, for_training=True
+    #     )
+    
 
 
 train_policy(config, env, eval_env)

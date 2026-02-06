@@ -299,6 +299,17 @@ def train(
         wrap_env_fn,
         randomization_fn,
     )
+    
+    eval_env = _maybe_wrap_env(
+        eval_env, #or environment,
+        wrap_env,
+        num_eval_envs,
+        episode_length,
+        action_repeat,
+        device_count        = 1,  # eval on the host only
+        key_env             = eval_key,
+        wrap_env_fn         = wrap_env_fn,
+    )
 
     # Reset the environment in a vectorized fashion
     key_envs, env_state, reset_fn = _make_reset_envs(
@@ -604,7 +615,7 @@ def train(
     #     randomization_fn=randomization_fn,
     # )
     evaluator = acting.Evaluator(
-        eval_env       = env,
+        eval_env       = eval_env,
         eval_policy_fn = functools.partial(
             make_policy,
             deterministic = deterministic_eval,
