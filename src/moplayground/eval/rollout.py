@@ -7,7 +7,7 @@ from minimal_mjx.utils.plotting import save_video, save_metrics
 from moplayground.envs.create import create_environment
 from moplayground.learning.inference import load_mo_policy
 
-def main(env, save_dir, directive = None):
+def main(env, save_dir, directive = None, T=10.0):
     config            = read_config()
     if directive is None:
         directive = np.ones(len(config.env_config.reward.optimization.objectives))
@@ -23,7 +23,6 @@ def main(env, save_dir, directive = None):
         )
     inference_fn = jax.jit(inference_fn)
     
-    T = env.dt * 500
     frames, reward_plotter, data_plotter, info_plotter = rollout(
         inference_fn    = inference_fn,
         env             = env,

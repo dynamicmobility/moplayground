@@ -25,7 +25,7 @@ class MOHopper(MultiObjectiveBase):
             HopperInterface.DEFAULT_JT
         ])
         qvel = self._np.zeros(self.mj_model.nv)
-        ctrl = qpos[self.num_free:].copy()
+        ctrl = qpos[self.qpos_free:].copy()
 
         data = self._data_init_fn(
             qpos         = qpos,
@@ -129,7 +129,7 @@ class MOHopper(MultiObjectiveBase):
     
     def reward_jump(self, info):
         return self._np.clip(
-            info['height'] - HopperInterface.DEFAULT_FF[1],
+            info['height'] - HopperInterface.DEFAULT_FF[1] + 0.2,
             0.0,
             self._np.inf,
         )

@@ -45,7 +45,6 @@ def train_policy(config, env, eval_env):
         config.git_hash = git_hash
     with open(config_save_path, 'w') as f:
         yaml.dump(config.to_dict(), f)
-    
     # Train
     print('Training...')
     if config.mo2so.enabled:

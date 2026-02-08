@@ -1,7 +1,7 @@
-name: longer-4e8-lr-2e5
-save_dir: ppo-hypernet/MOHopper-Jan3-2026
+name: lower-discount-lower-lr
+save_dir: results/MOHopper/first
 description: N/A
-env: MOAnt
+env: MOHopper
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false
@@ -19,7 +19,7 @@ env_config:
   reward:
     weights: 
       run:        1.5
-      jump:       12.0
+      jump:       10.0
       ctrl_cost: -0.0002
       alive:      2.0
       done:       0
@@ -29,7 +29,7 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        ['run', 'jump']
+      objectives:        [['run'], ['jump']]
       shared_objectives: ['alive', 'ctrl_cost']
   termination:
     enabled: true        # Enable or disable early termination
@@ -40,15 +40,15 @@ learning_params:
     batch_size: 64
     clipping_epsilon: 0.1
     deterministic_eval: true
-    discounting: 0.995
+    discounting: 0.99
     entropy_cost: 0.01
     episode_length: 1000
-    learning_rate: 0.00002
+    learning_rate: 0.000008
     max_grad_norm: 1.0
     normalize_observations: true
-    num_envs: 512
+    num_envs: 1024
     num_evals: 15
-    num_minibatches: 8
+    num_minibatches: 16
     num_timesteps: 400000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
@@ -59,12 +59,12 @@ learning_params:
     sampling: sparse-heavytail
     warmup_frac: 0.0
   warmup_params:
-    enabled: true
+    enabled: false
     policy: ppo-hypernet/SO-MOHopper/longer-length-002-lr/config.yaml
   network_params:
     policy_hidden_layer_sizes: [64, 64]
     value_hidden_layer_sizes:  [64, 64]
   hypernetwork_params:
     hypertype: ActorCritic
-    hypersize: [128, 128]
-    num_features: 16
+    hypersize: [256, 256]
+    num_features: 32

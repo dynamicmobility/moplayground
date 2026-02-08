@@ -486,9 +486,12 @@ class Bruce(NaviGait):
                 reference       = base_des[geo.FREE3D_POS:geo.FREE3D_POS + 2],
                 imitation_sigma = sigmas.base_vel_tracking
             ),
-            'minimize_energy': self.reward_vector_size(
-                v            = data.qfrc_actuator[geo.FREE3D_VEL:],
-                size_sigma   = sigmas.minimize_energy
+            # 'minimize_energy': self.reward_vector_size(
+            #     v            = data.qfrc_actuator[geo.FREE3D_VEL:],
+            #     size_sigma   = sigmas.minimize_energy
+            # ),
+            'minimize_energy': self.reward_energy(
+                data.qfrc_actuator
             ),
             'vel_residual_size' : self.reward_vector_size(
                 v          = self._vel_scale * info['act_history'][0, bruce.NDOF:],
@@ -538,6 +541,15 @@ class Bruce(NaviGait):
             )
         }
         return rewards
+    
+    def reward_energy(
+        self,
+        qfrc_actuator
+    ):
+        torque_limits = self.mj_model.actuator_forcerange
+        energy = self._np.sum(self._np.square(qfrc_actuator))
+        max_energy = self._np.sum(self._np.square(torque_limits[:, 1]))
+        return 0.9 - energy / max_energy - 0.2
     
     def get_desired_arm_swing(
         self,

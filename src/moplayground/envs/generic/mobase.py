@@ -29,8 +29,11 @@ class MultiObjectiveBase(SwappableBase):
         
         weights = self.params.reward.weights
         mo_reward = self._np.array([])
-        for key in self.objectives:
-            mo_reward = self._np.hstack([mo_reward, weights[key] * rewards[key]])
+        for rew_objs in self.objectives:
+            reward = 0
+            for key in rew_objs:
+                reward += weights[key] * rewards[key]
+            mo_reward = self._np.hstack([mo_reward, reward])
         shared_reward = {k: rewards[k] * weights[k] for k in self.shared_objectives}
         reward = mo_reward + sum(shared_reward.values())
         
