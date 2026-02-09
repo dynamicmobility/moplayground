@@ -114,9 +114,17 @@ class MOHopper(MultiObjectiveBase):
             'ctrl_cost' : self.reward_ctrl_cost(action),
             'run'       : self.reward_run(info),
             'jump'      : self.reward_jump(info),
+            'upright'   : self.reward_upright(info),
             'done'      : self.reward_done(done)
         }
         return rewards
+    
+    def reward_upright(self, info):
+        return self._np.clip(
+            info['height'] - 0.4,
+            0.2 - 0.4,
+            0.0,
+        )
     
     def reward_alive(self):
         return 1.0

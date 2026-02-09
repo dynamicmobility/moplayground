@@ -1,11 +1,13 @@
-name: mg075
-save_dir: results/MOHopper-as-so/first
-description: N/A
-env: MOHopper
-backend: jnp # jnp or np. Always uses jnp for training
+name: test
+save_dir: dec2025/SO-MOHopper
+description: "Reformatted feet flat reward"
+algorithm: "ppo"
+env: "MOPlayground-Hopper"
+robot: "DMHopper"
+backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: true
-  weighting: [1.0, 0.0]
+  weighting: [1.0, 0.1]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005
@@ -18,11 +20,10 @@ env_config:
   add_random_pitch: False
   reward:
     weights: 
-      run:        1.0
-      jump:       10.0
+      run:        1.5
+      jump:       12.0
       ctrl_cost: -0.0002
-      alive:      1.0
-      upright:    4.0
+      alive:      2.0
       done:       0
     sigmas:
       height:     0.01
@@ -30,8 +31,8 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        [['run'], ['jump']]
-      shared_objectives: ['alive', 'ctrl_cost', 'upright']
+      objectives:        ['run', 'jump']
+      shared_objectives: ['alive', 'ctrl_cost']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
@@ -40,12 +41,11 @@ learning_params:
     action_repeat: 1
     batch_size: 64
     clipping_epsilon: 0.1
-    discounting: 0.99
-    deterministic_eval: true
+    discounting: 0.995
     entropy_cost: 0.01
     episode_length: 1000
     learning_rate: 0.0001
-    max_grad_norm: 0.75
+    max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 512
     num_evals: 15
@@ -57,15 +57,15 @@ learning_params:
   hypermorl_params:
     alpha: 1.0
     k: 6
-    sampling: sparse-heavytail
+    sampling: dense
     warmup_frac: 0.0
   warmup_params:
     enabled: false
-    policy: ppo-hypernet/SO-MOHopper/longer-length-002-lr/config.yaml
+    policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
   network_params:
     policy_hidden_layer_sizes: [64, 64]
     value_hidden_layer_sizes:  [64, 64]
   hypernetwork_params:
     hypertype: ActorCritic
-    hypersize: [256, 256]
-    num_features: 32
+    hypersize: [128, 128]
+    num_features: 16

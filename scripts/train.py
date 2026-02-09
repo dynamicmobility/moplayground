@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 from moplayground.learning.startup import train_policy
 from minimal_mjx.learning.startup import read_config
 from moplayground.envs.create import create_environment
@@ -19,12 +21,10 @@ match args.env:
         CONFIG_PATH = 'src/moplayground/envs/dmcontrol/config/mohopper.yaml'
         train_config = read_config(CONFIG_PATH)
         eval_config  = read_config(CONFIG_PATH)
-    # case _:
-    #     config = read_config(args.env)
-    #     env, env_cfg = create_environment(config, for_training=True)
-    #     eval_env, _ = create_environment(
-    #         config, for_training=True
-    #     )
+    case _:
+        CONFIG_PATH = args.env
+        train_config = read_config(CONFIG_PATH)
+        eval_config = read_config(CONFIG_PATH)
     
 print('Training', CONFIG_PATH)
 env, env_cfg = create_environment(train_config, for_training=True, **TRAIN_KWARGS)

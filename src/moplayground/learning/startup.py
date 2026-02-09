@@ -31,7 +31,8 @@ def train_policy(config, env, eval_env):
 
     if config.mo2so.enabled:
         weighting = np.array(config.mo2so.weighting)
-        env = mo2so(env, weighting=weighting)
+        env         = mo2so(env, weighting=weighting)
+        eval_env    = mo2so(eval_env, weighting=weighting)
     else:
         ppo_params = config_dict.ConfigDict(
             dict(config.learning_params.hypermorl_params) | dict(ppo_params)

@@ -142,33 +142,19 @@ def compute_mo_ppo_loss(
     policy_logits = jnp.swapaxes(policy_logits, 0, 1)
     
     # value...
-    print(f'{data.observation=}')
-    print()
     baseline = value_apply(
         normalizer_params, value_params, data.observation
     )
-    print(f'{baseline=}')
-    print()
     baseline = jnp.swapaxes(baseline, 0, 1)
     terminal_obs = jax.tree_util.tree_map(lambda x: x[-1], data.next_observation)
-    print(f'{terminal_obs=}')
-    print()
     bootstrap_value = single_value_apply(
         normalizer_params, value_params, terminal_obs
     )
-    print(f'{bootstrap_value=}')
-    print(f'{data.reward=}')
-    print(f'{data.directive=}')
-    print()
-    # quit()
     rewards = data.reward * reward_scaling
     rewards = jnp.sum(data.directive * rewards, axis=2)
 
     truncation = data.extras['state_extras']['truncation']
-    print(f'{truncation=}')
-    print(f'{data.discount=}')
     termination = (1 - data.discount) * (1 - truncation)
-    # quit()
 
     target_action_log_probs = parametric_action_distribution.log_prob(
         policy_logits, data.extras['policy_extras']['raw_action']

@@ -1,11 +1,11 @@
-name: lower-discount-lower-lr
-save_dir: results/MOHopper/first
+name: less-aggressive-learning
+save_dir: results/MOHopper/trying-to-stabilize
 description: N/A
 env: MOHopper
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false
-  weighting: [0.5, 0.5]
+  weighting: [1.0, 0.0]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005
@@ -18,10 +18,11 @@ env_config:
   add_random_pitch: False
   reward:
     weights: 
-      run:        1.5
+      run:        1.0
       jump:       10.0
       ctrl_cost: -0.0002
-      alive:      2.0
+      alive:      1.0
+      upright:    4.0
       done:       0
     sigmas:
       height:     0.01
@@ -30,7 +31,7 @@ env_config:
       imitation:  0.03
     optimization:
       objectives:        [['run'], ['jump']]
-      shared_objectives: ['alive', 'ctrl_cost']
+      shared_objectives: ['alive', 'ctrl_cost', 'upright']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
@@ -42,9 +43,9 @@ learning_params:
     deterministic_eval: true
     discounting: 0.99
     entropy_cost: 0.01
-    episode_length: 1000
-    learning_rate: 0.000008
-    max_grad_norm: 1.0
+    episode_length: 500
+    learning_rate: 0.000005
+    max_grad_norm: 0.75
     normalize_observations: true
     num_envs: 1024
     num_evals: 15
