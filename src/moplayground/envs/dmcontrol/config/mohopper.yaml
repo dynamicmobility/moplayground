@@ -1,15 +1,15 @@
-name: higher-clip
+name: discount-99
 save_dir: results/MOHopper/back-to-original
 description: N/A
 env: MOHopper
-backend: jnp # jnp or np. Always uses jnp for training
+backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false
   weighting: [1.0, 0.0]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005
-  action_scale: [2.0, 2.0, 2.0, 4.0]
+  action_scale: 3.0
   history_length: 5
   ideal_base_height: 0.5
   ideal_base_vel: 0.5
@@ -41,10 +41,10 @@ learning_params:
     batch_size: 64
     clipping_epsilon: 0.2
     deterministic_eval: true
-    discounting: 0.995
+    discounting: 0.99
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.000004
+    learning_rate: 0.000006
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024

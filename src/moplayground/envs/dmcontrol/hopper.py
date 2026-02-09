@@ -83,9 +83,9 @@ class MOHopper(MultiObjectiveBase):
         self,  
         data: mjx.Data
     ):
-        height = data.qpos[1] < 0.4
-        base_angle  = self._np.abs(data.qpos[2]) > self._np.deg2rad(90)
-        return height | base_angle
+        height = data.qpos[1] < 0.2
+        base_angle  = self._np.abs(data.qpos[2]) > self._np.deg2rad(135)
+        return height #| base_angle
 
     def _get_obs(self, data: mjx.Data, info: dict) -> jax.Array:
         obs = self._np.concatenate([
