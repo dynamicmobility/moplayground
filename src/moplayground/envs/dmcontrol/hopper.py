@@ -59,7 +59,7 @@ class MOHopper(MultiObjectiveBase):
         return self._state_init_fn(data, obs, reward, done, metrics, info)
 
     def step(self, state: mjx_env.State, action: jax.Array) -> mjx_env.State:
-        action = self.params.action_scale * action
+        action = self._np.array(self.params.action_scale) * action
         state.info['posbefore'] = state.data.qpos[0]
         data = self._step_fn(state.data, action)
         state.info['posafter'], state.info['height'], state.info['ang'] = data.qpos[0:3]
@@ -83,10 +83,9 @@ class MOHopper(MultiObjectiveBase):
         self,  
         data: mjx.Data
     ):
-        # done = self._np.isnan(data.qpos).any() | self._np.isnan(data.qvel).any()
-        height = data.qpos[1] < 0.2
-        angle  = self._np.abs(data.qpos[2]) > 1.5
-        return height #| angle
+        height = data.qpos[1] < 0.4
+        base_angle  = self._np.abs(data.qpos[2]) > self._np.deg2rad(90)
+        return height | base_angle
 
     def _get_obs(self, data: mjx.Data, info: dict) -> jax.Array:
         obs = self._np.concatenate([
@@ -141,7 +140,7 @@ class MOHopper(MultiObjectiveBase):
             0.0,
             self._np.inf,
         )
-    
+        
     def reward_done(self, done):
         return self._np.array(done)
     

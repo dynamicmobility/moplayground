@@ -1,15 +1,15 @@
-name: less-aggressive-learning
-save_dir: results/MOHopper/trying-to-stabilize
+name: higher-clip
+save_dir: results/MOHopper/back-to-original
 description: N/A
 env: MOHopper
-backend: np # jnp or np. Always uses jnp for training
+backend: jnp # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false
   weighting: [1.0, 0.0]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005
-  action_scale: 3.0
+  action_scale: [2.0, 2.0, 2.0, 4.0]
   history_length: 5
   ideal_base_height: 0.5
   ideal_base_vel: 0.5
@@ -18,8 +18,8 @@ env_config:
   add_random_pitch: False
   reward:
     weights: 
-      run:        1.0
-      jump:       10.0
+      run:        1.5
+      jump:       12.0
       ctrl_cost: -0.0002
       alive:      1.0
       upright:    4.0
@@ -31,7 +31,7 @@ env_config:
       imitation:  0.03
     optimization:
       objectives:        [['run'], ['jump']]
-      shared_objectives: ['alive', 'ctrl_cost', 'upright']
+      shared_objectives: ['alive', 'ctrl_cost']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
@@ -39,18 +39,18 @@ learning_params:
   ppo_params:
     action_repeat: 1
     batch_size: 64
-    clipping_epsilon: 0.1
+    clipping_epsilon: 0.2
     deterministic_eval: true
-    discounting: 0.99
+    discounting: 0.995
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.000005
-    max_grad_norm: 0.75
+    learning_rate: 0.000004
+    max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024
     num_evals: 15
     num_minibatches: 16
-    num_timesteps: 400000000
+    num_timesteps: 600000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30
@@ -67,5 +67,5 @@ learning_params:
     value_hidden_layer_sizes:  [64, 64]
   hypernetwork_params:
     hypertype: ActorCritic
-    hypersize: [256, 256]
+    hypersize: [512, 512]
     num_features: 32
