@@ -1,4 +1,4 @@
-name: lots-of-updates
+name: back-to-small-network
 save_dir: results/MOHopper/clean-front
 description: N/A
 env: MOHopper
@@ -67,5 +67,5 @@ learning_params:
     value_hidden_layer_sizes:  [64, 64]
   hypernetwork_params:
     hypertype: ActorCritic
-    hypersize: [512, 512]
-    num_features: 32
+    hypersize: [128, 128]
+    num_features: 16
