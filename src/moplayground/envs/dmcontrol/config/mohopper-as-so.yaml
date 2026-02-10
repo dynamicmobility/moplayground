@@ -1,11 +1,11 @@
-name: mg075
-save_dir: results/MOHopper-as-so/first
+name: test
+save_dir: results/MOHopper-as-so/warm-start
 description: N/A
 env: MOHopper
 backend: jnp # jnp or np. Always uses jnp for training
 mo2so:
   enabled: true
-  weighting: [1.0, 0.0]
+  weighting: [0.5, 0.5]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005
@@ -40,12 +40,12 @@ learning_params:
     action_repeat: 1
     batch_size: 64
     clipping_epsilon: 0.1
-    discounting: 0.99
     deterministic_eval: true
+    discounting: 0.99
     entropy_cost: 0.01
     episode_length: 1000
     learning_rate: 0.0001
-    max_grad_norm: 0.75
+    max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 512
     num_evals: 15

@@ -1,5 +1,5 @@
-name: discount-99
-save_dir: results/MOHopper/back-to-original
+name: lots-of-updates
+save_dir: results/MOHopper/clean-front
 description: N/A
 env: MOHopper
 backend: np # jnp or np. Always uses jnp for training
@@ -38,18 +38,18 @@ env_config:
 learning_params:
   ppo_params:
     action_repeat: 1
-    batch_size: 64
+    batch_size: 32
     clipping_epsilon: 0.2
     deterministic_eval: true
     discounting: 0.99
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.000006
+    learning_rate: 0.000005
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024
     num_evals: 15
-    num_minibatches: 16
+    num_minibatches: 32
     num_timesteps: 600000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
@@ -61,7 +61,7 @@ learning_params:
     warmup_frac: 0.0
   warmup_params:
     enabled: false
-    policy: ppo-hypernet/SO-MOHopper/longer-length-002-lr/config.yaml
+    policy: results/MOHopper-as-so/warm-start/test/config.yaml
   network_params:
     policy_hidden_layer_sizes: [64, 64]
     value_hidden_layer_sizes:  [64, 64]

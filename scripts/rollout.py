@@ -13,8 +13,8 @@ env, env_params   = create_environment(
     manual_speed    = True,
     idealistic      = True
 )
-# main(env, Path('output/videos'), directive = np.array([0.5, 0.0]), T = 10.0)
-main(env, Path('output/videos'), directive = np.array([0.01, 0.5]), T = 10.0)
+main(env, Path('output/videos'), directive = np.array([0.5, 0.1]), T = 10.0)
+# main(env, Path('output/videos'), directive = np.array([0.1, 0.5]), T = 10.0)
 
 
 # main(Path('output/videos'), directive = np.array([0.0, 0.5]))
