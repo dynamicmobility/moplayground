@@ -1,4 +1,4 @@
-name: test #low-noise-old
+name: longer-more-detail #low-noise-old
 save_dir: results/Bruce-gait-base
 description: ""
 algorithm: ppo
@@ -13,7 +13,8 @@ mo2so:
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
   sim_dt:           0.004   # Simulation (mujoco) timestep
-  jt_scale:         [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+  # jt_scale:         [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+  jt_scale:         [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
   # jt_scale:         [0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
   vel_scale:        0.20    # Scales the velocity commands
   history_length:   5       # Number of previous joint observations to stack
@@ -114,18 +115,18 @@ learning_params:
   ppo_params:
     action_repeat: 1
     batch_size: 64
-    clipping_epsilon: 0.1
+    clipping_epsilon: 0.15
     deterministic_eval: true
     discounting: 0.97
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.00008
+    learning_rate: 0.00002
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024
     num_evals: 15
     num_minibatches: 16
-    num_timesteps: 40000000
+    num_timesteps: 80000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30

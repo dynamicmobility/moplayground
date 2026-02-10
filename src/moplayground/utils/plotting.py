@@ -59,7 +59,7 @@ def plot_sequential_hypervolume(
         hv, sp = get_pareto_statistics(np.array(p.block_until_ready()))
         hvs.append(hv)
         sps.append(sp)
-    
+    print(sps)
     ax2 = ax.twinx()
     ax.plot(iterations, hvs, label='Hypervolume')
     ax2.plot(iterations, sps, 'r-', label='Sparsity')
@@ -67,4 +67,6 @@ def plot_sequential_hypervolume(
     ax.set_xlabel('Iterations')
     ax.set_ylabel('Hypervolume')
     ax2.set_ylabel('Sparsity')
+    ax.legend()
+    ax2.legend()
     return fig, ax

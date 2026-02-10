@@ -13,16 +13,17 @@ env, env_params   = create_environment(
     manual_speed    = True,
     idealistic      = True
 )
+
+camera = 'side_fixed'
+
+directive = np.array([1.0, 0.0, 0.0])
+# directive = np.array([0.5, 0.0])
+
+
 rollout_policy(
     env         = env,
     save_dir    = Path('output/videos'),
-    directive   = np.array([0.5, 0.1]),
+    directive   = directive,
     T           = 5.0,
-    # camera      = 'fixed'
-    camera      = 'track'
+    camera      = camera
 )
-# main(env, Path('output/videos'), directive = np.array([0.1, 0.5]), T = 10.0)
-
-
-# main(Path('output/videos'), directive = np.array([0.0, 0.5]))
-# main(Path('output/videos'), directive = np.array([0.0, 0.5, 0.0]))

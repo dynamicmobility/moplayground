@@ -17,6 +17,10 @@ match args.env:
         EVAL_KWARGS = {'manual_speed': True, 'idealistic': True}
         train_config = read_config(CONFIG_PATH)
         eval_config  = read_config(CONFIG_PATH)
+    case 'MOCheetah':
+        CONFIG_PATH = 'config/mocheetah.yaml'
+        train_config = read_config(CONFIG_PATH)
+        eval_config  = read_config(CONFIG_PATH)
     case 'MOHopper':
         CONFIG_PATH = 'config/mohopper.yaml'
         train_config = read_config(CONFIG_PATH)

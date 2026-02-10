@@ -73,7 +73,7 @@ def get_nondominated(F):
     return F_max
 
 def hypervolume_from_nondominated(F_min):
-    # Reference point must be WORSE in minimization space
+    # Reference point must be worse in minimization space
     # i.e., larger than all points in F_min
     ref_point = np.zeros(F_min.shape[1])
 
@@ -94,7 +94,12 @@ def get_pareto_statistics(F):
     # Convert to minimization
     F_min = -F_max.copy()
     F_min_norm = -F_norm.copy()
-    
+
+    print(F_min_norm.shape)
+    if F_min_norm.shape[0] == 1:
+        # Sparsity always needs 2 points to calculate
+        F_min_norm = np.repeat(F_min_norm, 2, axis=0)
+    print('After', F_min_norm.shape)
     return (
         hypervolume_from_nondominated(F_min), 
         sparsity_from_normalized_nondominated(F_min_norm)
