@@ -16,9 +16,10 @@ env, env_params   = create_environment(
 rollout_policy(
     env         = env,
     save_dir    = Path('output/videos'),
-    directive   = np.array([0.5, 0.0]),
+    directive   = np.array([0.5, 0.1]),
     T           = 5.0,
-    camera      = 'fixed'
+    # camera      = 'fixed'
+    camera      = 'track'
 )
 # main(env, Path('output/videos'), directive = np.array([0.1, 0.5]), T = 10.0)
 

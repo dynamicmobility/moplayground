@@ -1,5 +1,5 @@
-name: more-params #low-noise-old
-save_dir: results/Bruce-tracking-energy
+name: test #low-noise-old
+save_dir: results/Bruce-gait-base
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -26,7 +26,7 @@ env_config:
   recurrent_states: 0
   initialization:
     strategy: random-with-zero # manual, random-with-zero
-    vdes: [-0.1, 0.0, 0.0]
+    vdes: [0.0, 0.0, 0.0]
     add_random_yaw: false
     add_random_jt:
       enabled: false
@@ -65,7 +65,7 @@ env_config:
       z0:               0.02 #0.03
   reward:
     optimization:
-      objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['minimize_energy']]
+      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking']]
       shared_objectives: ['vel_residual_size', 'vel_residual_rate', 'res_jt_rate']
       labels:            ['Imitation Accuracy', 'Base Accuracy', 'Arm Swinging']
     weights:
