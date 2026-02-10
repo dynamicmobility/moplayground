@@ -1,6 +1,6 @@
 <mujoco model="cheetah">
-  <include file="common/skybox.xml"/>
-  <include file="common/visual.xml"/>
+  <!-- <include file="common/skybox.xml"/> -->
+  <!-- <include file="common/visual.xml"/> -->
   <include file="common/materials.xml"/>
 
   <compiler settotalmass="14"/>
@@ -16,8 +16,26 @@
     <motor ctrllimited="true" ctrlrange="-1 1"/>
   </default>
 
-  <visual>
+  <asset>
+    <!-- <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="1 1 1" width="800" height="800"/> -->
+    <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="1 1 1" width="800" height="800"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="1 1 1" rgb2="1 1 1"
+      markrgb="0 0 0" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0"/>
+  </asset>
+
+  <!-- <visual>
     <global offwidth="2560" offheight="2560"/>
+  </visual> -->
+
+  <visual>
+    <headlight diffuse=".8 .8 .8" ambient=".2 .2 .2" specular="1 1 1"/>
+    <rgba force="1 0 0 1"/>
+    <global azimuth="140" elevation="-20" offwidth="2560" offheight="2560"/>
+    <map force="0.01"/>
+    <scale forcewidth="0.3" contactwidth="0.5" contactheight="0.2"/>
+    <quality shadowsize="8192"/>
+    <!-- <quality shadowsize="2048"/> -->
   </visual>
 
   <statistic center="0 0 .7" extent="2"/>
@@ -32,7 +50,12 @@
   </custom>
 
   <worldbody>
-    <geom name="ground" type="plane" conaffinity="1" pos="98 0 0" size="100 .8 .5" material="grid"/>
+    <geom name="ground" type="plane" conaffinity="1" pos="98 0 0" size="100 .8 .5" material="groundplane"/>
+    <!-- <camera name="fixed" pos="1.5 -4.5 1.5" euler="70 0 0"/> -->
+    <!-- <camera name="fixed" pos="1.5 -4.5 0.2" quat=" 0.6830127  0.6830127 -0.1830127  0.1830127 "/> -->
+    <camera name="fixed" pos="7.911 -6.909 3.329" xyaxes="0.879 0.477 -0.000 -0.118 0.217 0.969"/>
+    <camera name="fixed_far" pos="12.342 -6.387 2.714" xyaxes="0.742 0.671 0.000 -0.075 0.083 0.994"/>
+
     <body name="torso" pos="0 0 .7" childclass="cheetah">
       <light name="light" pos="0 0 2" mode="trackcom"/>
       <camera name="track" pos="0 -3 0" quat="0.707 0.707 0 0" mode="trackcom"/>

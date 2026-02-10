@@ -7,8 +7,16 @@ from minimal_mjx.utils.plotting import save_video, save_metrics
 from moplayground.envs.create import create_environment
 from moplayground.learning.inference import load_mo_policy
 
-def main(env, save_dir, directive = None, T=10.0):
-    config            = read_config()
+def rollout_policy(
+    env, 
+    save_dir,
+    directive = None,
+    T=10.0,
+    camera = 'track',
+    width = 1080,
+    height = 720
+):
+    config = read_config()
     if directive is None:
         directive = np.ones(len(config.env_config.reward.optimization.objectives))
     if config['mo2so']['enabled']:
@@ -27,8 +35,9 @@ def main(env, save_dir, directive = None, T=10.0):
         inference_fn    = inference_fn,
         env             = env,
         T               = T,
-        height          = 640,
-        width           = 480
+        height          = height,
+        width           = width,
+        camera          = camera
     )
 
     save_video(
