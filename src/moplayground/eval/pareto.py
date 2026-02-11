@@ -48,7 +48,7 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False):
          1 - directives[:,jnp.newaxis]],
         axis=1
     )
-    model_files = [get_all_models(config)[-1]]
+    model_files = get_all_models(config)
     for i, file in enumerate(tqdm(model_files)):
         make_policy, moppo_params = load_hypernetwork(config, path=file)
         (_, rewards), _ = run_rollouts(keys, directives, moppo_params)

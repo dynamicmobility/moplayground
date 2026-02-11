@@ -55,7 +55,7 @@
     <!-- <camera name="fixed" pos="1.5 -4.5 0.2" quat=" 0.6830127  0.6830127 -0.1830127  0.1830127 "/> -->
     <!-- <camera name="fixed" pos="7.911 -6.909 3.329" xyaxes="0.879 0.477 -0.000 -0.118 0.217 0.969"/> -->
     <camera name="fixed_far" pos="12.342 -6.387 2.714" xyaxes="0.742 0.671 0.000 -0.075 0.083 0.994"/>
-    <light name="light" pos="20 0 10" dir="-1 0 -1" mode="fixed"/>
+    <light name="light" pos="20 0 10" dir="-1 0 -1" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
     <body name="torso" pos="0 0 .7" childclass="cheetah">
      
       <camera name="track" pos="0 -3 0" quat="0.707 0.707 0 0" mode="trackcom"/>

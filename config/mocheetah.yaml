@@ -1,4 +1,4 @@
-name: test
+name: final
 save_dir: results/MOCheetah
 description: ""
 algorithm: "ppo"
@@ -31,8 +31,9 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        [['run'], ['energy'], ['height']]
+      objectives:        [['run'], ['energy']]
       shared_objectives: ['alive']
+      labels:            ['Running Speed', 'Energy Efficiency']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2

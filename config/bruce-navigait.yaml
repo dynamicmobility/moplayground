@@ -1,5 +1,5 @@
-name: longer-more-detail #low-noise-old
-save_dir: results/Bruce-gait-base
+name: training-for-longer
+save_dir: results/Bruce-gait-base-arm
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -66,9 +66,9 @@ env_config:
       z0:               0.02 #0.03
   reward:
     optimization:
-      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking']]
-      shared_objectives: ['vel_residual_size', 'vel_residual_rate', 'res_jt_rate']
-      labels:            ['Imitation Accuracy', 'Base Accuracy', 'Arm Swinging']
+      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging']]
+      shared_objectives: ['vel_residual_size', 'vel_residual_rate', 'res_jt_rate', 'minimize_energy']
+      labels:            ['Imitation Accuracy', 'Arm Swinging']
     weights:
       gait_tracking:       1.00  # Tracking the reference gait
       base_xyz_tracking:   1.00  # Tracking the desired base position
@@ -76,7 +76,7 @@ env_config:
       base_vel_tracking:   0.00  # Tracking the desired base linear and angular velocity
       vel_residual_size:   0.85  # Minimize the deviation in reference selection
       vel_residual_rate:   0.20  # Minimize the rate of change in reference selection
-      minimize_energy:     3.00  # Minimize motor torques
+      minimize_energy:     1.00  # Minimize motor torques
       alive:               0.00  # Alive bonus
       foot_contact:        0.00  # Aligning to foot contact of the reference motion
       foot_impact:        -3.00

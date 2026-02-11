@@ -15,9 +15,11 @@ env, env_params   = create_environment(
 )
 
 camera = 'side_fixed'
+camera = 'track'
 
-directive = np.array([1.0, 0.0, 0.0])
+directive = np.array([1.0, 1.0, 0.0])
 # directive = np.array([0.5, 0.0])
+# directive = np.array([0.5, 0.23])
 
 
 rollout_policy(
@@ -25,5 +27,7 @@ rollout_policy(
     save_dir    = Path('output/videos'),
     directive   = directive,
     T           = 5.0,
-    camera      = camera
+    camera      = camera,
+    # width       = 1920,
+    # height      = 1440
 )
