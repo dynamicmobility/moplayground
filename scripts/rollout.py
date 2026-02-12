@@ -10,7 +10,7 @@ from pathlib import Path
 config            = read_config()
 env, env_params   = create_environment(
     config,
-    manual_speed    = True,
+    manual_speed    = [0.1, 0.0, 0.0],
     idealistic      = True
 )
 

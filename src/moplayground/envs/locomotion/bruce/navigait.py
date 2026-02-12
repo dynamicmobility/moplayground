@@ -24,13 +24,13 @@ class Bruce(NaviGait):
 
     def __init__(
         self,
-        gaitlib_path: str,
-        env_params: config_dict.ConfigDict,
-        gait_type='P2',
-        backend='jnp',
-        idealistic=False,
-        animate=False,
-        manual_speed=False
+        gaitlib_path    : str,
+        env_params      : config_dict.ConfigDict,
+        gait_type       = 'P2',
+        backend         = 'jnp',
+        idealistic      = False,
+        animate         = False,
+        manual_speed    = None
     ):  
         # Initialize the parent class
         super().__init__(
@@ -43,18 +43,19 @@ class Bruce(NaviGait):
             animate           = animate
         )
         if idealistic:
-            self.params.domain_randomization.enabled = False
-            self.params.domain_randomization.obs_delay.enabled = False
-            self.params.domain_randomization.action_delay.enabled = False
-            self.params.noise_scale = 0.0
-            self.params.curriculum.enabled = False
-            self.params.start_stance = 'left'
-            self.params.initialization.add_random_jt.enabled = False
+            self.params.domain_randomization.enabled                 = False
+            self.params.domain_randomization.obs_delay.enabled       = False
+            self.params.domain_randomization.action_delay.enabled    = False
+            self.params.noise_scale                                  = 0.0
+            self.params.curriculum.enabled                           = False
+            self.params.start_stance                                 = 'left'
+            self.params.initialization.add_random_jt.enabled         = False
             self.params.initialization.random_jt_calibration.enabled = False
-            self.params.command.enabled = False
+            self.params.command.enabled                              = False
         
-        if manual_speed:
-            self.params.initialization.strategy = 'manual'
+        if manual_speed is not None:
+            self.params.initialization.strategy   = 'manual'
+            self.params.initialization.vdes       = manual_speed
             
         self.nq = geo.FREE3D_POS + bruce.NDOF
         self.nv = geo.FREE3D_VEL + bruce.NDOF
