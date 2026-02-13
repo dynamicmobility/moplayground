@@ -12,7 +12,7 @@ mo2so:
   weighting: [0.5, 0.5]
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
-  sim_dt:           0.004   # Simulation (mujoco) timestep
+  sim_dt:           0.005   # Simulation (mujoco) timestep
   # jt_scale:         [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
   jt_scale:         [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
   # jt_scale:         [0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
@@ -73,27 +73,17 @@ env_config:
       gait_tracking:       1.00  # Tracking the reference gait
       base_xyz_tracking:   1.00  # Tracking the desired base position
       base_quat_tracking:  1.00  # Tracking the desired base orientation
-      base_vel_tracking:   0.00  # Tracking the desired base linear and angular velocity
       vel_residual_size:   0.85  # Minimize the deviation in reference selection
       vel_residual_rate:   0.20  # Minimize the rate of change in reference selection
       minimize_energy:     4.00  # Minimize motor torques
-      alive:               0.00  # Alive bonus
-      foot_contact:        0.00  # Aligning to foot contact of the reference motion
-      foot_impact:        -3.00
-      global_xy_tracking:  0.00  # Tracking global xy starting position
-      global_z_tracking:   0.00  # Tracking initial yaw angle
       res_jt_rate:        -0.20  # Minimize the change in residual joint torques
       arm_swinging:        2.00  # Encourage arm swinging
     sigmas:                      # For sigmas, please see above.
       gait_tracking:      0.13
       base_xyz_tracking:  0.004
-      base_quat_tracking: 0.02 #0.04
+      base_quat_tracking: 0.02 
       vel_residual_size:  0.001
       vel_residual_rate:  0.002
-      base_vel_tracking:  0.05
-      minimize_energy:    60.0
-      global_xy_tracking: 0.05
-      global_z_tracking:  0.13
       arm_swing_sigma:    0.15
   termination:
     enabled: true        # Enable or disable early termination

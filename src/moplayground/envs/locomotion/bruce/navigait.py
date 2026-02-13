@@ -440,28 +440,10 @@ class Bruce(NaviGait):
             data.qpos,
             self.qpos_free
         )
-        # rel_qpos_act = self.get_relative_qpos(
-        #     qpos        = global_qpos_act,
-        #     base2global = geo.inv_transform(self._np, info['old_base2global'])
-        # )
         global_base = geo.apply_transform(
             _np = self._np,
             qpos = base_des,
             offset = info['old_base2global']
-        )
-        global_init_qpos = geo.apply_transform(
-            self._np,
-            base_des,
-            info['transform_init']
-        )
-        ground_contact = bruce.get_ground_contact(
-            self._np, 
-            bruce.get_raw_contacts(
-                self._np,
-                self.mj_model,
-                data,
-                threshold=bruce.CONTACT_THRESHOLD
-            )
         )
         rewards = {
             'gait_tracking' : self.reward_euclidean_imitation(
@@ -482,15 +464,6 @@ class Bruce(NaviGait):
                 )**2,
                 sigma = sigmas.base_quat_tracking
             ),
-            'base_vel_tracking': self.reward_euclidean_imitation(
-                qpos            = data.qvel[:2],
-                reference       = base_des[geo.FREE3D_POS:geo.FREE3D_POS + 2],
-                imitation_sigma = sigmas.base_vel_tracking
-            ),
-            # 'minimize_energy': self.reward_vector_size(
-            #     v            = data.qfrc_actuator[geo.FREE3D_VEL:],
-            #     size_sigma   = sigmas.minimize_energy
-            # ),
             'minimize_energy': self.reward_energy(
                 data.qfrc_actuator
             ),
@@ -507,32 +480,6 @@ class Bruce(NaviGait):
                 act           = self._jt_scale * info['act_history'][0, :bruce.NDOF],
                 last_act      = self._jt_scale * info['act_history'][1, :bruce.NDOF],
                 last_last_act = self._jt_scale * info['act_history'][2, :bruce.NDOF],
-            ),
-            'foot_contact': self.reward_foot_contact(
-                ground_contact  = ground_contact,
-                swing_foot      = info['gaitlib'].swing_leg
-            ),
-            'foot_impact': self.cost_impact_velocity(
-                ground_contact = ground_contact,
-                foot_velocity  = bruce.get_foot_vel(
-                    self._np,
-                    self.mj_model,
-                    data
-                )
-            ),
-            'alive': self.reward_alive(),
-            'global_xy_tracking': self.reward_euclidean_imitation(
-                qpos            = global_qpos_act[:3],
-                reference       = global_init_qpos[:3],
-                imitation_sigma = sigmas.global_xy_tracking
-            ),
-            'global_z_tracking': self.exp_reward(
-                mag2            = geo.quat_dist(
-                    _np = self._np,
-                    q1  = global_qpos_act[3:geo.FREE3D_POS],
-                    q2  = global_init_qpos[3:geo.FREE3D_POS]
-                )**2,
-                sigma = sigmas.global_z_tracking
             ),
             'arm_swinging': self.reward_arm_swinging(
                 qpos_crank        = global_qpos_act[self.qpos_free:],

@@ -37,7 +37,7 @@
         iterations="3"
         ls_iterations="6"
         solver="Newton"
-        ls_tolerance="0.001"
+        ls_tolerance="0.05"
         tolerance="1e-6"
         timestep="0.0005"
         cone="pyramidal">

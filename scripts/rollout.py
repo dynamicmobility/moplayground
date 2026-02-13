@@ -14,12 +14,12 @@ env, env_params   = create_environment(
     # idealistic      = True
 )
 
-camera = 'side_fixed'
-# camera = 'track'
+# camera = 'side_fixed'
+camera = 'track'
 
-# directive = np.array([1.0, 1.0, 0.0, 0.0])
+directive = np.array([1.0, 1.0, 0.0, 1.0])
 # directive = np.array([1.0, 1.0, 0.0])
-directive = np.array([1.0, 0.0])
+# directive = np.array([1.0, 0.0])
 # directive = np.array([0.2, 1.0])
 
 
@@ -29,6 +29,6 @@ rollout_policy(
     directive   = directive,
     T           = 5.0,
     camera      = camera,
-    width       = 2560,
-    height      = 1080
+    # width       = 2560,
+    # height      = 1080
 )
