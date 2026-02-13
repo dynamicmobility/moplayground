@@ -1,14 +1,35 @@
 import matplotlib as mpl
 
+# mpl.rcParams.update({
+#     "text.usetex": True,
+#     "font.family": "serif",
+#     "font.serif": ["Computer Modern Roman"],
+#     "axes.labelsize": 16,
+#     "font.size": 16,
+#     "legend.fontsize": 7,
+#     "xtick.labelsize": 12,
+#     "ytick.labelsize": 12,
+# })
 mpl.rcParams.update({
     "text.usetex": True,
+    "text.latex.preamble": r"\usepackage{amsmath,amssymb}",
     "font.family": "serif",
     "font.serif": ["Computer Modern Roman"],
-    "axes.labelsize": 16,
     "font.size": 16,
-    "legend.fontsize": 7,
+    "axes.labelsize": 16,
+    "axes.titlesize": 16,
+    "legend.fontsize": 12,
     "xtick.labelsize": 12,
     "ytick.labelsize": 12,
+    "axes.linewidth": 1.2,
+    "lines.linewidth": 2.0,
+    "xtick.direction": "in",
+    "ytick.direction": "in",
+    "xtick.major.size": 4,
+    "ytick.major.size": 4,
+    "xtick.major.width": 1.0,
+    "ytick.major.width": 1.0,
+    "legend.frameon": False,
 })
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,7 +65,7 @@ ax.set_ylabel(f'{config['env_config']['reward']['optimization']['labels'][1]}')
 # ax.legend()
 # fig.suptitle(f'Pareto Comparison: {config['env']}')
 
-fig.set_size_inches((4, 4))
+fig.set_size_inches((5, 5))
 fig.tight_layout()
 fig.savefig(f'ral/plots/{config['env']}_overlayed_pareto.svg')
 

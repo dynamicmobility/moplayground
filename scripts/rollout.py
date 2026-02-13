@@ -19,8 +19,8 @@ camera = 'side_fixed'
 
 # directive = np.array([1.0, 1.0, 0.0, 0.0])
 # directive = np.array([1.0, 1.0, 0.0])
-# directive = np.array([1.0, 0.0])
-directive = np.array([0, 1.0])
+directive = np.array([1.0, 0.0])
+# directive = np.array([0.2, 1.0])
 
 
 rollout_policy(
@@ -29,6 +29,6 @@ rollout_policy(
     directive   = directive,
     T           = 5.0,
     camera      = camera,
-    # width       = 1920,
-    # height      = 1440
+    width       = 2560,
+    height      = 1080
 )
