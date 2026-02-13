@@ -10,16 +10,17 @@ from pathlib import Path
 config            = read_config()
 env, env_params   = create_environment(
     config,
-    manual_speed    = [0.1, 0.0, 0.0],
-    idealistic      = True
+    # manual_speed    = [0.2, 0.0, 0.0],
+    # idealistic      = True
 )
 
 camera = 'side_fixed'
-camera = 'track'
+# camera = 'track'
 
-directive = np.array([1.0, 1.0, 0.0])
-# directive = np.array([0.5, 0.0])
-# directive = np.array([0.5, 0.23])
+# directive = np.array([1.0, 1.0, 0.0, 0.0])
+# directive = np.array([1.0, 1.0, 0.0])
+directive = np.array([1.0, 0.0])
+# directive = np.array([0, 1.0])
 
 
 rollout_policy(
@@ -28,6 +29,6 @@ rollout_policy(
     directive   = directive,
     T           = 5.0,
     camera      = camera,
-    # width       = 1920,
-    # height      = 1440
+    width       = 1920,
+    height      = 1440
 )

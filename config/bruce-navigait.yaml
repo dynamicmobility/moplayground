@@ -1,4 +1,4 @@
-name: test
+name: discount96
 save_dir: results/Bruce-gait-base-energy-arm
 description: ""
 algorithm: ppo
@@ -117,7 +117,7 @@ learning_params:
     batch_size: 64
     clipping_epsilon: 0.15
     deterministic_eval: true
-    discounting: 0.97
+    discounting: 0.96
     entropy_cost: 0.01
     episode_length: 500
     learning_rate: 0.00002

@@ -12,11 +12,12 @@ env, env_config = create_environment(
     idealistic   = True
 )
 rewards_over_iters, directives = run_experiments(
-    config    = config,
-    rng       = jax.random.PRNGKey(95),
-    env       = env,
-    N_STEPS   = 500,
-    NUM_ENVS  = 1024
+    config          = config,
+    rng             = jax.random.PRNGKey(95),
+    env             = env,
+    N_STEPS         = 500,
+    NUM_ENVS        = 1024,
+    save_results    = True
 )
 fig, ax = plot_squential_paretos(
     ax_titles   = ['titles'],

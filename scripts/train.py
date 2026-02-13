@@ -14,7 +14,7 @@ EVAL_KWARGS  = {}
 match args.env:
     case 'BRUCE':
         CONFIG_PATH = 'config/bruce-navigait.yaml'
-        EVAL_KWARGS = {'manual_speed': True, 'idealistic': True}
+        EVAL_KWARGS = {'manual_speed': [0.0, 0.0, 0.0], 'idealistic': True}
         train_config = read_config(CONFIG_PATH)
         eval_config  = read_config(CONFIG_PATH)
     case 'MOCheetah':
@@ -23,6 +23,10 @@ match args.env:
         eval_config  = read_config(CONFIG_PATH)
     case 'MOHopper':
         CONFIG_PATH = 'config/mohopper.yaml'
+        train_config = read_config(CONFIG_PATH)
+        eval_config  = read_config(CONFIG_PATH)
+    case 'MOWalker':
+        CONFIG_PATH = 'config/mowalker.yaml'
         train_config = read_config(CONFIG_PATH)
         eval_config  = read_config(CONFIG_PATH)
     case _:

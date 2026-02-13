@@ -1,5 +1,5 @@
-name: lr2e-5_clip01_length2e8-rollout500-envs1024
-save_dir: ppo-hypernet/MOWalker-first-try
+name: lower-lr-shorter
+save_dir: results/MOWalker
 description: N/A
 env: MOWalker
 backend: np # jnp or np. Always uses jnp for training
@@ -28,7 +28,7 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        ['run', 'energy']
+      objectives:        [['run'], ['energy']]
       shared_objectives: ['alive']
   termination:
     enabled: true        # Enable or disable early termination
@@ -37,18 +37,18 @@ learning_params:
   ppo_params:
     action_repeat: 1
     batch_size: 64
-    clipping_epsilon: 0.1
+    clipping_epsilon: 0.15
     deterministic_eval: true
     discounting: 0.995
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.00002
+    learning_rate: 0.000006
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024
     num_evals: 15
     num_minibatches: 16
-    num_timesteps: 200000000
+    num_timesteps: 150000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30
