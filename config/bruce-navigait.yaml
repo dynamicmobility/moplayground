@@ -1,5 +1,5 @@
-name: discount96
-save_dir: results/Bruce-gait-base-energy-arm
+name: back-to-three
+save_dir: results/Bruce-gait-base-smooth
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -13,8 +13,8 @@ mo2so:
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
   sim_dt:           0.005   # Simulation (mujoco) timestep
-  # jt_scale:         [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-  jt_scale:         [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+  jt_scale:         [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+  # jt_scale:         [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
   # jt_scale:         [0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
   vel_scale:        0.20    # Scales the velocity commands
   history_length:   5       # Number of previous joint observations to stack
@@ -66,8 +66,10 @@ env_config:
       z0:               0.02 #0.03
   reward:
     optimization:
-      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['minimize_energy'], ['arm_swinging']]
-      shared_objectives: ['vel_residual_size', 'vel_residual_rate', 'res_jt_rate']
+      # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['minimize_energy'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
+      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
+      # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
+      shared_objectives: ['vel_residual_size', 'vel_residual_rate']
       labels:            ['Imitation Accuracy', 'Arm Swinging']
     weights:
       gait_tracking:       1.00  # Tracking the reference gait
@@ -76,7 +78,8 @@ env_config:
       vel_residual_size:   0.85  # Minimize the deviation in reference selection
       vel_residual_rate:   0.20  # Minimize the rate of change in reference selection
       minimize_energy:     4.00  # Minimize motor torques
-      res_jt_rate:        -0.20  # Minimize the change in residual joint torques
+      res_jt_rate:         0.75  # Minimize the change in residual joint torques
+      joint_rate:          4.00  # Minimize the change in robot joint state accelerations
       arm_swinging:        2.00  # Encourage arm swinging
     sigmas:                      # For sigmas, please see above.
       gait_tracking:      0.13

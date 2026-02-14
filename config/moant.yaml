@@ -31,7 +31,7 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        ['vx', 'vy']
+      objectives:        [['vx'], ['vy']]
       shared_objectives: ['alive', 'energy']
   termination:
     enabled: true        # Enable or disable early termination

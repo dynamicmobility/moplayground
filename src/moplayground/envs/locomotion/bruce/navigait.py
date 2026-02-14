@@ -476,10 +476,15 @@ class Bruce(NaviGait):
                 last_vdes_res       = self._vel_scale * info['act_history'][1, bruce.NDOF:],
                 vdes_res_rate_sigma = sigmas.vel_residual_rate
             ),
-            'res_jt_rate': self.reward_action_rate(
+            'res_jt_rate': 1.0 - self.reward_action_rate(
                 act           = self._jt_scale * info['act_history'][0, :bruce.NDOF],
                 last_act      = self._jt_scale * info['act_history'][1, :bruce.NDOF],
                 last_last_act = self._jt_scale * info['act_history'][2, :bruce.NDOF],
+            ),
+            'joint_rate': 0.2 - self.reward_action_rate(
+                act           = info['qpos_history'][0, self.qpos_free:self.qpos_free + bruce.NDOF],
+                last_act      = info['qpos_history'][1, self.qpos_free:self.qpos_free + bruce.NDOF],
+                last_last_act = info['qpos_history'][2, self.qpos_free:self.qpos_free + bruce.NDOF],
             ),
             'arm_swinging': self.reward_arm_swinging(
                 qpos_crank        = global_qpos_act[self.qpos_free:],
