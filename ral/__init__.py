@@ -3,6 +3,6 @@ FINAL_YAMLS = {
     'hopper'    : 'results/MOHopper/clean-front/back-to-small-network/config.yaml',
     'walker'    : 'results/MOWalker/lower-lr-shorter/config.yaml',
     'humanoid'  : None,
-    'ant'       : None,
+    'ant'       : 'config/moant.yaml',
     'bruce'     : None,
 }

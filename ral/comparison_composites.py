@@ -46,7 +46,22 @@ match args.env.lower():
             'run'       : run_kwargs
         }
     case 'ant':
-        camera = None
+        T = 1.9
+        SKIP_FRAME = 20
+        vx_kwargs = deepcopy(DEFAULT_KWARGS)
+        vx_kwargs['mode'] = CompositeMode.MAX_VARIATION
+        vx_kwargs['end_t'] = T
+        vx_kwargs['skip_frame'] = SKIP_FRAME
+        
+        vy_kwargs = deepcopy(DEFAULT_KWARGS)
+        vy_kwargs['mode'] = CompositeMode.MAX_VARIATION
+        vy_kwargs['end_t'] = T
+        vy_kwargs['skip_frame'] = SKIP_FRAME
+        
+        composite_kwargs = {
+            'vx'    : vx_kwargs,
+            'vy'    : vy_kwargs
+        }
     case 'walker':
         energy_kwargs = deepcopy(DEFAULT_KWARGS)
         energy_kwargs['end_t'] = 0.7

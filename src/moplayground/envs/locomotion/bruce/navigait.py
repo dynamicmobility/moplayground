@@ -491,7 +491,12 @@ class Bruce(NaviGait):
                 step_phase        = info['gaitlib'].get_step_phase(data.time),
                 swing_foot        = info['gaitlib'].swing_leg,
                 arm_swing_sigma   = sigmas.arm_swing_sigma
-            )
+            ),
+            'arm_static': self.reward_euclidean_imitation(
+                qpos            = global_qpos_act[self.qpos_free+10:self.qpos_free+16],
+                reference       = gait_des[10:16],
+                imitation_sigma = sigmas.arm_swing_sigma
+            ),
         }
         return rewards
     

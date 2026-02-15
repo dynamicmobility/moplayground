@@ -1,6 +1,6 @@
 <mujoco model="ant">
-  <include file="common/skybox.xml"/>
-  <include file="common/visual.xml"/>
+  <!-- <include file="common/skybox.xml"/> -->
+  <!-- <include file="common/visual.xml"/> -->
   <include file="common/materials.xml"/>
 
   <compiler angle="degree" inertiafromgeom="true"/>
@@ -11,14 +11,36 @@
     <joint armature="0.5" damping="0.1" limited="true"/>
     <geom conaffinity="0" condim="3" density="5.0" friction="1 0.5 0.5" margin="0.01" material="self"/>
   </default>
+  <asset>
+    <!-- <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="1 1 1" width="800" height="800"/> -->
+    <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="1 1 1" width="800" height="800"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="1 1 1" rgb2="1 1 1"
+      markrgb="0 0 0" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0"/>
+  </asset>
+
   <visual>
-    <global offwidth="2560" offheight="2560"/>
+    <headlight diffuse=".8 .8 .8" ambient=".2 .2 .2" specular="1 1 1"/>
+    <rgba force="1 0 0 1"/>
+    <global azimuth="140" elevation="-20" offwidth="2560" offheight="2560"/>
+    <map force="0.01"/>
+    <scale forcewidth="0.3" contactwidth="0.5" contactheight="0.2"/>
+    <quality shadowsize="8192"/>
   </visual>
 
   <worldbody>
     <!-- <light cutoff="100" diffuse="1 1 1" dir="-0 0 -1.3" directional="true" exponent="1" pos="0 0 1.3" specular=".1 .1 .1"/> -->
-    <light name="light" pos="0 0 2" mode="trackcom"/>
-    <geom name="ground" type="plane" conaffinity="1" pos="0 0 0" size="100 100 .5" material="grid"/>
+    <!-- <light name="light" pos="0 0 2" mode="trackcom"/> -->
+    <!-- <camera name="side_fixed" pos="4 -8 6" euler="70 0 0"/> -->
+    <camera name="side_fixed" pos="4 -8 3" euler="85 0 0"/>
+    <!-- <light name="lightx" pos="20 0 10" dir="-1 0 -1" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    
+    <light name="lightx" pos="16 0 20"    dir="-1 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <light name="lighty" pos="6 22 20"    dir="-4 -0.6 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <light name="lightq" pos="-4 23 20" dir="-1 -1 -7" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <light name="lightw" pos="13 13 20"   dir="0 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <light name="lightz" pos="19 19 20"   dir="0 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <geom name="ground" type="plane" conaffinity="1" pos="0 0 0" size="100 20 .5" material="groundplane"/>
     <body name="torso" pos="0 0 0.75">
       <camera name="track" mode="trackcom" pos="0 -5 3" xyaxes="1 0 0 0 0.6 1"/>
       <geom conaffinity="0" contype="0" name="torso_geom" pos="0 0 0" size="0.25" type="sphere"/>

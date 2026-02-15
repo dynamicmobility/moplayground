@@ -37,7 +37,14 @@ match args.env.lower():
         }
         T = 4.0
     case 'ant':
-        camera = None
+        camera = 'side_fixed'
+        WIDTH  = 1920
+        HEIGHT = 1080
+        directives = {
+            'vx': np.array([1.0, 0.0]),
+            'vy': np.array([0.0, 1.0])
+        }
+        T = 4.0
     case 'walker':
         camera = 'side_fixed'
         WIDTH  = 1920

@@ -1,5 +1,5 @@
 name: 0005-lr-995-discount-2e8-timesteps
-save_dir: "ppo-hypernet/MOAnt/first-try"
+save_dir: /home/njanwani/Documents/PbMORL/ppo-hypernet/MOAnt/first-try
 description: ""
 algorithm: "ppo"
 env: "MOAnt"
