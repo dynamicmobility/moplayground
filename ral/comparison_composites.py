@@ -48,7 +48,18 @@ match args.env.lower():
     case 'ant':
         camera = None
     case 'walker':
-        camera = 'side_fixed'
+        energy_kwargs = deepcopy(DEFAULT_KWARGS)
+        energy_kwargs['end_t'] = 0.7
+        energy_kwargs['skip_frame'] = 10
+        
+        run_kwargs = deepcopy(DEFAULT_KWARGS)
+        run_kwargs['end_t'] = 1.3
+        run_kwargs['skip_frame'] = 12
+        
+        composite_kwargs = {
+            'energy'    : energy_kwargs,
+            'run'       : run_kwargs
+        }
     case 'humanoid':
         camera = None
 

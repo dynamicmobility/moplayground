@@ -1,5 +1,5 @@
-name: less-arm-swing-weight
-save_dir: results/Bruce-gait-base-smooth
+name: four-with-separate-arm-swing
+save_dir: results/Bruce-arm-swing-debugging
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -67,8 +67,8 @@ env_config:
   reward:
     optimization:
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['minimize_energy'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
-      # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
-      objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
+      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
+      # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
       shared_objectives: ['vel_residual_size', 'vel_residual_rate']

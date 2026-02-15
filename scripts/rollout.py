@@ -18,8 +18,8 @@ env, env_params   = create_environment(
 # camera = 'side_fixed'
 camera = 'track'
 
-# directive = np.array([1.0, 1.0, 0.0, 0.0])
-directive = np.array([1.0, 0.5, 0.2])
+directive = np.array([0.5, 1.0, 0.5, 0.4])
+# directive = np.array([1.0, 0.5, 0.2])
 # directive = np.array([1.0, 0.0])
 # directive = np.array([1.0, 0.0])
 

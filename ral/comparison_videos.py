@@ -21,7 +21,7 @@ match args.env.lower():
     case 'cheetah':
         camera = 'side_fixed'
         WIDTH  = 2560
-        HEIGHT = 1080
+        HEIGHT = 1440
         directives = {
             'run':    np.array([1.0, 0.0]),
             'energy': np.array([0.0, 1.0])
@@ -40,6 +40,13 @@ match args.env.lower():
         camera = None
     case 'walker':
         camera = 'side_fixed'
+        WIDTH  = 1920
+        HEIGHT = 1440
+        directives = {
+            'run':    np.array([1.0, 0.0]),
+            'energy': np.array([0.0, 1.0])
+        }
+        T = 2.0
     case 'humanoid':
         camera = None
 env, env_params   = create_environment(

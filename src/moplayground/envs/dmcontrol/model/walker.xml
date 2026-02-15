@@ -44,7 +44,7 @@
   <worldbody>
     <geom name="floor" type="plane" conaffinity="1" pos="248 0 0" size="250 .8 .2" material="groundplane" zaxis="0 0 1"/>
     <camera name="side_fixed" pos="2.0 -4.5 2.5" euler="70 0 0"/>
-    <light name="light" pos="15 0 10" dir="-1 0 -1" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <light name="light" pos="7 0 10" dir="-1 0 -8" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
     <body name="torso" pos="0 0 0.0" childclass="walker">
       <!-- <light name="light" pos="0 0 2" mode="trackcom"/> -->
       <camera name="track" pos="0 -2 .7" euler="60 0 0" mode="trackcom"/>
