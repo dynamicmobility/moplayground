@@ -9,14 +9,13 @@ from moplayground.learning.inference import load_mo_policy
 
 def rollout_policy(
     env, 
-    save_dir,
+    config,
     directive = None,
     T=10.0,
     camera = 'track',
-    width = 1080,
+    width  = 1080,
     height = 720
 ):
-    config = read_config()
     if directive is None:
         directive = np.ones(len(config.env_config.reward.optimization.objectives))
     if config['mo2so']['enabled']:
@@ -31,7 +30,7 @@ def rollout_policy(
         )
     inference_fn = jax.jit(inference_fn)
     
-    frames, reward_plotter, data_plotter, info_plotter = rollout(
+    return rollout(
         inference_fn    = inference_fn,
         env             = env,
         T               = T,
@@ -39,17 +38,3 @@ def rollout_policy(
         width           = width,
         camera          = camera
     )
-
-    save_video(
-        frames    = frames,
-        dt        = env.dt,
-        path      = save_dir / f'{config['env']}-rollout.mp4'
-    )
-    save_metrics(
-        plotter   = reward_plotter,
-        path      = save_dir / f'{config['env']}-reward.pdf'
-    )
-
-if __name__ == '__main__':
-    save_dir = Path('output/videos')
-    main(save_dir)

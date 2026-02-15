@@ -5,6 +5,7 @@ import numpy as np
 from moplayground.eval.rollout import rollout_policy
 from moplayground.envs.create import create_environment
 from minimal_mjx.learning.startup import read_config
+from minimal_mjx.utils.plotting import save_metrics, save_video
 from pathlib import Path
 
 config            = read_config()
@@ -17,18 +18,29 @@ env, env_params   = create_environment(
 # camera = 'side_fixed'
 camera = 'track'
 
-# directive = np.array([1.0, 1.0, 0.0, 1.0])
-# directive = np.array([1.0, 1.0, 0.0])
+# directive = np.array([1.0, 1.0, 0.0, 0.0])
+directive = np.array([1.0, 0.0, 0.2])
 # directive = np.array([1.0, 0.0])
-directive = np.array([1.0, 0.0])
+# directive = np.array([1.0, 0.0])
 
 
-rollout_policy(
+frames, reward_plotter, _, _ = rollout_policy(
     env         = env,
-    save_dir    = Path('output/videos'),
+    config      = config,
     directive   = directive,
     T           = 5.0,
     camera      = camera,
     # width       = 2560,
     # height      = 1080
+)
+
+save_video(
+    frames,
+    env.dt,
+    Path(f'output/videos/{config['env']}-rollout.mp4')
+)
+
+save_metrics(
+    reward_plotter,
+    Path(f'output/videos/{config['env']}-reward.pdf')
 )

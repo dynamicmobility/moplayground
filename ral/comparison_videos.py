@@ -1,0 +1,55 @@
+import os
+import argparse
+os.environ["MUJOCO_GL"] = "egl"
+os.environ['JAX_PLATFORMS']='cpu'
+import numpy as np
+from moplayground.eval.rollout import rollout_policy
+from moplayground.envs.create import create_environment
+from minimal_mjx.learning.startup import read_config
+from minimal_mjx.utils.plotting import save_video
+from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument("env", type=str, help="Env to train on")
+args = parser.parse_args()
+KWARGS = {}
+
+match args.env.lower():
+    case 'cheetah':
+        config = read_config('config/mocheetah.yaml')
+        camera = 'side_fixed'
+        WIDTH  = 2560
+        HEIGHT = 1080
+        directives = {
+            'run':    np.array([1.0, 0.0]),
+            'energy': np.array([0.0, 1.0])
+        }
+        T = 2.0
+    case 'hopper':
+        camera = 'side_fixed'
+    case 'ant':
+        camera = None
+    case 'walker':
+        camera = 'side_fixed'
+    case 'humanoid':
+        camera = None
+env, env_params   = create_environment(
+    config,
+    **KWARGS
+)    
+for key in directives:
+    frames, _, _, _ = rollout_policy(
+        env         = env,
+        config      = config,
+        directive   = directives[key],
+        T           = T,
+        camera      = camera,
+        width       = WIDTH,
+        height      = HEIGHT
+    )
+    save_video(
+        frames = frames,
+        dt = env.dt,
+        path = Path(f'ral/videos/{args.env.lower()}-{key}.mp4')
+    )
+
