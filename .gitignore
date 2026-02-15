@@ -184,3 +184,7 @@ ral/plots
 ral/time_logs
 ral/images
 ral/videos
+
+*.mp4
+*.png
+*.jpg
