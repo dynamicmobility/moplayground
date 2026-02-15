@@ -11,7 +11,7 @@ from pathlib import Path
 config            = read_config()
 env, env_params   = create_environment(
     config,
-    manual_speed    = [0.0, 0.0, 0.0],
+    manual_speed    = [0.1, 0.0, 0.0],
     idealistic      = True
 )
 
@@ -19,7 +19,7 @@ env, env_params   = create_environment(
 camera = 'track'
 
 # directive = np.array([1.0, 1.0, 0.0, 0.0])
-directive = np.array([1.0, 0.0, 0.2])
+directive = np.array([1.0, 0.5, 0.2])
 # directive = np.array([1.0, 0.0])
 # directive = np.array([1.0, 0.0])
 

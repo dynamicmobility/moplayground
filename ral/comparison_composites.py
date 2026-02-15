@@ -31,7 +31,20 @@ match args.env.lower():
             'run'       : run_kwargs
         }
     case 'hopper':
-        camera = 'side_fixed'
+        T = 3.25
+        SKIP_FRAME = 11
+        height_kwargs = deepcopy(DEFAULT_KWARGS)
+        height_kwargs['end_t'] = T
+        height_kwargs['skip_frame'] = SKIP_FRAME
+        
+        run_kwargs = deepcopy(DEFAULT_KWARGS)
+        run_kwargs['end_t'] = T
+        run_kwargs['skip_frame'] = SKIP_FRAME
+        
+        composite_kwargs = {
+            'height'    : height_kwargs,
+            'run'       : run_kwargs
+        }
     case 'ant':
         camera = None
     case 'walker':
@@ -45,6 +58,6 @@ for key in composite_kwargs:
         video_path=f'ral/videos/{args.env.lower()}-{key}.mp4',
         **(composite_kwargs[key])
     )
-
     result = merger.merge_images()
-    cv2.imwrite(f'images/{args.env.lower()}-{key}.jpg', result)
+    
+    cv2.imwrite(f'ral/images/{args.env.lower()}-{key}.jpg', result)

@@ -8,15 +8,17 @@ from moplayground.envs.create import create_environment
 from minimal_mjx.learning.startup import read_config
 from minimal_mjx.utils.plotting import save_video
 from pathlib import Path
+from ral import FINAL_YAMLS
 
 parser = argparse.ArgumentParser()
 parser.add_argument("env", type=str, help="Env to train on")
 args = parser.parse_args()
+
+config = read_config(FINAL_YAMLS[args.env])
 KWARGS = {}
 
 match args.env.lower():
     case 'cheetah':
-        config = read_config('config/mocheetah.yaml')
         camera = 'side_fixed'
         WIDTH  = 2560
         HEIGHT = 1080
@@ -27,6 +29,13 @@ match args.env.lower():
         T = 2.0
     case 'hopper':
         camera = 'side_fixed'
+        WIDTH  = 2560
+        HEIGHT = 1080
+        directives = {
+            'run':    np.array([1.0, 0.0]),
+            'height': np.array([0.2, 1.0])
+        }
+        T = 4.0
     case 'ant':
         camera = None
     case 'walker':

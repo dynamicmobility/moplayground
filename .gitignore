@@ -182,3 +182,5 @@ src/moplayground.egg-info
 ral/pareto_logs
 ral/plots
 ral/time_logs
+ral/images
+ral/videos
