@@ -1,5 +1,5 @@
-name: 0005-lr-995-discount-2e8-timesteps
-save_dir: /home/njanwani/Documents/PbMORL/ppo-hypernet/MOAnt/first-try
+name: envs1024
+save_dir: /home/njanwani/Documents/PbMORL/ppo-hypernet/MOAnt/tuning
 description: ""
 algorithm: "ppo"
 env: "MOAnt"
@@ -33,6 +33,7 @@ env_config:
     optimization:
       objectives:        [['vx'], ['vy']]
       shared_objectives: ['alive', 'energy']
+      labels:            ['$v_x$', '$v_y$']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
@@ -40,17 +41,17 @@ learning_params:
   ppo_params:
     action_repeat: 1
     batch_size: 64
-    clipping_epsilon: 0.1
+    clipping_epsilon: 0.2
     deterministic_eval: true
-    discounting: 0.995
+    discounting: 0.99
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.00002
+    learning_rate: 0.000004
     max_grad_norm: 1.0
     normalize_observations: true
-    num_envs: 512
+    num_envs: 2048
     num_evals: 15
-    num_minibatches: 8
+    num_minibatches: 32
     num_timesteps: 200000000
     num_updates_per_batch: 4
     reward_scaling: 1.0

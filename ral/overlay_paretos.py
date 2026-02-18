@@ -37,8 +37,14 @@ import pandas as pd
 from moplayground.learning.startup import read_config
 from pathlib import Path
 from moplayground.eval.pareto import get_nondominated
+import argparse
+from ral import FINAL_YAMLS
 
-config    = read_config()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("env", type=str, help="Env to train on")
+args = parser.parse_args()
+config = read_config(FINAL_YAMLS[args.env])
 obj_files = list(Path(config['save_dir'], config['name']).glob('obj*.txt'))
 obj_files.sort(key=lambda x: int(x.name[3:].split('.')[0]))
 

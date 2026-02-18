@@ -23,15 +23,7 @@
     <joint limited="true"/>
     <equality solimp="0.0 0.95 0.0001 0.1 2" solref="0.005 0.5"/>
   </default>
-  <visual>
-      <!-- <headlight ambient="0.5         0.5         0.5"/> -->
-      <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
-      <map force="0.2"/>
-      <rgba haze="0.15 0.25 0.35 1" contactforce="0.7 0.9 0.9 0.5"/>
-      <global offwidth="2560" offheight="2560"/>
-      <scale forcewidth="0.1"/>
-      <quality offsamples="4"/>
-   </visual>
+
   <option gravity="0 0 -9.81"
         integrator="Euler"
         iterations="3"
@@ -68,17 +60,19 @@
   </asset>
 
   <worldbody>
-    <body name="base_link" pos="0 0 0.4728" euler="0 -0 0">
-    <light name="headlight" pos="1 1 10" dir="-1 -1 -10" diffuse="1 1 1" specular="0.3 0.3 0.3" directional="false"/>
 
-    <camera name="track" pos="1.1 -1.1 0.5" xyaxes="0.7 0.700 0.000 -0.171 0.296 0.940" mode="trackcom"/>
+    <body name="base_link" pos="0 0 0.4728" euler="0 -0 0">
+    <!-- <light name="headlight" pos="1 1 10" dir="-1 -1 -10" diffuse="1 1 1" specular="0.3 0.3 0.3" directional="false"/> -->
+
+    <camera name="track" pos="1.1 -1.1 0.5" xyaxes="0.7 0.700 0.000 -0.171 0.296 0.940" mode="fixed"/>
     <camera name="track-zoomed" pos="0.6 -0.6 0.15" xyaxes="0.7 0.700 0.000 -0.171 0.296 0.940" mode="trackcom"/>
     <camera name="track-front" pos="1.0 -0.0 0.2" euler="70 0 90" mode="trackcom"/>
     
       <inertial pos="0.022596000000000002 -0.000113 0.061400999999999997" mass="1.6168899999999999" fullinertia="0.0133543 0.0102363 0.0054710000000000002 -3.36e-06 0.0018272500000000001 -1.163e-05"/>
       <site name="base_IMU" pos="0 0 0.0" euler="0 0 0" size="0.01" rgba="1 0 0 0.5" type="sphere"/>
       <geom name="base_link_visual" class="unused" type="mesh" contype="0" conaffinity="0" group="0" pos="0 0 0" euler="0 -0 0" mesh="base_link"/>
-      <freejoint name="freejoint"/>
+      <!-- <freejoint name="freejoint"/> -->
+      <joint armature="0" damping="0" limited="false" margin="0.01" name="root" pos="0 0 0" type="free"/>
       <body name="hip_yaw_link_r" pos="0.029216 -0.075856 -0.039765" euler="0 0 -90.0">
         <inertial pos="3e-06 -0.000248 0.005224" mass="0.637563" fullinertia="0.00048541 0.00161689 0.00152129 1.12e-06 1.74e-06 -7.02e-06"/>
         <geom name="hip_yaw_link_r_visual" class="unused" type="mesh" contype="0" conaffinity="0" group="0" pos="0 0 0" euler="0 0 0" mesh="hip_yaw_link_r"/>

@@ -16,10 +16,15 @@ from tqdm import tqdm
 import pandas as pd
 from moplayground.eval.pareto import run_experiments, get_pareto_statistics, get_nondominated
 from minimal_mjx.utils.plotting import get_subplot_grid
+import argparse
+from ral import FINAL_YAMLS
 
 if __name__ == '__main__':
     run_setup()
-    config = read_config()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("env", type=str, help="Env to train on")
+    args = parser.parse_args()
+    config = read_config(FINAL_YAMLS[args.env])
     obj_files = list(Path(config['save_dir'], config['name']).glob('obj*.txt'))
     obj_files.sort(key=lambda x: int(x.name[3:].split('.')[0]))
     if obj_files:
@@ -70,7 +75,7 @@ if __name__ == '__main__':
         label='MORLaX'
     )
     ax.plot(
-        hyperdf['seconds'].values - hyperdf['seconds'].values[0],
+        hyperdf['seconds'].values, #- hyperdf['seconds'].values[0],
         hyperdf['hypervolume'],
         color='red',
         label='HYPER-MORL'
@@ -87,7 +92,7 @@ if __name__ == '__main__':
     hyper_idx_finish = np.argmax(hyperdf['hypervolume'].values >= finish_line)
     morlax_idx_finish = np.argmax(np.array(hvs) >= finish_line)
     MORLaX_duration = jax_progress['times'].iloc[morlax_idx_finish] - jax_progress['times'].iloc[0]
-    HYPER_duration = hyperdf['seconds'].iloc[hyper_idx_finish] - hyperdf['seconds'].iloc[0]
+    HYPER_duration = hyperdf['seconds'].iloc[hyper_idx_finish] #- hyperdf['seconds'].iloc[0]
     print('MORLaX finish time', MORLaX_duration)
     print('HYPER-MORL finish time', HYPER_duration)
     print('Speedup factor:', HYPER_duration / MORLaX_duration)

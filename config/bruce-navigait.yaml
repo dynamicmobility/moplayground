@@ -1,4 +1,4 @@
-name: five-static-swing
+name: dense-sampling
 save_dir: results/Bruce-arm-swing-debugging
 description: ""
 algorithm: ppo
@@ -12,8 +12,8 @@ mo2so:
   weighting: [0.5, 0.5]
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
-  sim_dt:           0.005   # Simulation (mujoco) timestep
-  jt_scale:         [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+  sim_dt:           0.004   # Simulation (mujoco) timestep
+  jt_scale:         [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]
   # jt_scale:         [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
   # jt_scale:         [0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
   vel_scale:        0.20    # Scales the velocity commands
@@ -117,7 +117,7 @@ learning_params:
     discounting: 0.96
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.00008
+    learning_rate: 0.000008
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024
@@ -130,7 +130,7 @@ learning_params:
   hypermorl_params:
     alpha: 1.0
     k: 6
-    sampling: sparse-heavytail
+    sampling: dense
     warmup_frac: 0.0
   warmup_params:
     enabled: false

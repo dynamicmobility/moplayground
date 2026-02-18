@@ -76,7 +76,22 @@ match args.env.lower():
             'run'       : run_kwargs
         }
     case 'humanoid':
-        camera = None
+        T = 2.2
+        SKIP_FRAME = 12
+        vx_kwargs = deepcopy(DEFAULT_KWARGS)
+        vx_kwargs['mode'] = CompositeMode.MAX_VARIATION
+        vx_kwargs['end_t'] = T
+        vx_kwargs['skip_frame'] = SKIP_FRAME
+        
+        vy_kwargs = deepcopy(DEFAULT_KWARGS)
+        vy_kwargs['mode'] = CompositeMode.MAX_VARIATION
+        vy_kwargs['end_t'] = T
+        vy_kwargs['skip_frame'] = SKIP_FRAME
+        
+        composite_kwargs = {
+            'run'       : vx_kwargs,
+            'energy'    : vy_kwargs
+        }
 
 
 for key in composite_kwargs:

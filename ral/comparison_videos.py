@@ -55,7 +55,14 @@ match args.env.lower():
         }
         T = 2.0
     case 'humanoid':
-        camera = None
+        camera = 'side_fixed'
+        WIDTH  = 1920
+        HEIGHT = 1080
+        directives = {
+            'run':    np.array([1.0, 0.1]),
+            'energy': np.array([0.0, 1.0])
+        }
+        T = 4.0
 env, env_params   = create_environment(
     config,
     **KWARGS

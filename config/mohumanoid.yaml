@@ -1,10 +1,10 @@
-name: test
-save_dir: ppo-hypernet/MOHumanoid-SO/only-energy
+name: with-tuned-height-reward
+save_dir: /home/njanwani/Documents/PbMORL/ppo-hypernet/MOHumanoid-qfrc
 description: N/A
 env: MOHumanoid
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
-  enabled: true
+  enabled: false
   weighting: [0.0, 0.5]
 env_config:
   ctrl_dt: 0.01
