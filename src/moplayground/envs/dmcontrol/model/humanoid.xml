@@ -54,14 +54,25 @@
 
   <worldbody>
     <geom name="floor" type="plane" conaffinity="1" size="100 20 .5" material="groundplane"/>
-    <camera name="side_fixed" pos="4 -8 3" euler="85 0 0"/>
+    <!-- <camera name="side_fixed" pos="4 -8 3" euler="85 0 0"/> -->
+    <!-- <camera name="side_fixed" pos="6.0 -7.5 3.5" euler="70 0 0"/> -->
+    <camera name="side_fixed" pos="3.5 -4.5 2.5" euler="70 0 0"/>
     <!-- <light name="lightx" pos="20 0 10" dir="-1 0 -1" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
     
-    <light name="lightx" pos="16 0 20"    dir="-1 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
-    <light name="lighty" pos="6 22 20"    dir="-4 -0.6 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
-    <light name="lightq" pos="-4 23 20" dir="-1 -1 -7" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
-    <light name="lightw" pos="13 13 20"   dir="0 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
-    <light name="lightz" pos="19 19 20"   dir="0 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <!-- <light name="lightx" pos="16 0 20"    dir="-1 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    <!-- <light name="lighty" pos="6 22 20"    dir="-4 -0.6 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    <!-- <light name="lightq" pos="-4 23 20" dir="-1 -1 -7" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    <!-- <light name="lightw" pos="13 13 20"   dir="0 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    <!-- <light name="lightz" pos="19 19 20"   dir="0 0 -9" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    <light name="lightx" pos="16 0  20"    dir="-1 0 -9"    mode="fixed" specular="1 1 1" diffuse=".3 .3 .3" ambient=".2 .2 .2"/>
+    <light name="lighty" pos="6  22 20"    dir="-4 -0.6 -9" mode="fixed" specular="1 1 1" diffuse=".3 .3 .3" ambient=".2 .2 .2"/>
+    <light name="lightq" pos="-10 23 28"   dir="-1 -1 -7"   mode="fixed" specular="1 1 1" diffuse=".3 .3 .3" ambient=".2 .2 .2"/>
+    <light name="lightw" pos="18 18 20"   dir="0 0 -9"      mode="fixed" specular="1 1 1" diffuse=".3 .3 .3" ambient=".1 .1 .1"/>
+    <light name="lightz" pos="19 19 28"   dir="0 0 -9"      mode="fixed" specular="1 1 1" diffuse=".3 .3 .3" ambient=".2 .2 .2"/>
+    <light name="lightt" pos="22 22 28"   dir="0 0 -9"      mode="fixed" specular="1 1 1" diffuse=".3 .3 .3" ambient=".2 .2 .2"/>
+        
+    <light name="light_overhead1" pos="0 0 30" dir="0 0 -1" mode="fixed" specular="1 1 1" diffuse="0.2 0.2 0.2" ambient="0.2 0.2 0.2"/>
+
     <body name="torso" pos="0 0 1.5" childclass="body">
       <!-- <light name="top" pos="0 0 2" mode="trackcom"/> -->
       <camera name="back" pos="-3 0 1" xyaxes="0 -1 0 1 0 2" mode="trackcom"/>

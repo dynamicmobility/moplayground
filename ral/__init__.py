@@ -6,3 +6,19 @@ FINAL_YAMLS = {
     'ant'       : 'config/moant.yaml',
     'bruce'     : None,
 }
+
+HYPER_PARETOS = {
+    'cheetah'   : 'ral/pareto_logs/HyperCheetah.csv',
+    'hopper'    : 'ral/pareto_logs/HyperHopper.csv',
+    'walker'    : 'ral/pareto_logs/HyperWalker.csv',
+    'humanoid'  : 'ral/pareto_logs/HyperHumanoid.csv',
+    'ant'       : 'ral/pareto_logs/HyperAnt.csv',
+}
+
+HYPER_TIMES = {
+    'cheetah'   : 'ral/time_logs/HyperCheetah',
+    'hopper'    : 'ral/time_logs/HyperHopper',
+    'walker'    : 'ral/time_logs/HyperWalker',
+    'humanoid'  : 'ral/time_logs/HyperHumanoid',
+    'ant'       : 'ral/time_logs/HyperAnt',
+}

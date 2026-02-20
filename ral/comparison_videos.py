@@ -21,7 +21,7 @@ match args.env.lower():
     case 'cheetah':
         camera = 'side_fixed'
         WIDTH  = 2560
-        HEIGHT = 1440
+        HEIGHT = 1080
         directives = {
             'run':    np.array([1.0, 0.0]),
             'energy': np.array([0.0, 1.0])
@@ -38,7 +38,7 @@ match args.env.lower():
         T = 4.0
     case 'ant':
         camera = 'side_fixed'
-        WIDTH  = 1920
+        WIDTH  = 2560
         HEIGHT = 1080
         directives = {
             'vx': np.array([1.0, 0.0]),
@@ -47,8 +47,8 @@ match args.env.lower():
         T = 4.0
     case 'walker':
         camera = 'side_fixed'
-        WIDTH  = 1920
-        HEIGHT = 1440
+        WIDTH  = 2560
+        HEIGHT = 1080
         directives = {
             'run':    np.array([1.0, 0.0]),
             'energy': np.array([0.0, 1.0])
@@ -56,7 +56,7 @@ match args.env.lower():
         T = 2.0
     case 'humanoid':
         camera = 'side_fixed'
-        WIDTH  = 1920
+        WIDTH  = 2560
         HEIGHT = 1080
         directives = {
             'run':    np.array([1.0, 0.1]),

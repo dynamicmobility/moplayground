@@ -30,6 +30,7 @@ env_config:
     optimization:
       objectives:        [['run'], ['energy']]
       shared_objectives: ['alive']
+      labels:            ['Speed', 'Energy Efficiency']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2

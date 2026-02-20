@@ -20,18 +20,18 @@ match args.env.lower():
     case 'cheetah':
         energy_kwargs = deepcopy(DEFAULT_KWARGS)
         energy_kwargs['end_t'] = 0.7
-        energy_kwargs['skip_frame'] = 10
+        energy_kwargs['skip_frame'] = 12
         
         run_kwargs = deepcopy(DEFAULT_KWARGS)
-        run_kwargs['end_t'] = 0.9
-        run_kwargs['skip_frame'] = 9
+        run_kwargs['end_t'] = 1.1
+        run_kwargs['skip_frame'] = 15
         
         composite_kwargs = {
             'energy'    : energy_kwargs,
             'run'       : run_kwargs
         }
     case 'hopper':
-        T = 3.25
+        T = 2.0
         SKIP_FRAME = 11
         height_kwargs = deepcopy(DEFAULT_KWARGS)
         height_kwargs['end_t'] = T
@@ -46,15 +46,15 @@ match args.env.lower():
             'run'       : run_kwargs
         }
     case 'ant':
-        T = 1.9
+        T = 1.4
         SKIP_FRAME = 20
         vx_kwargs = deepcopy(DEFAULT_KWARGS)
-        vx_kwargs['mode'] = CompositeMode.MAX_VARIATION
+        # vx_kwargs['mode'] = CompositeMode.MAX_VARIATION
         vx_kwargs['end_t'] = T
         vx_kwargs['skip_frame'] = SKIP_FRAME
         
         vy_kwargs = deepcopy(DEFAULT_KWARGS)
-        vy_kwargs['mode'] = CompositeMode.MAX_VARIATION
+        # vy_kwargs['mode'] = CompositeMode.MAX_VARIATION
         vy_kwargs['end_t'] = T
         vy_kwargs['skip_frame'] = SKIP_FRAME
         
@@ -68,29 +68,29 @@ match args.env.lower():
         energy_kwargs['skip_frame'] = 10
         
         run_kwargs = deepcopy(DEFAULT_KWARGS)
-        run_kwargs['end_t'] = 1.3
-        run_kwargs['skip_frame'] = 12
+        run_kwargs['end_t'] = 1.4
+        run_kwargs['skip_frame'] = 16
         
         composite_kwargs = {
             'energy'    : energy_kwargs,
             'run'       : run_kwargs
         }
     case 'humanoid':
-        T = 2.2
-        SKIP_FRAME = 12
-        vx_kwargs = deepcopy(DEFAULT_KWARGS)
-        vx_kwargs['mode'] = CompositeMode.MAX_VARIATION
-        vx_kwargs['end_t'] = T
-        vx_kwargs['skip_frame'] = SKIP_FRAME
+        T = 1.8
+        SKIP_FRAME = 13 #8
+        run_kwargs = deepcopy(DEFAULT_KWARGS)
+        run_kwargs['mode'] = CompositeMode.MAX_VARIATION
+        run_kwargs['end_t'] = T
+        run_kwargs['skip_frame'] = SKIP_FRAME
         
-        vy_kwargs = deepcopy(DEFAULT_KWARGS)
-        vy_kwargs['mode'] = CompositeMode.MAX_VARIATION
-        vy_kwargs['end_t'] = T
-        vy_kwargs['skip_frame'] = SKIP_FRAME
+        energy_kwargs = deepcopy(DEFAULT_KWARGS)
+        energy_kwargs['mode'] = CompositeMode.MAX_VARIATION
+        energy_kwargs['end_t'] = T
+        energy_kwargs['skip_frame'] = SKIP_FRAME
         
         composite_kwargs = {
-            'run'       : vx_kwargs,
-            'energy'    : vy_kwargs
+            'run'       : run_kwargs,
+            'energy'    : energy_kwargs
         }
 
 

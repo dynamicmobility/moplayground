@@ -33,7 +33,7 @@ env_config:
     optimization:
       objectives:        [['vx'], ['vy']]
       shared_objectives: ['alive', 'energy']
-      labels:            ['$v_x$', '$v_y$']
+      labels:            ['$x$ velocity', '$y$ velocity']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
