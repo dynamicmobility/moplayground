@@ -50,12 +50,12 @@ def make_plot(config, hyper_path):
     obj_files.sort(key=lambda x: int(x.name[3:].split('.')[0]))
     morlax_df       = pd.read_csv(obj_files[-1])
     morlax_F        = morlax_df.iloc[:, 1:].values
-    morlax_F_max    = get_nondominated(morlax_F)
+    morlax_F_max    = morlax_F[get_nondominated(morlax_F)]
 
 
     hyper_df      = pd.read_csv(hyper_path)
     hyper_F       = hyper_df.iloc[:, 1:].values
-    hyper_F_max   = get_nondominated(hyper_F)
+    hyper_F_max   = hyper_F[get_nondominated(hyper_F)]
 
     fig, ax = plt.subplots(figsize=FIGSIZE)
     ax.scatter(morlax_df['obj0'], morlax_df['obj1'], s=3, color=[0, 0, 1], alpha=0.15, label='MORLaX')

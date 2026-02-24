@@ -25,7 +25,7 @@ from mujoco_playground._src import mjx_env
 import numpy as np
 from minimal_mjx.utils.plotting import get_subplot_grid
 from minimal_mjx.learning.training import initialize_wandb, save_model
-from moplayground.utils.plotting import plot_squential_paretos, plot_sequential_hypervolume
+from moplayground.utils.plotting import plot_sequential_paretos, plot_sequential_hypervolume
 from dataclasses import dataclass, field
 
 @dataclass(frozen=False)
@@ -66,7 +66,7 @@ def plot_mo_progress(
 
     if np.array(training_data.directives).shape[2] == 2:
         # create the plot
-        fig, axs = plot_squential_paretos(
+        fig, axs = plot_sequential_paretos(
             ax_titles   = training_data.iterations,
             paretos     = training_data.paretos,
             directives  = training_data.directives,

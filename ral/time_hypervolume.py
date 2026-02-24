@@ -17,7 +17,7 @@ import pandas as pd
 from moplayground.eval.pareto import run_experiments, get_pareto_statistics, get_nondominated
 from minimal_mjx.utils.plotting import get_subplot_grid
 import argparse
-from ral import FINAL_YAMLS
+from ral import FINAL_YAMLS, HYPER_TIMES
 
 if __name__ == '__main__':
     run_setup()
@@ -34,13 +34,12 @@ if __name__ == '__main__':
         axs = axs.flatten()
         PLOT_PARETOS = True
         for idx, (file, ax) in enumerate(zip(obj_files, axs)):
-            print(file)
             F = pd.read_csv(file).iloc[:, 1:].values
             hv, _ = get_pareto_statistics(F)
             hvs.append(hv)
             
             if PLOT_PARETOS:
-                F_max = get_nondominated(F)
+                F_max = F[get_nondominated(F)]
                 ax.scatter(*(F.T), c='black', s=1)
                 ax.scatter(*(F_max.T), c='r', s=3)
                 ax.set_title(str(file.name))
@@ -64,7 +63,7 @@ if __name__ == '__main__':
             hvs.append(hv)
     jax_progress = pd.read_csv(Path(config['save_dir']) / config['name'] / 'progress.csv')
     
-    hyper_path = input('Enter hyper comparison path: ')
+    hyper_path = HYPER_TIMES[args.env]
     hyperdf = pd.read_csv(hyper_path)
     
     fig, ax = plt.subplots()
@@ -88,11 +87,18 @@ if __name__ == '__main__':
     fig.tight_layout()
     fig.savefig(f'ral/plots/{config['env']}-hypervolume-speed.pdf')
 
-    finish_line = hyperdf['hypervolume'].values[-1]
-    hyper_idx_finish = np.argmax(hyperdf['hypervolume'].values >= finish_line)
-    morlax_idx_finish = np.argmax(np.array(hvs) >= finish_line)
-    MORLaX_duration = jax_progress['times'].iloc[morlax_idx_finish] - jax_progress['times'].iloc[0]
-    HYPER_duration = hyperdf['seconds'].iloc[hyper_idx_finish] #- hyperdf['seconds'].iloc[0]
+    max_hyper_hv        = np.max(hyperdf['hypervolume'].values)
+    max_morlax_hv       = np.max(hvs)
+    hyper_finish_line   = np.argmax(hyperdf['hypervolume'].values)
+    hyper_idx_finish    = np.argmax(hyperdf['hypervolume'].values >= max_hyper_hv)
+    morlax_idx_finish   = np.argmax(np.array(hvs) >= max_hyper_hv)
+    MORLaX_duration     = jax_progress['times'].iloc[morlax_idx_finish] - jax_progress['times'].iloc[0]
+    HYPER_duration      = hyperdf['seconds'].iloc[hyper_idx_finish]
     print('MORLaX finish time', MORLaX_duration)
     print('HYPER-MORL finish time', HYPER_duration)
     print('Speedup factor:', HYPER_duration / MORLaX_duration)
+    print('---')
+    print('Max hypervolume (HYPER-MORL):', f'{max_hyper_hv:.2e}')
+    print('Max hypervolume (MORLaX):', f'{max_morlax_hv:.2e}')
+    improvement_ratio = max_morlax_hv / max_hyper_hv
+    print('MORLaX improvement over HYPER-MORL:', f'{improvement_ratio:.2f}x')

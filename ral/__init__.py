@@ -4,7 +4,7 @@ FINAL_YAMLS = {
     'walker'    : 'results/MOWalker/lower-lr-shorter/config.yaml',
     'humanoid'  : 'config/mohumanoid.yaml',
     'ant'       : 'config/moant.yaml',
-    'bruce'     : None,
+    'bruce5D'   : 'results/Bruce-arm-swing-debugging/dense-sampling/config.yaml',
 }
 
 HYPER_PARETOS = {
