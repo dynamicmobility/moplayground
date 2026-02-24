@@ -139,7 +139,7 @@ def sparsity_from_normalized_nondominated(F_min_norm):
 
 def get_pareto_statistics(F):
     # Extract nondominated front to do calculations
-    F_max = get_nondominated(F)
+    F_max = F[get_nondominated(F)]
     F_norm = normalize(F_max.copy())
 
     # Convert to minimization

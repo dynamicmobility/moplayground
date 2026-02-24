@@ -177,6 +177,7 @@ pyrightconfig.json
 
 output/
 results/
+bruce-results/
 wandb/
 src/moplayground.egg-info
 ral/pareto_logs

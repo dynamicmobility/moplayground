@@ -404,6 +404,11 @@ class DualA2CHypernet(nn.Module):
         )
 
         return policy_sort_params, value_sort_params
+    
+    def get_features(self, pref, single=False):
+        policy_features = self.policy_mlp(pref)
+        value_features  = self.value_mlp(pref)
+        return policy_features, value_features
 
 def count_params(params):
     """Count the total number of parameters in a Flax model."""

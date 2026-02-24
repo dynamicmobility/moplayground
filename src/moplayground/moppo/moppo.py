@@ -114,7 +114,7 @@ def _maybe_wrap_env(
     return env
 
 
-def sample_preferences(key, it, sampling, k, warmup_frac, alpha, num_evals, num_envs, num_objs):
+def sample_preferences(key, it, sampling, K, warmup_frac, alpha, num_evals, num_envs, num_objs):
     cond = it < np.round(warmup_frac * num_evals)
     def warmup_fn(_):
         print('WARMUP')
@@ -138,7 +138,7 @@ def sample_preferences(key, it, sampling, k, warmup_frac, alpha, num_evals, num_
             )
             w = jnp.repeat(w, num_envs // (k + 2), axis=0)[jnp.newaxis, :]
         elif sampling == 'sparse-heavytail':
-            k = 8 - num_objs
+            k = K - num_objs
             _, w_key = jax.random.split(key)
             w = jax.random.dirichlet(
                 key=w_key,
@@ -417,7 +417,7 @@ def train(
             key         = key_pref,
             it          = iteration,
             sampling    = sampling,
-            k           = k,
+            K           = k,
             warmup_frac = warmup_frac,
             alpha       = alpha,
             num_evals   = num_evals,

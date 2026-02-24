@@ -48,9 +48,21 @@ def plot_pareto(
             pareto[:, 0],
             pareto[:, 1],
             pareto[:, 2],
-            s=4,
-            c=c
+            s=2,
+            c=c,
+            alpha=0.02
         )
+        if nondominated:
+            nd_idx = get_nondominated(pareto)
+            ax.scatter(
+                pareto[nd_idx, 0],
+                pareto[nd_idx, 1],
+                pareto[nd_idx, 2],
+                s = 24,
+                # edgecolors='black', # Border color
+                # linewidths=1.5,   # Border width,
+                c = c[nd_idx,:],
+            )
         ax.set_xlabel(objectives[0])
         ax.set_ylabel(objectives[1])
         ax.set_zlabel(objectives[2])

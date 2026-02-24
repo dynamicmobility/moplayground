@@ -1,5 +1,5 @@
-name: dense-sampling
-save_dir: results/Bruce-arm-swing-debugging
+name: jt060-imigait-allvel
+save_dir: bruce-results/2D/jt-debugging
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -13,15 +13,15 @@ mo2so:
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
   sim_dt:           0.004   # Simulation (mujoco) timestep
-  jt_scale:         [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]
+  jt_scale:         [0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]
   # jt_scale:         [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
   # jt_scale:         [0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
-  vel_scale:        0.20    # Scales the velocity commands
+  vel_scale:        0.05    # Scales the velocity commands
   history_length:   5       # Number of previous joint observations to stack
   noise_scale:      1.0     # Scales the sensor noise
   terrain:          "flat"  # TODO IMPLEMENT THIS
   filter_tau:       0.03    # time constant of filter for pos/vel desired
-  tracking:         position-velocity # or position or position-velocity
+  tracking:         position # or position or position-velocity
   ankle_offsets:    [0.0, 0.0]
   start_stance:     either   # right, left, or either
   recurrent_states: 0
@@ -67,13 +67,13 @@ env_config:
   reward:
     optimization:
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['minimize_energy'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
-      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['arm_static'], ['res_jt_rate', 'joint_rate']]
+      # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['arm_static'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
-      # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
+      objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
       shared_objectives: ['vel_residual_size', 'vel_residual_rate']
-      labels:            ['Imitation Accuracy', 'Arm Swinging']
+      labels:            ['Imitation Accuracy', 'Smoothness']
     weights:
       gait_tracking:       1.00  # Tracking the reference gait
       base_xyz_tracking:   1.00  # Tracking the desired base position
@@ -86,7 +86,7 @@ env_config:
       arm_swinging:        1.00  # Encourage arm swinging
       arm_static:          1.00  # Encourage arms to be static (not swinging)
     sigmas:                      # For sigmas, please see above.
-      gait_tracking:      0.13
+      gait_tracking:      0.55
       base_xyz_tracking:  0.004
       base_quat_tracking: 0.02 
       vel_residual_size:  0.001
@@ -112,7 +112,7 @@ learning_params:
   ppo_params:
     action_repeat: 1
     batch_size: 64
-    clipping_epsilon: 0.15
+    clipping_epsilon: 0.2
     deterministic_eval: true
     discounting: 0.96
     entropy_cost: 0.01
@@ -120,17 +120,17 @@ learning_params:
     learning_rate: 0.000008
     max_grad_norm: 1.0
     normalize_observations: true
-    num_envs: 1024
+    num_envs: 2048
     num_evals: 15
-    num_minibatches: 16
-    num_timesteps: 100000000
+    num_minibatches: 32
+    num_timesteps: 60000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30
   hypermorl_params:
     alpha: 1.0
-    k: 6
-    sampling: dense
+    k: 16
+    sampling: sparse-heavytail
     warmup_frac: 0.0
   warmup_params:
     enabled: false

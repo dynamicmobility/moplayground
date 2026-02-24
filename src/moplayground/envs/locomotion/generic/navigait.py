@@ -410,8 +410,8 @@ class NaviGait(BipedalBase):
         jtdot_desired = new_state_des[ndof:] + info['delta_qdot']
         
         # Compute the final motor targets by adding the residual to desired
-        q_targets = jt_desired + info['res_target'] + info['jt_offset']
-        # info['jtdot_desired'] = info['jtdot_desired'] + 0.6 * (change_in_jt - info['jtdot_desired'])
+        # q_targets = jt_desired + info['res_target'] + info['jt_offset']
+        q_targets = info['res_target']
 
         if self.params.tracking == 'position':
             vel_enabled = self._np.zeros(1)
