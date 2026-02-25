@@ -41,19 +41,26 @@
     <!-- <camera name='side_fixed' pos="1.572 -1.492 0.899" xyaxes="0.854 0.520 -0.000 -0.154 0.252 0.955"/> -->
     <!-- <camera name='side_fixed' pos="1.418 -2.110 0.847" xyaxes="0.986 0.164 0.000 -0.032 0.192 0.981"/> -->
     <!-- <camera name='side_fixed' pos="1.992 -1.892 1.750" xyaxes="0.963 0.269 0.000 -0.123 0.441 0.889"/> -->
-    <camera name='side_fixed' pos="1.057 -1.651 1.659" xyaxes="1.000 -0.000 -0.000 0.000 0.505 0.863"/>
+    <!-- <camera name='side_fixed' pos="1.057 -1.651 1.659" xyaxes="1.000 -0.000 -0.000 0.000 0.505 0.863"/> -->
+    <camera name='side_fixed' pos="1.046 -1.936 0.942" xyaxes="1.000 0.011 -0.000 -0.002 0.168 0.986"/>
+
 
     <!-- <camera name="side_fixed" pos="2 -3 1" euler="85 0 0"/> -->
     <!-- <light pos="0 0 15" dir="0 0 -15" directional="true"/> -->
-    <light pos="3 0 4" dir="-5 0 -15" directional="false" diffuse=".5 .5 .5" ambient=".4 .4 .4" specular="1 1 1"/>
-    <light pos="3 0 4" dir="-0 0 -15" directional="false" diffuse=".5 .5 .5" ambient=".4 .4 .4" specular="1 1 1"/>
-    <light pos="0 3 4" dir="-0 0 -15" directional="false" diffuse=".5 .5 .5" ambient=".4 .4 .4" specular="1 1 1"/>
-    <light pos="3 3 4" dir="-0 0 -15" directional="false" diffuse=".5 .5 .5" ambient=".4 .4 .4" specular="1 1 1"/>
-    <light pos="-3 3 4" dir="-0 0 -15" directional="false" diffuse=".5 .5 .5" ambient=".4 .4 .4" specular="1 1 1"/>
+    <light pos="5 0 10"  dir="-2 0 -15" directional="false" diffuse=".4 .4 .4" ambient=".2 .2 .2" specular="1 1 1"/>
+    
+    <light pos="5 0 6"  dir="-0 0 -15" directional="false" diffuse=".4 .4 .4" ambient=".2 .2 .2" specular="1 1 1"/>
+    <light pos="5 4 6"  dir="-0 0 -15" directional="false" diffuse=".4 .4 .4" ambient=".2 .2 .2" specular="1 1 1"/>
+    <light pos="0 4 6"  dir="-0 0 -15" directional="false" diffuse=".4 .4 .4" ambient=".2 .2 .2" specular="1 1 1"/>
+    <light pos="-3 4 6"  dir="-0 0 -15" directional="false" diffuse=".4 .4 .4" ambient=".2 .2 .2" specular="1 1 1"/>
+    <light pos="-6 1 6"  dir="-0 0 -15" directional="false" diffuse=".4 .4 .4" ambient=".2 .2 .2" specular="1 1 1"/>
+    <!-- <light pos="0 3 4"  dir="-0 0 -15" directional="false" diffuse=".3 .3 .3" ambient=".2 .2 .2" specular="1 1 1"/> -->
+    <!-- <light pos="3 3 4"  dir="-0 0 -15" directional="false" diffuse=".3 .3 .3" ambient=".2 .2 .2" specular="1 1 1"/> -->
+    <!-- <light pos="-3 3 4" dir="-0 0 -15" directional="false" diffuse=".3 .3 .3" ambient=".2 .2 .2" specular="1 1 1"/> -->
     <!-- <light pos="0 3 4" dir="-0 0 -15" directional="false" diffuse=".5 .5 .5" ambient=".4 .4 .4" specular="1 1 1"/> -->
     <!-- <light pos="0 -3 5" dir="0 0 -15" directional="false" diffuse=".3 .3 .3" ambient=".3 .3 .3" specular="1 1 1"/> -->
 
-    <geom name="floor" size="0 0 0.05" euler="0 0 0" type="plane" contype="1" conaffinity="1" material="groundplane" friction="1.0 0.005 0.0001"/>
+    <geom name="floor" size="10 3 0.05" euler="0 0 0" type="plane" contype="1" conaffinity="1" material="groundplane" friction="1.0 0.005 0.0001"/>
     <!-- <camera name="track" pos="0.846 -1.465 0.916" xyaxes="0.866 0.500 0.000 -0.171 0.296 0.940"/> -->
   </worldbody>
 </mujoco>
