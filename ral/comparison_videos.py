@@ -68,6 +68,7 @@ env, env_params   = create_environment(
     **KWARGS
 )    
 for key in directives:
+    camera = 'track'
     frames, _, _, _ = rollout_policy(
         env         = env,
         config      = config,

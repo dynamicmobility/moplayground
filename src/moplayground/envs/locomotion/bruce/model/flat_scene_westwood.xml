@@ -38,7 +38,9 @@
 
   <worldbody>
     <!-- <camera name="side_fixed" pos="1.1 -1.1 0.5" xyaxes="0.7 0.700 0.000 -0.171 0.296 0.940"/> -->
-    <camera name='side_fixed' pos="1.572 -1.492 0.899" xyaxes="0.854 0.520 -0.000 -0.154 0.252 0.955"/>
+    <!-- <camera name='side_fixed' pos="1.572 -1.492 0.899" xyaxes="0.854 0.520 -0.000 -0.154 0.252 0.955"/> -->
+    <camera name='side_fixed' pos="1.418 -2.110 0.847" xyaxes="0.986 0.164 0.000 -0.032 0.192 0.981"/>
+
     <!-- <camera name="side_fixed" pos="2 -3 1" euler="85 0 0"/> -->
     <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
     <geom name="floor" size="0 0 0.05" euler="0 0 0" type="plane" contype="1" conaffinity="1" material="groundplane" friction="1.0 0.005 0.0001"/>

@@ -1,5 +1,5 @@
-name: jt060-imigait-allvel
-save_dir: bruce-results/2D/jt-debugging
+name: tighter-sigmas
+save_dir: bruce-results/5D/jt-debugging
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -67,11 +67,11 @@ env_config:
   reward:
     optimization:
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['minimize_energy'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
-      # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['arm_static'], ['res_jt_rate', 'joint_rate']]
+      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['arm_static'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
-      # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
-      objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
+      # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking']]
+      # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
       shared_objectives: ['vel_residual_size', 'vel_residual_rate']
       labels:            ['Imitation Accuracy', 'Smoothness']
     weights:
@@ -86,9 +86,9 @@ env_config:
       arm_swinging:        1.00  # Encourage arm swinging
       arm_static:          1.00  # Encourage arms to be static (not swinging)
     sigmas:                      # For sigmas, please see above.
-      gait_tracking:      0.55
-      base_xyz_tracking:  0.004
-      base_quat_tracking: 0.02 
+      gait_tracking:      0.08
+      base_xyz_tracking:  0.001
+      base_quat_tracking: 0.01
       vel_residual_size:  0.001
       vel_residual_rate:  0.002
       arm_swing_sigma:    0.15
@@ -123,7 +123,7 @@ learning_params:
     num_envs: 2048
     num_evals: 15
     num_minibatches: 32
-    num_timesteps: 60000000
+    num_timesteps: 100000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30

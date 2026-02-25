@@ -289,6 +289,7 @@ class Bruce(NaviGait):
             recurrent_states = recurrent_states,
             ndof             = bruce.NDOF
         )
+        motor_targets = motor_targets + self._np.hstack([bruce.DEFAULT_JT, self._np.zeros(bruce.NDOF)])
         # motor_targets = self._splice(info['motor_target_history'], (info['act_delay'], 0), (1, bruce.NDOF*2)).flatten()
         motor_targets_linkage = self._np.hstack([
             bruce.crank2bear(self._np, motor_targets[:bruce.NDOF]),

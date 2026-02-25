@@ -14,7 +14,7 @@ from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 
 from minimal_mjx.learning.startup import read_config
 from minimal_mjx.learning.inference import get_all_models
-from moplayground.learning.inference import load_hypernetwork
+# from moplayground.learning.inference import load_hypernetwork
 
 
 def get_pareto_rollout(env, N_STEPS, make_policy):
