@@ -24,11 +24,11 @@ KWARGS = {'idealistic': True}
 match args.tradeoff.lower():
     case 'balanced':
         camera = 'side_fixed'
-        WIDTH  = 1920
+        WIDTH  = 2560
         HEIGHT = 1080
         tradeoff = np.array([0.2, 0.2, 0.2, 0.2, 0.2])
         manual_speed = [0.15, 0.0, 0.0]
-        T = 15.0
+        T = 1.0
     case 'swing_arms':
         camera = 'side_fixed'
         WIDTH  = 1920
