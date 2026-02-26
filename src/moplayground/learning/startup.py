@@ -6,7 +6,6 @@ from minimal_mjx.learning.inference import get_params
 
 from moplayground.learning.training import mo_train
 from moplayground.envs.generic.mobase import Multi2SingleObjective
-from moplayground.envs.create import create_environment
 
 # Basic imports
 import yaml
@@ -64,12 +63,3 @@ def train_policy(config, env, eval_env):
         )
     
     return make_inference_fn, params
-    
-    
-if __name__ == "__main__":
-    config = read_config()
-    env, env_cfg = create_environment(config, for_training=True)
-    eval_env, _ = create_environment(
-        config, for_training=True, manual_speed=True
-    )
-    train_policy(config, env)

@@ -1,5 +1,5 @@
-name: tuned-energy
-save_dir: bruce-results/6D/normal-sigmas
+name: longer-more-aggressive
+save_dir: bruce-results/6D/dr-first-try
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -43,7 +43,7 @@ env_config:
     scale: 1.0
     scaling_iterations: 75.0 
   domain_randomization:
-    enabled: false
+    enabled: true
     obs_delay:
       enabled: false
       gyro:    [1, 2]
@@ -117,16 +117,16 @@ learning_params:
     discounting: 0.96
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.000006
+    learning_rate: 0.000007
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 2048
-    num_evals: 15
+    num_evals: 20
     num_minibatches: 32
-    num_timesteps: 130000000
+    num_timesteps: 180000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
-    unroll_length: 30
+    unroll_length: 25
   hypermorl_params:
     alpha: 1.0
     k: 16

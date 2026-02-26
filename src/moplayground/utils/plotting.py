@@ -18,11 +18,11 @@ def plot_pareto(
         c = np.zeros((pareto.shape[0], 3))
         c[:, 0] = directive[:, 0]
         c[:, 2] = directive[:, 1]
-        alpha = 0.02 if nondominated else 1
+        alpha = 0.05 if nondominated else 1
         ax.scatter(
             pareto[:, 0],
             pareto[:, 1],
-            s       = 2,
+            s       = 8,
             c       = c,
             alpha   = alpha
         )
@@ -50,9 +50,9 @@ def plot_pareto(
             pareto[:, 0],
             pareto[:, 1],
             pareto[:, 2],
-            s=2,
+            s=24,
             c=c,
-            alpha=0.02
+            alpha=0.01
         )
         if nondominated:
             nd_idx = get_nondominated(pareto)
@@ -61,10 +61,13 @@ def plot_pareto(
                 pareto[nd_idx, 1],
                 pareto[nd_idx, 2],
                 s = 24,
-                # edgecolors='black', # Border color
-                # linewidths=1.5,   # Border width,
+                edgecolors='black', # Border color
+                linewidths=0.5,   # Border width,
                 c = c[nd_idx,:],
             )
+            ax.set_xlim((0.95 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
+            ax.set_ylim((0.95 * np.min(pareto[nd_idx, 1]), 1.05 * np.max(pareto[nd_idx, 1])))
+            ax.set_zlim((1.00 * np.min(pareto[nd_idx, 2]), 1.05 * np.max(pareto[nd_idx, 2])))
         ax.set_xlabel(objectives[0])
         ax.set_ylabel(objectives[1])
         ax.set_zlabel(objectives[2])

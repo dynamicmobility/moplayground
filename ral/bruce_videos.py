@@ -33,8 +33,8 @@ match args.tradeoff.lower():
         camera = 'side_fixed'
         WIDTH  = 3840
         HEIGHT = 1440
-        tradeoff = np.array([1.0, 0.5, 0.5, 0.0, 0.0])
-        manual_speed = [0.15, 0.0, 0.0]
+        tradeoff = np.array([0.45155084, 0.00633325, 0.40042394, 0.02089828, 0.046735  ,0.0740587 ])
+        manual_speed = [0.12, 0.0, 0.0]
         T = 30.0
     case 'imitation':
         camera = 'side_fixed'
@@ -56,7 +56,6 @@ match args.tradeoff.lower():
 KWARGS['manual_speed'] = manual_speed
 env, env_params = mp.envs.create_environment(config, **KWARGS)
 
-camera = 'track'
 frames, _, _, _ = mp.eval.rollout_policy(
     env       = env,
     config    = config,

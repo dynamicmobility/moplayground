@@ -31,7 +31,7 @@ def sample_run():
     plt.show()
 
 def main():
-    config    = read_config(FINAL_YAMLS['bruce6D'])
+    config    = read_config(FINAL_YAMLS['bruce6D+DR'])
     save_path = Path(config['save_dir']) / config['name']
     rng       = jax.random.PRNGKey(0)
     N_OBJS    = len(config['env_config']['reward']['optimization']['objectives'])
@@ -47,7 +47,7 @@ def main():
         env, _                      = create_environment(
             config, 
             for_training    = True,
-            manual_speed    = [0.0, 0.0, 0.0],
+            manual_speed    = [0.12, 0.0, 0.0],
             idealistic      = True
         )
         make_policy, hyper_params   = load_hypernetwork(config)
@@ -60,7 +60,7 @@ def main():
             keys              = jax.random.split(rng, N_ENVS)
             directives        = jax.random.dirichlet(
                 rng, 
-                alpha=np.ones(N_OBJS),
+                alpha=np.ones(N_OBJS) * 0.5,
                 shape=(N_ENVS,)
             )
             (_, rewards), _   = pareto_rollout(keys, directives, hyper_params)
