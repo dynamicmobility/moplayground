@@ -508,7 +508,7 @@ class Bruce(NaviGait):
         torque_limits = self.mj_model.actuator_forcerange
         energy = self._np.sum(self._np.square(qfrc_actuator))
         max_energy = self._np.sum(self._np.square(torque_limits[:, 1]))
-        return 0.9 - energy / max_energy - 0.2
+        return self._np.max(self._np.array([0.9 * max_energy - energy, 0.0]))
     
     def get_desired_arm_swing(
         self,

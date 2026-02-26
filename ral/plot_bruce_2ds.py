@@ -31,9 +31,10 @@ def sample_run():
     plt.show()
 
 def main():
-    config    = read_config(FINAL_YAMLS['bruce5D'])
+    config    = read_config(FINAL_YAMLS['bruce6D'])
     save_path = Path(config['save_dir']) / config['name']
     rng       = jax.random.PRNGKey(0)
+    N_OBJS    = len(config['env_config']['reward']['optimization']['objectives'])
     if (save_path / 'the-obj.txt').exists():
         # Load existing results instead of running experiments
         paretos = np.array([pd.read_csv(save_path / f'the-obj.txt').iloc[:, 1:].values])
@@ -42,7 +43,6 @@ def main():
         N_STEPS       = 500
         N_ENVS        = 2**10
         N_ITERS       = 30
-        N_OBJS        = len(config['env_config']['reward']['optimization']['objectives'])
 
         env, _                      = create_environment(
             config, 
@@ -77,10 +77,13 @@ def main():
             {f'td{i}' : tds for i, tds in enumerate(directives.T)}
         ).to_csv(Path(config['save_dir']) / config['name'] / f'the-trade-off.txt')
 
-    pairs = list(combinations([0, 1, 2, 3, 4], 2))
+    pairs = list(combinations(range(N_OBJS), 2))
     nrows, ncols = get_subplot_grid(len(pairs))
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols)
     axs = axs.flatten()
+    
+    failure = np.argmin(np.sum(paretos[-1], axis=1))
+    print(repr(directives[failure]))
     for ax, pair in tqdm(zip(axs, pairs), total=len(pairs)):
         pareto = paretos[-1, :, pair].T  # Select the last iteration's Pareto front and only the 3 objectives of interest
         tradeoff = directives[:, pair]

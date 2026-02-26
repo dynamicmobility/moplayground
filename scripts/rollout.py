@@ -11,15 +11,23 @@ from pathlib import Path
 config            = read_config()
 env, env_params   = create_environment(
     config,
-    manual_speed    = [0.2, 0.0, 0.0],
+    manual_speed    = [0.15, 0.0, 0.0],
     idealistic      = True
 )
 
-camera = 'side_fixed'
-# camera = 'track'
+# camera = 'side_fixed'
+camera = 'track'
 
-directive = np.array([1.0, 1.0, 0.5, 0.0, 0.3])
+# directive = np.array([1.0, 1.0, 0.5, 0.0, 0.3])
+
 # directive = np.array([0.0, 0.0, 0.0, 0.0, 1.0])
+directive = np.array([0.0, 0.0, 0.0, 1.0, 0.0])
+directive = np.array([0.0, 0.0, 1.0, 0.0, 0.6])
+# directive = np.array([0.15744586, 0.02093558, 0.02753894, 0.03695462, 0.757125  ])
+
+directive = np.array([0.0, 0.0, 0.0, 0.0, 1.0, 0.0])
+# directive = np.array([1.0, 2.0, 0.0, 1.0, 0.0, 0.0])
+
 # directive = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
 # directive = np.array([1.0, 0.5, 0.2])
 # directive = np.array([1.0, 1.0])

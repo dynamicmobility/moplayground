@@ -24,32 +24,39 @@ KWARGS = {'idealistic': True}
 match args.tradeoff.lower():
     case 'balanced':
         camera = 'side_fixed'
-        WIDTH  = 2560
-        HEIGHT = 1080
+        WIDTH  = 1080 #3840
+        HEIGHT = 480 #1440
         tradeoff = np.array([0.2, 0.2, 0.2, 0.2, 0.2])
         manual_speed = [0.15, 0.0, 0.0]
-        T = 1.0
+        T = 10.0
     case 'swing_arms':
         camera = 'side_fixed'
-        WIDTH  = 1920
-        HEIGHT = 1080
-        tradeoff = np.array([1.0, 1.0, 0.3, 0.0, 0.0])
+        WIDTH  = 3840
+        HEIGHT = 1440
+        tradeoff = np.array([1.0, 0.5, 0.5, 0.0, 0.0])
         manual_speed = [0.15, 0.0, 0.0]
-        T = 15.0
+        T = 30.0
     case 'imitation':
         camera = 'side_fixed'
-        WIDTH  = 1920
-        HEIGHT = 1080
-        tradeoff = np.array([1.0, 1.0, 0.0, 0.0, 0.0])
+        WIDTH  = 3840
+        HEIGHT = 1440
+        tradeoff = np.array([0.5, 1.0, 0.0, 0.0, 0.0])
         manual_speed = [0.15, 0.0, 0.0]
         T = 15.0
+    case 'smooth':
+        camera = 'up_close'
+        WIDTH  = 2560
+        HEIGHT = 2560
+        tradeoff = np.array([0.01, 0.01, 0.0, 0.0, 1.0])
+        manual_speed = [0.0, 0.0, 0.0]
+        T = 10.0
     case _:
         raise Exception('Unknown trade-off', args.tradeoff)
 
 KWARGS['manual_speed'] = manual_speed
 env, env_params = mp.envs.create_environment(config, **KWARGS)
 
-
+camera = 'track'
 frames, _, _, _ = mp.eval.rollout_policy(
     env       = env,
     config    = config,

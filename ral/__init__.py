@@ -5,6 +5,8 @@ FINAL_YAMLS = {
     'humanoid'  : 'config/mohumanoid.yaml',
     'ant'       : 'config/moant.yaml',
     'bruce5D'   : 'bruce-results/5D/jt-debugging/test/config.yaml',
+    # 'bruce5D'   : 'bruce-results/5D/jt-debugging/tighter-sigmas/config.yaml',
+    'bruce6D'   : 'bruce-results/6D/normal-sigmas/tuned-energy/config.yaml',
 }
 
 HYPER_PARETOS = {

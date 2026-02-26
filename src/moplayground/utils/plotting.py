@@ -36,6 +36,8 @@ def plot_pareto(
                 linewidths=1.5,   # Border width,
                 c = c[nd_idx,:],
             )
+            ax.set_xlim((0.65 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
+            ax.set_ylim((0.65 * np.min(pareto[nd_idx, 1]), 1.05 * np.max(pareto[nd_idx, 1])))
         ax.set_xlabel(objectives[0])
         ax.set_ylabel(objectives[1])
         return ax

@@ -1,15 +1,5 @@
 import matplotlib as mpl
 
-# mpl.rcParams.update({
-#     "text.usetex": True,
-#     "font.family": "serif",
-#     "font.serif": ["Computer Modern Roman"],
-#     "axes.labelsize": 16,
-#     "font.size": 16,
-#     "legend.fontsize": 7,
-#     "xtick.labelsize": 12,
-#     "ytick.labelsize": 12,
-# })
 LABEL_SIZE = 12
 TICK_SIZE = 12
 mpl.rcParams.update({

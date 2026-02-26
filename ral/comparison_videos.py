@@ -69,6 +69,7 @@ env, env_params   = create_environment(
 )    
 for key in directives:
     camera = 'track'
+    T = 10.0
     frames, _, _, _ = rollout_policy(
         env         = env,
         config      = config,
