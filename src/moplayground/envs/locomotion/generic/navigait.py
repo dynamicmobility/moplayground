@@ -504,7 +504,7 @@ class NaviGait(BipedalBase):
             self._np,
             new_base_des[:self.qpos_free],
             qpos[:self.qpos_free],
-            cmd_yaw_offset=-1.6 * qpos[1] #info['vdes'][2]
+            # cmd_yaw_offset=-1.6 * qpos[1] #info['vdes'][2]
         )
         info['old_base2global'] = info['base2global'].copy()
         info['base2global'] = switched * base2global + (1 - switched) * info['base2global']

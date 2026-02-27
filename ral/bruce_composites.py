@@ -16,31 +16,29 @@ DEFAULT_KWARGS = {
     'start_t'       : 0.0,
     'end_t'         : 1.0,
     'skip_frame'    : 12,
-    'alpha'         : 0.4
+    'alpha'         : 0.7
 }
 composite_kwargs = []
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", type=str, help="Env to train on", default="bruce5D")
 parser.add_argument("--tradeoff", type=str, help="Trade-off to rollout", default="balanced")
 args = parser.parse_args()
 
-config = mp.learning.startup.read_config(FINAL_YAMLS[args.env])
 KWARGS = {'idealistic': True}
 
 match args.tradeoff.lower():
-    case 'imitation':
+    case 'rigid_arms':
         kwargs = deepcopy(DEFAULT_KWARGS)
-        kwargs['end_t'] = 12.0
-        kwargs['skip_frame'] = 100
+        kwargs['end_t'] = 20.0
+        kwargs['skip_frame'] = 130 #110
         
         composite_kwargs = {
-            'imitation'    : kwargs,
+            'rigid_arms'    : kwargs,
         }
     case 'swing_arms':
         kwargs = deepcopy(DEFAULT_KWARGS)
-        kwargs['end_t'] = 12.0
-        kwargs['skip_frame'] = 100
+        kwargs['end_t'] = 20.0
+        kwargs['skip_frame'] = 130 #110
         
         composite_kwargs = {
             'swing_arms'    : kwargs,
@@ -66,4 +64,6 @@ for key in composite_kwargs:
     )
     result = merger.merge_images()
     
-    cv2.imwrite(output_dir / f'{args.env.lower()}-{key}.jpg', result)
+    path = output_dir / f'bruce-{key}.jpg'
+    cv2.imwrite(path, result)
+    print(output_dir / f'bruce-{key}.jpg')
