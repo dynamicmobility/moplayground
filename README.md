@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center"><u>MO</u>-Playground: Massively Pnvirronmentarallelized <u>M</u>ulti-<u>O</u>bjective Reinforcement Leantrning for Robotics
+  <h1 align="center"><u>MO</u>-Playground: Massively Parallelized <u>M</u>ulti-<u>O</u>bjective Reinforcement Learning for Robotics
   </h1>
   <p align="center">
     <strong>Anonymous Authors</strong>
@@ -9,15 +9,15 @@ MO-Playground is a collection of multi-objective environments built in [JAX](htt
 
 ## Prerequisites
 The code was tested with:
-- Ubuntu 24.04
-- Python ? 
-- ?
+- Ubuntu 22.04
+- Python 3.12.12
+- CUDA 13.0 
 
-## Installation
-The package can be installed with a simple pipWalker-install:
+<!-- ## Installation -->
+<!-- The package can be installed with a simple pip-install:
 ```bash
 pip install moplayground
-```
+```-->
 
 ## Classic Environments
 | Environment | Reward 1 | Reward 2 |
