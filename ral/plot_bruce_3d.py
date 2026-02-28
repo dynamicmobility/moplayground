@@ -10,7 +10,7 @@ import matplotlib as mpl
 #     "xtick.labelsize": 12,
 #     "ytick.labelsize": 12,
 # })
-LABEL_SIZE = 12
+LABEL_SIZE = 16
 TICK_SIZE = 12
 mpl.rcParams.update({
     "text.usetex"           : True,
@@ -137,7 +137,7 @@ def main():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d', computed_zorder=False)
     trio = [2, 0, 4]
-    # trio = [3, 5, 1]
+    trio = [3, 5, 1]
     pareto = paretos[-1, :, trio].T  # Select the last iteration's Pareto front and only the 3 objectives of interest
     tradeoff = directives[:, trio]
     chosen_tradeoffs = np.array(list(BRUCE_TRADEOFFS.values()))
@@ -166,9 +166,9 @@ def main():
         ax, 
         pareto, 
         tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis],
-        objectives=[
-            config['env_config']['reward']['optimization']['labels'][i] for i in trio
-        ],
+        # objectives=[
+        #     config['env_config']['reward']['optimization']['labels'][i] for i in trio
+        # ],
         nondominated=get_nondominated(paretos[-1])
     )
     if trio == [2, 0, 4]:
@@ -180,11 +180,11 @@ def main():
         # ax.set_ylim((600, 1000))
         # ax.set_zlim((800, 1600))
     elev = 20
-    azim = 45
+    azim = 55#45
     OBJS = [config['env_config']['reward']['optimization']['labels'][i] for i in trio]
     ax.view_init(elev, azim)
 
-
+    ax.set_xlabel('X')
 
     ax.locator_params(axis='x', nbins=5)
     ax.locator_params(axis='y', nbins=5)

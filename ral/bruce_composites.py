@@ -27,43 +27,44 @@ args = parser.parse_args()
 KWARGS = {'idealistic': True}
 
 match args.tradeoff.lower():
-    case 'rigid_arms':
-        kwargs = deepcopy(DEFAULT_KWARGS)
-        kwargs['end_t'] = 20.0
-        kwargs['skip_frame'] = 130 #110
-        
-        composite_kwargs = {
-            'rigid_arms'    : kwargs,
-        }
     case 'swing_arms':
         kwargs = deepcopy(DEFAULT_KWARGS)
         kwargs['end_t'] = 20.0
         kwargs['skip_frame'] = 130 #110
-        
-        composite_kwargs = {
-            'swing_arms'    : kwargs,
-        }
+        vid = 'swing_arms'
+    case 'swing_arms_hero':
+        kwargs = deepcopy(DEFAULT_KWARGS)
+        kwargs['end_t'] = 9.0
+        kwargs['skip_frame'] = 90 #110
+        vid = 'swing_arms'
+    case 'rigid_arms_hero':
+        kwargs = deepcopy(DEFAULT_KWARGS)
+        kwargs['end_t'] = 10.0
+        kwargs['skip_frame'] = 130 #110
+        vid = 'rigid_arms'
+    case 'rigid_arms':
+        kwargs = deepcopy(DEFAULT_KWARGS)
+        kwargs['end_t'] = 20.0
+        kwargs['skip_frame'] = 130 #110
+        vid = 'rigid_arms'
     case 'smooth':
         kwargs = deepcopy(DEFAULT_KWARGS)
         kwargs['mode'] = CompositeMode.MIN_VALUE,
         kwargs['alpha'] = 0.1
         kwargs['end_t'] = 10.0
         kwargs['skip_frame'] = 150
-        
-        composite_kwargs = {
-            'smooth'    : kwargs,
-        }
+        vid = 'smooth'
     case _:
         raise Exception('Unknown trade-off', args.tradeoff)
 
 output_dir = Path('ral/images')
-for key in composite_kwargs:
-    merger = CompositeImage(
-        video_path=f'ral/videos/bruce_{key}.mp4',
-        **(composite_kwargs[key])
-    )
-    result = merger.merge_images()
-    
-    path = output_dir / f'bruce-{key}.jpg'
-    cv2.imwrite(path, result)
-    print(output_dir / f'bruce-{key}.jpg')
+key = args.tradeoff.lower()
+merger = CompositeImage(
+    video_path=f'ral/videos/bruce_{vid}.mp4',
+    **kwargs
+)
+result = merger.merge_images()
+
+path = output_dir / f'bruce-{key}.jpg'
+cv2.imwrite(path, result)
+print(output_dir / f'bruce-{key}.jpg')

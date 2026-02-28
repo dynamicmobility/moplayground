@@ -1,6 +1,6 @@
 import matplotlib as mpl
 
-LABEL_SIZE = 12
+LABEL_SIZE = 16
 TICK_SIZE = 12
 mpl.rcParams.update({
     "text.usetex"           : True,
@@ -74,7 +74,7 @@ ax.view_init(elev, azim)
 for i, j in combinations(range(4), 2):
     ls = None
     c = 'black'
-    if i == 0 and j == 2:
+    if i == 0:
         ls = '--'
         c = [0, 0, 0, 0.5]
     ax.plot(
@@ -90,7 +90,7 @@ for i, j in combinations(range(4), 2):
 # Vertices
 # ----------------------------
 ax.scatter(
-    V[:,0], V[:,1], V[:,2],
+    V[1:,0], V[1:,1], V[1:,2],
     s=80,
     c='black',
     depthshade=False
@@ -119,8 +119,8 @@ ax.set_box_aspect([1,1,1])
 ax.set_xlim(0,1)
 ax.set_ylim(0,1)
 ax.set_zlim(0,1)
-
-ax.view_init(elev=12, azim=-30)
+ax.invert_yaxis()
+ax.view_init(elev=20, azim=-35)
 
 # Remove panes & grid (important for papers)
 ax.grid(False)
