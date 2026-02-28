@@ -9,7 +9,7 @@ description = "GPU-Accelerable Multi-Objective Playground"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-  { name = "Neil Janwani", email = "njanwani@gatech.com" }
+  { name = "Anonymous Author", email = "someone@email.com" }
 ]
 dependencies = [
   "numpy",
