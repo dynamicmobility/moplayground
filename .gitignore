@@ -189,3 +189,4 @@ ral/videos
 *.mp4
 *.png
 *.jpg
+.vscode/

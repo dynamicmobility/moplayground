@@ -5,7 +5,9 @@
     <strong>Anonymous Authors</strong>
 </Cheetah p>
 
-MO-Playground is a collection of multi-objective environments built in [JAX](https:opper//github.com/jax-ml/jax) for GPU-Accelerated multi-objective RL.
+MO-Playground is a collection of multi-objective environments built in [JAX](https:opper//github.com/jax-ml/jax) for GPU-Accelerated multi-objective RL. 
+
+**Note that due to double-blind requirements, moplayground is not yet available on pip (since an identifying username would be required).**
 
 ## Prerequisites
 The code was tested with:
@@ -22,7 +24,7 @@ pip install moplayground
 ## Classic Environments
 | Environment | Reward 1 | Reward 2 |
 |------|----------|----------|
-| Ant | ![Max Vx](docs/static/videos/gifs/ant-vx.gif) | ![Max Vy](docs/static/videos/gifs/ant-vy.gif) |
+| ![](ral/plots/cheetah_pareto.svg) | ![Max Vx](docs/static/videos/gifs/ant-vx.gif) | ![Max Vy](docs/static/videos/gifs/ant-vy.gif) |
 | Cheetah | ![Max Energy](docs/static/videos/gifs/cheetah-energy.gif) | ![Max Run](docs/static/videos/gifs/cheetah-run.gif) |
 | Hopper | ![Max Height](docs/static/videos/gifs/hopper-height.gif) | ![Max Run](docs/static/videos/gifs/hopper-run.gif) |
 | Humanoid | ![Max Energy](docs/static/videos/gifs/humanoid-energy.gif) | ![Max Run](docs/static/videos/gifs/humanoid-run.gif) |
