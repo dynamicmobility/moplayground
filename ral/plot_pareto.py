@@ -54,9 +54,9 @@ def plot_pareto(env_name):
     fig, ax = plt.subplots(figsize=(2, 2.5))
     ax.scatter(points[:, 0], points[:, 1], alpha=0.05, s=2, color='tab:red')
     ax.plot(front[:, 0], front[:, 1], 'o-', color='tab:red', markersize=5, markeredgecolor='black', markeredgewidth=0.1)
-    ax.set_xlabel(labels[0], fontsize=24, **TEXT_KW)
-    ax.set_ylabel(labels[1], fontsize=24, **TEXT_KW)
-    ax.set_title(config['env'], fontsize=24, **TEXT_KW)
+    ax.set_xlabel(labels[0], fontsize=16, **TEXT_KW)
+    ax.set_ylabel(labels[1], fontsize=16, **TEXT_KW)
+    ax.set_title(config['env'], fontsize=20, **TEXT_KW)
     style_axis(ax)
     fig.tight_layout()
 
