@@ -5,9 +5,9 @@
     <strong>Anonymous Authors</strong>
 </Cheetah p>
 
-MO-Playground is a collection of multi-objective environments built in [JAX](https:opper//github.com/jax-ml/jax) for GPU-Accelerated multi-objective RL. 
+MO-Playground is a collection of multi-objective environments built in [JAX](https://github.com/jax-ml/jax) for GPU-Accelerated multi-objective RL. 
 
-**Note that due to double-blind requirements, moplayground is not yet available on pip (since an identifying username would be required).**
+**Note that due to double-blind requirements, moplayground's documentation page and pip-installable package is not yet available.**
 
 ## Prerequisites
 The code was tested with:
