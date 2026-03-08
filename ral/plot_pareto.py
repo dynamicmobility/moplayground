@@ -12,7 +12,7 @@ import yaml
 from ral import FINAL_YAMLS
 
 ENVS = ['cheetah', 'hopper', 'ant', 'humanoid', 'walker']
-STROKE = [pe.withStroke(linewidth=2, foreground='white')]
+STROKE = [pe.withStroke(linewidth=0.5, foreground='white')]
 TEXT_KW = dict(color='black', path_effects=STROKE)
 
 
@@ -37,6 +37,7 @@ def plot_pareto(env_name):
     with open(config_path) as f:
         config = yaml.safe_load(f)
     labels = config['env_config']['reward']['optimization']['labels']
+    labels = [l if 'energy' not in l.lower() else 'Energy' for l in labels]
 
     # Find the largest obj#.txt
     path = Path(config['save_dir']) / config['name'] / 'config.yaml'
@@ -53,9 +54,9 @@ def plot_pareto(env_name):
     fig, ax = plt.subplots(figsize=(2, 2.5))
     ax.scatter(points[:, 0], points[:, 1], alpha=0.05, s=2, color='tab:red')
     ax.plot(front[:, 0], front[:, 1], 'o-', color='tab:red', markersize=5, markeredgecolor='black', markeredgewidth=0.1)
-    ax.set_xlabel(labels[0], **TEXT_KW)
-    ax.set_ylabel(labels[1], **TEXT_KW)
-    ax.set_title(config['env'], fontsize=22, **TEXT_KW)
+    ax.set_xlabel(labels[0], fontsize=24, **TEXT_KW)
+    ax.set_ylabel(labels[1], fontsize=24, **TEXT_KW)
+    ax.set_title(config['env'], fontsize=24, **TEXT_KW)
     style_axis(ax)
     fig.tight_layout()
 
