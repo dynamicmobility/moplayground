@@ -12,7 +12,7 @@ import yaml
 from ral import FINAL_YAMLS
 
 ENVS = ['cheetah', 'hopper', 'ant', 'humanoid', 'walker']
-STROKE = [pe.withStroke(linewidth=3, foreground='white')]
+STROKE = [pe.withStroke(linewidth=2, foreground='white')]
 TEXT_KW = dict(color='black', path_effects=STROKE)
 
 
@@ -27,16 +27,9 @@ def pareto_front(points):
 
 
 def style_axis(ax):
-    """Apply white-bordered black text to ticks and offset labels, with scientific notation."""
-    for axis in (ax.xaxis, ax.yaxis):
-        axis.set_major_locator(plt.MaxNLocator(3))
-        axis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
-        axis.get_offset_text().set_color('black')
-        axis.get_offset_text().set_path_effects(STROKE)
-    ax.ticklabel_format(style='scientific', axis='both', scilimits=(0, 0))
-    for label in ax.get_xticklabels() + ax.get_yticklabels():
-        label.set_color('black')
-        label.set_path_effects(STROKE)
+    """Remove all tick marks and labels."""
+    ax.set_xticks([])
+    ax.set_yticks([])
 
 
 def plot_pareto(env_name):
@@ -57,16 +50,16 @@ def plot_pareto(env_name):
     front = front[front[:, 0].argsort()]
 
     # Plot
-    fig, ax = plt.subplots(figsize=(3.75, 3.75))
-    ax.scatter(points[:, 0], points[:, 1], alpha=0.3, s=20, color='tab:blue')
-    ax.plot(front[:, 0], front[:, 1], 'o-', color='tab:blue', markersize=5, markeredgecolor='black', markeredgewidth=1.5)
+    fig, ax = plt.subplots(figsize=(2, 2.5))
+    ax.scatter(points[:, 0], points[:, 1], alpha=0.05, s=2, color='tab:red')
+    ax.plot(front[:, 0], front[:, 1], 'o-', color='tab:red', markersize=5, markeredgecolor='black', markeredgewidth=0.1)
     ax.set_xlabel(labels[0], **TEXT_KW)
     ax.set_ylabel(labels[1], **TEXT_KW)
-    ax.set_title(config['env'], **TEXT_KW)
+    ax.set_title(config['env'], fontsize=22, **TEXT_KW)
     style_axis(ax)
     fig.tight_layout()
 
-    out_dir = Path('ral/plots')
+    out_dir = Path('docs/static/paretos_fronts')
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f'{env_name}_pareto.svg'
     fig.savefig(out_path, dpi=200, transparent=True)

@@ -24,11 +24,11 @@ pip install moplayground
 ## Classic Environments
 | Environment | Reward 1 | Reward 2 |
 |------|----------|----------|
-| ![](docs/static/paretos_fronts/cheetah_pareto.svg) | ![Max Vx](docs/static/videos/gifs/ant-vx.gif) | ![Max Vy](docs/static/videos/gifs/ant-vy.gif) |
-| Cheetah | ![Max Energy](docs/static/videos/gifs/cheetah-energy.gif) | ![Max Run](docs/static/videos/gifs/cheetah-run.gif) |
-| Hopper | ![Max Height](docs/static/videos/gifs/hopper-height.gif) | ![Max Run](docs/static/videos/gifs/hopper-run.gif) |
-| Humanoid | ![Max Energy](docs/static/videos/gifs/humanoid-energy.gif) | ![Max Run](docs/static/videos/gifs/humanoid-run.gif) |
-| Walker | ![Max Energy](docs/static/videos/gifs/walker-energy.gif) | ![Max Run](docs/static/videos/gifs/walker-run.gif) |
+| ![](docs/static/paretos_fronts/ant_pareto.svg) | ![Max Vx](docs/static/videos/gifs/ant-vx.gif) | ![Max Vy](docs/static/videos/gifs/ant-vy.gif) |
+| ![](docs/static/paretos_fronts/cheetah_pareto.svg) | ![Max Energy](docs/static/videos/gifs/cheetah-energy.gif) | ![Max Run](docs/static/videos/gifs/cheetah-run.gif) |
+| ![](docs/static/paretos_fronts/hopper_pareto.svg) | ![Max Height](docs/static/videos/gifs/hopper-height.gif) | ![Max Run](docs/static/videos/gifs/hopper-run.gif) |
+| ![](docs/static/paretos_fronts/humanoid_pareto.svg) | ![Max Energy](docs/static/videos/gifs/humanoid-energy.gif) | ![Max Run](docs/static/videos/gifs/humanoid-run.gif) |
+| ![](docs/static/paretos_fronts/walker_pareto.svg) | ![Max Energy](docs/static/videos/gifs/walker-energy.gif) | ![Max Run](docs/static/videos/gifs/walker-run.gif) |
 ## BRUCE Robotics Example
 
 MO-Playground is demonstrated for the BRUCE humanoid robot, developed by [Westwood Robotics](https://www.westwoodrobotics.io/bruce/). 
