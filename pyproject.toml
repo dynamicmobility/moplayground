@@ -8,6 +8,7 @@ version = "0.1.2"
 description = "GPU-Accelerable Multi-Objective Playground"
 readme = "README.md"
 requires-python = ">=3.10"
+license = {text = "MIT"}
 authors = [
   { name = "Anonymous Author", email = "someone@email.com" }
 ]
