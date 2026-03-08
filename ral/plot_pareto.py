@@ -12,8 +12,8 @@ import yaml
 from ral import FINAL_YAMLS
 
 ENVS = ['cheetah', 'hopper', 'ant', 'humanoid', 'walker']
-STROKE = [pe.withStroke(linewidth=0.5, foreground='white')]
-TEXT_KW = dict(color='black', path_effects=STROKE)
+STROKE = [pe.withStroke(linewidth=0.5, foreground='black')]
+TEXT_KW = dict(color='white', path_effects=STROKE)
 
 
 def pareto_front(points):
