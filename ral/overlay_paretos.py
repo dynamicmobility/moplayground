@@ -1,17 +1,7 @@
 import matplotlib as mpl
 
-# mpl.rcParams.update({
-#     "text.usetex": True,
-#     "font.family": "serif",
-#     "font.serif": ["Computer Modern Roman"],
-#     "axes.labelsize": 16,
-#     "font.size": 16,
-#     "legend.fontsize": 7,
-#     "xtick.labelsize": 12,
-#     "ytick.labelsize": 12,
-# })
-LABEL_SIZE = 12
-TICK_SIZE = 12
+LABEL_SIZE = 11
+TICK_SIZE = 10
 mpl.rcParams.update({
     "text.usetex"           : True,
     "text.latex.preamble"   : r"\usepackage{amsmath,amssymb}",
@@ -43,7 +33,7 @@ import argparse
 from ral import FINAL_YAMLS, HYPER_PARETOS
 
 
-FIGSIZE = (2, 2.5)
+FIGSIZE = (2, 2.0)
 
 def make_plot(config, hyper_path):
     obj_files = list(Path(config['save_dir'], config['name']).glob('obj*.txt'))
@@ -85,6 +75,8 @@ def make_plot(config, hyper_path):
     # fig.set_size_inches((5, 5))
     # ax.set_position([0.15, 0.15, 0.75, 0.75])
     # fig.tight_layout()
+    # ax.locator_params(axis='x', nbins=5)
+    # ax.locator_params(axis='y', nbins=5)
     save_path = f'ral/plots/{config['env']}_overlayed_pareto.svg'
     fig.savefig(save_path)
     print(f'Saving to {save_path}')
@@ -97,7 +89,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.env == 'all':
         for key in FINAL_YAMLS:
-            if key == 'bruce': continue
+            if 'bruce' in key: continue
             config = read_config(FINAL_YAMLS[key])
             make_plot(config, HYPER_PARETOS[key])
     else:

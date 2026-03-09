@@ -6,7 +6,7 @@ import numpy as np
 import moplayground as mp
 from minimal_mjx.utils.plotting import save_video
 from pathlib import Path
-from ral import FINAL_YAMLS
+from ral import FINAL_YAMLS, BRUCE_TRADEOFFS
 
 # 'all_imitate'         : np.array([1.0, 1.0, 0.0, 0.0, 0.0]),
 # 'smooth'              : np.array([0.0, 0.0, 0.0, 0.0, 1.0]),
@@ -22,38 +22,34 @@ config = mp.learning.startup.read_config(FINAL_YAMLS[args.env])
 KWARGS = {'idealistic': True}
 
 match args.tradeoff.lower():
-    case 'balanced':
+    case 'rigid_arms':
         camera = 'side_fixed'
-        WIDTH  = 2560
+        WIDTH  = 3840
         HEIGHT = 1080
-        tradeoff = np.array([0.2, 0.2, 0.2, 0.2, 0.2])
-        manual_speed = [0.15, 0.0, 0.0]
-        T = 1.0
+        manual_speed = [0.12, 0.0, 0.0]
+        T = 30.0
     case 'swing_arms':
         camera = 'side_fixed'
-        WIDTH  = 1920
+        WIDTH  = 3840
         HEIGHT = 1080
-        tradeoff = np.array([1.0, 1.0, 0.3, 0.0, 0.0])
-        manual_speed = [0.15, 0.0, 0.0]
-        T = 15.0
-    case 'imitation':
-        camera = 'side_fixed'
-        WIDTH  = 1920
-        HEIGHT = 1080
-        tradeoff = np.array([1.0, 1.0, 0.0, 0.0, 0.0])
-        manual_speed = [0.15, 0.0, 0.0]
-        T = 15.0
+        manual_speed = [0.12, 0.0, 0.0]
+        T = 30.0
+    case 'smooth':
+        camera = 'up_close'
+        WIDTH  = 2560
+        HEIGHT = 2560
+        manual_speed = [0.12, 0.0, 0.0]
+        T = 10.0
     case _:
         raise Exception('Unknown trade-off', args.tradeoff)
 
 KWARGS['manual_speed'] = manual_speed
 env, env_params = mp.envs.create_environment(config, **KWARGS)
 
-
 frames, _, _, _ = mp.eval.rollout_policy(
     env       = env,
     config    = config,
-    directive = tradeoff,
+    directive = np.array(BRUCE_TRADEOFFS[args.tradeoff.lower()]),
     T         = T,
     camera    = camera,
     width     = WIDTH,

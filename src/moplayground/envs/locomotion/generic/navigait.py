@@ -496,12 +496,15 @@ class NaviGait(BipedalBase):
         new_gait_des = new_gaitlib(gait_phase)
         new_base_des = new_gaitlib.ff_evaluate(gait_phase)
         switched = self._np.astype((ground_contact), self._np.int32)
+        heading = geo.extract_yaw(self._np, qpos[3:7])
+        euler_yaw = geo.quat2euler(self._np, heading)[2]
+        # quit()
 
         base2global = geo.solve_transform(
             self._np,
             new_base_des[:self.qpos_free],
             qpos[:self.qpos_free],
-            cmd_yaw_offset=info['vdes'][2]
+            cmd_yaw_offset=-1.6 * qpos[1] #info['vdes'][2]
         )
         info['old_base2global'] = info['base2global'].copy()
         info['base2global'] = switched * base2global + (1 - switched) * info['base2global']

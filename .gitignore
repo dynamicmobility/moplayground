@@ -189,4 +189,5 @@ ral/videos
 *.mp4
 *.png
 *.jpg
+.vscode/
 .DS_Store

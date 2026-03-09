@@ -11,17 +11,30 @@ from pathlib import Path
 config            = read_config()
 env, env_params   = create_environment(
     config,
-    manual_speed    = [0.2, 0.0, 0.0],
+    manual_speed    = [0.12, 0.0, 0.0],
     idealistic      = True
 )
 
 camera = 'side_fixed'
 # camera = 'track'
 
-directive = np.array([1.0, 1.0, 0.5, 0.0, 0.3])
+# directive = np.array([1.0, 1.0, 0.5, 0.0, 0.3])
+
 # directive = np.array([0.0, 0.0, 0.0, 0.0, 1.0])
+directive = np.array([0.0, 0.0, 0.0, 1.0, 0.0])
+directive = np.array([0.0, 0.0, 1.0, 0.0, 0.6])
+# directive = np.array([0.15744586, 0.02093558, 0.02753894, 0.03695462, 0.757125  ])
+
+directive = np.array([0.0, 0.0, 0.0, 0.0, 1.0, 0.0])
+directive = np.array([0.6700963 , 0.00321807, 0.01035947, 0.04029163, 0.10730329, 0.16873129])
+directive = np.array([0.02406417, 0.01944033, 0.02713589, 0.05072681, 0.85975343, 0.0188794 ])
+directive = np.array([0.5718885 , 0.52070817, 0.24887408, 0.08074515, 0.37295792, 0.00482616])
+directive = np.array([2.0, 1.0, 0.0, 0.0, 0.5, 0.5])
+directive = np.array([0.45155084, 0.00633325, 0.40042394, 0.02089828, 0.046735  ,
+       0.0740587 ])
+
 # directive = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
-# directive = np.array([1.0, 0.5, 0.2])
+directive = np.array([0.0, 1.0, 0.0])
 # directive = np.array([1.0, 1.0])
 # directive = np.array([0.0, 1.0])
 
@@ -32,8 +45,8 @@ frames, reward_plotter, _, _ = rollout_policy(
     directive   = directive,
     T           = 10.0,
     camera      = camera,
-    # width       = 2560,
-    # height      = 1080
+    width       = 2560,
+    height      = 1080
 )
 
 save_video(

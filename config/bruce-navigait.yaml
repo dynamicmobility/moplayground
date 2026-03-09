@@ -1,5 +1,5 @@
-name: tighter-sigmas
-save_dir: bruce-results/5D/jt-debugging
+name: longer-more-aggressive
+save_dir: bruce-results/6D/dr-first-try
 description: ""
 algorithm: ppo
 env: NaviGait
@@ -43,7 +43,7 @@ env_config:
     scale: 1.0
     scaling_iterations: 75.0 
   domain_randomization:
-    enabled: false
+    enabled: true
     obs_delay:
       enabled: false
       gyro:    [1, 2]
@@ -66,29 +66,29 @@ env_config:
       z0:               0.02 #0.03
   reward:
     optimization:
-      # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['minimize_energy'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
-      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['arm_static'], ['res_jt_rate', 'joint_rate']]
+      objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['arm_static'], ['res_jt_rate', 'joint_rate'], ['minimize_energy']]
+      # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['arm_static'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['arm_swinging'], ['res_jt_rate', 'joint_rate']]
       # objectives:        [['gait_tracking'], ['base_xyz_tracking', 'base_quat_tracking']]
       # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
       shared_objectives: ['vel_residual_size', 'vel_residual_rate']
-      labels:            ['Imitation Accuracy', 'Smoothness']
+      labels:            ['Joint Accuracy', 'Base Accuracy', 'Swing Arms', 'Rigid Arms', 'Smoothness', 'Efficiency']
     weights:
       gait_tracking:       1.00  # Tracking the reference gait
       base_xyz_tracking:   1.00  # Tracking the desired base position
       base_quat_tracking:  1.00  # Tracking the desired base orientation
       vel_residual_size:   0.85  # Minimize the deviation in reference selection
       vel_residual_rate:   0.20  # Minimize the rate of change in reference selection
-      minimize_energy:     4.00  # Minimize motor torques
+      minimize_energy:     0.02  # Minimize motor torques
       res_jt_rate:         0.75  # Minimize the change in residual joint torques
       joint_rate:          4.00  # Minimize the change in robot joint state accelerations
       arm_swinging:        1.00  # Encourage arm swinging
       arm_static:          1.00  # Encourage arms to be static (not swinging)
     sigmas:                      # For sigmas, please see above.
-      gait_tracking:      0.08
-      base_xyz_tracking:  0.001
-      base_quat_tracking: 0.01
+      gait_tracking:      0.15
+      base_xyz_tracking:  0.004
+      base_quat_tracking: 0.02
       vel_residual_size:  0.001
       vel_residual_rate:  0.002
       arm_swing_sigma:    0.15
@@ -117,16 +117,16 @@ learning_params:
     discounting: 0.96
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.000008
+    learning_rate: 0.000007
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 2048
-    num_evals: 15
+    num_evals: 20
     num_minibatches: 32
-    num_timesteps: 100000000
+    num_timesteps: 180000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
-    unroll_length: 30
+    unroll_length: 25
   hypermorl_params:
     alpha: 1.0
     k: 16

@@ -118,8 +118,8 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
     )
 
 
-def get_nondominated(F):
-    nds = NonDominatedSorting()
+def get_nondominated(F, epsilon=None):
+    nds = NonDominatedSorting(epsilon=epsilon)
     front_indices = nds.do(-F, only_non_dominated_front=True)
     return front_indices
 
