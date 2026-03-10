@@ -4,21 +4,15 @@ os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
 import numpy as np
 import moplayground as mp
-from minimal_mjx.utils.plotting import save_video
 from pathlib import Path
 from ral import FINAL_YAMLS, BRUCE_TRADEOFFS
-
-# 'all_imitate'         : np.array([1.0, 1.0, 0.0, 0.0, 0.0]),
-# 'smooth'              : np.array([0.0, 0.0, 0.0, 0.0, 1.0]),
-# 'swing_arms'          : np.array([1.0, 1.0, 1.0, 0.0, 0.0]),
-# 'swing_arms_smooth'   : np.array([0.0, 0.0, 0.8, 0.0, 1.0]),
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--env", type=str, help="Env to train on", default="bruce5D")
 parser.add_argument("--tradeoff", type=str, help="Trade-off to rollout", default="balanced")
 args = parser.parse_args()
 
-config = mp.learning.startup.read_config(FINAL_YAMLS[args.env])
+config = mp.utils.read_config(FINAL_YAMLS[args.env])
 KWARGS = {'idealistic': True}
 
 match args.tradeoff.lower():
@@ -59,4 +53,4 @@ frames, _, _, _ = mp.eval.rollout_policy(
 output_dir = Path('ral/videos')
 
 video_path = output_dir / f"bruce_{args.tradeoff}.mp4"
-save_video(frames, path=str(video_path), dt=env.dt)
+mp.utils.save_video(frames, path=str(video_path), dt=env.dt)
