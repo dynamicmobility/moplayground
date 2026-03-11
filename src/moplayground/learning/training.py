@@ -129,7 +129,7 @@ def mo_train(
         labels = env.params.reward.optimization.objectives
     )
     if run:
-        mm.utils.logging.log_config(run, config_yaml)
+        run.log_artifact(str(output_dir / 'config.yaml'), name='config')
     train_fn = functools.partial(
         train_algo, **dict(moppo_params),
         network_factory=network_factory,

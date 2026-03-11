@@ -3,7 +3,6 @@ import argparse
 os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
 import numpy as np
-import moplayground as mp
 from minimal_mjx.utils.plotting import save_video
 from pathlib import Path
 from ral import FINAL_YAMLS

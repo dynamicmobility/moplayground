@@ -1,11 +1,6 @@
 # Internal imports
-from minimal_mjx.utils.setupGPU import run_setup
-from minimal_mjx.learning.startup import read_config, get_commit_hash, read_yaml
-from minimal_mjx.learning.training import setup_training, train
-from minimal_mjx.learning.inference import get_params
-
-from moplayground.learning.training import mo_train
-from moplayground.envs.generic.mobase import Multi2SingleObjective
+import minimal_mjx as mm
+import moplayground as mop
 
 # Basic imports
 import yaml
@@ -15,18 +10,18 @@ from pathlib import Path
 from ml_collections import config_dict
 
 def mo2so(env, weighting):
-    return Multi2SingleObjective(
+    return mop.envs.generic.mobase.Multi2SingleObjective(
         env       = env,
         weighting = weighting
     )
     
-def train_policy(config, env, eval_env):
-    run_setup()
+def train_policy(config, env, eval_env, run):
+    mm.utils.setupGPU.run_setup()
     
     # Initialize stuff
     output_dir = Path(config['save_dir']) / config['name']
     os.makedirs(output_dir, exist_ok=config['name'] == 'test')
-    ppo_params, network_params = setup_training(config.learning_params)
+    ppo_params, network_params = mm.learning.training.setup_training(config.learning_params)
 
     if config.mo2so.enabled:
         weighting = np.array(config.mo2so.weighting)
@@ -41,25 +36,32 @@ def train_policy(config, env, eval_env):
     # Save configuration
     config_save_path = Path(output_dir) / 'config.yaml'
     if config.name != 'test':
-        git_hash = get_commit_hash()
+        git_hash = mm.utils.config.get_commit_hash()
         config.git_hash = git_hash
     with open(config_save_path, 'w') as f:
         yaml.dump(config.to_dict(), f)
     # Train
     print('Training...')
     if config.mo2so.enabled:
-        make_inference_fn, params, metrics = train(
+        make_inference_fn, params, metrics = mm.learning.training.train(
             config, output_dir, env, eval_env, ppo_params, network_params
         )
     else:
         if config.learning_params.warmup_params.enabled:
-            policy_init_params = get_params(
-                read_yaml(config.learning_params.warmup_params.policy),
+            policy_init_params = mm.learning.inference.get_params(
+                mm.utils.config.read_yaml(config.learning_params.warmup_params.policy),
             )
         else:
             policy_init_params = (None, None, None)
-        make_inference_fn, params, metrics = mo_train(
-            config, output_dir, env, eval_env, ppo_params, network_params, policy_init_params
+        make_inference_fn, params, metrics = mop.learning.training.mo_train(
+            config_yaml           = config,
+            output_dir            = output_dir,
+            env                   = env,
+            eval_env              = eval_env,
+            moppo_params          = ppo_params,
+            network_params        = network_params,
+            policy_init_params    = policy_init_params,
+            run                   = run
         )
     
     return make_inference_fn, params

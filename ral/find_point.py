@@ -1,4 +1,3 @@
-import moplayground as mp
 from moplayground.learning.startup import read_config
 import matplotlib.pyplot as plt
 import numpy as np

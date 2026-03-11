@@ -1,5 +1,5 @@
-name: back-to-small-network
-save_dir: results/MOHopper/clean-front
+name: test
+save_dir: results/MOHopper-wandb
 description: N/A
 env: MOHopper
 backend: np # jnp or np. Always uses jnp for training
@@ -56,7 +56,7 @@ learning_params:
     unroll_length: 30
   hypermorl_params:
     alpha: 1.0
-    k: 6
+    k: 8
     sampling: sparse-heavytail
     warmup_frac: 0.0
   warmup_params:

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from minimal_mjx.utils.plotting import get_subplot_grid
-from moplayground.eval.pareto import get_pareto_statistics, get_nondominated
+from moplayground.utils.pareto import get_pareto_statistics
 
 
 def plot_pareto(

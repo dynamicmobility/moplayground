@@ -1,5 +1,5 @@
-name: final
-save_dir: results/MOCheetah
+name: test
+save_dir: results/MOCheetah-wandb
 description: ""
 algorithm: "ppo"
 env: "MOCheetah"
@@ -58,7 +58,7 @@ learning_params:
     unroll_length: 20
   hypermorl_params:
     alpha: 1.0
-    k: 6
+    k: 8
     sampling: sparse-heavytail
     warmup_frac: 0.0
   warmup_params:
