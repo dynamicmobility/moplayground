@@ -9,7 +9,7 @@ from mujoco_playground._src import mjx_env
 import jax.numpy as jnp
 import numpy as np
 
-from minimal_mjx.utils import geometry as geo
+from moplayground.utils import geometry as geo
 from minimal_mjx.utils.state import MujocoState
 # from minimal_mjx.envs.generic.base import SwappableBase
 from moplayground.envs.generic.mobase import MultiObjectiveBase

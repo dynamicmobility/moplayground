@@ -12,7 +12,7 @@ from mujoco import mjx
 
 from moplayground.envs.locomotion.generic.bipedal import BipedalBase
 
-from minimal_mjx.utils import geometry as geo
+from moplayground.utils import geometry as geo
 from moplayground.envs.locomotion.control.gait import GaitLibrary, MIN_SWING_PHASE
 
 class NaviGait(BipedalBase):
