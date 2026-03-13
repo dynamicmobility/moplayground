@@ -36,6 +36,12 @@ match args.tradeoff.lower():
         kwargs['end_t'] = 9.0
         kwargs['skip_frame'] = 90 #110
         vid = 'swing_arms'
+    case 'swing_arms_metatag':
+        kwargs = deepcopy(DEFAULT_KWARGS)
+        kwargs['start_t'] = 3.0
+        kwargs['end_t'] = 13.5
+        kwargs['skip_frame'] = 95
+        vid = 'swing_arms_metatag'
     case 'rigid_arms_hero':
         kwargs = deepcopy(DEFAULT_KWARGS)
         kwargs['end_t'] = 10.0

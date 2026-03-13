@@ -35,6 +35,12 @@ match args.tradeoff.lower():
         HEIGHT = 480
         manual_speed = [0.12, 0.0, 0.0]
         T = 10.0
+    case 'swing_arms_metatag':
+        camera = 'side_fixed'
+        WIDTH = 1200
+        HEIGHT = 630
+        manual_speed = [0.12, 0.0, 0.0]
+        T = 15.0
     case 'smooth':
         camera = 'up_close'
         WIDTH  = 2560
