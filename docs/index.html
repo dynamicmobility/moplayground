@@ -23,9 +23,77 @@
 
   <main id="main-content">
     <section class="hero" style="position: relative; overflow: hidden;">
-      <video autoplay loop muted playsinline style="position: absolute; top: 0; left: 0; width: 100vw; height: 100%; object-fit: cover; z-index: 0; opacity: 0.25;">
+      <video id="hero-video" autoplay muted playsinline style="position: absolute; top: 0; left: 0; width: 100vw; height: 100%; object-fit: cover; z-index: 0; opacity: 0.25;">
         <source src="static/videos/bruce_swing_arms_banner.mp4" type="video/mp4">
       </video>
+      <script>
+        (function() {
+          var video = document.getElementById('hero-video');
+
+          function getStartTime() {
+            var w = window.innerWidth;
+            if (w < 321) {
+              return 9;  // small mobile — adjust this value
+            } else if (w < 426) {
+              return 9;  // large mobile — adjust this value
+            } else if (w < 769) {
+              return 6;  // tablet — adjust this value
+            } else if (w < 1025) {
+              return 5;  // laptop — adjust this value
+            } else if (w < 1441) {
+              return 3;  // small desktop — adjust this value
+            } else {
+              return 0;  // desktop (default)
+            }
+          }
+
+          function getEndTime() {
+            var w = window.innerWidth;
+            if (w < 321) {
+              return 13;  // small mobile — adjust this value (null = play to end)
+            } else if (w < 426) {
+              return 13.5;  // large mobile — adjust this value
+            } else if (w < 769) {
+              return 16;  // tablet — adjust this value
+            } else if (w < 1025) {
+              return 18;  // laptop — adjust this value
+            } else if (w < 1441) {
+              return 20;  // small desktop — adjust this value
+            } else {
+              return null;  // desktop (default)
+            }
+          }
+
+          function applyStartTime() {
+            var t = getStartTime();
+            console.log('[hero-video] innerWidth=' + window.innerWidth + ', startTime=' + t);
+            video.currentTime = t;
+          }
+
+          // Manual loop: when currentTime hits endTime, seek back to startTime
+          video.addEventListener('timeupdate', function() {
+            var end = getEndTime();
+            if (end !== null && video.currentTime >= end) {
+              video.currentTime = getStartTime();
+            }
+          });
+
+          // When the video naturally ends, loop back to startTime
+          video.addEventListener('ended', function() {
+            video.currentTime = getStartTime();
+            video.play();
+          });
+
+          if (video.readyState >= 1) {
+            applyStartTime();
+          } else {
+            video.addEventListener('loadedmetadata', applyStartTime);
+          }
+
+          // Re-apply when viewport is resized (e.g. DevTools device toggle)
+          window.addEventListener('resize', applyStartTime);
+        })();
+      </script>
       <div class="hero-body" style="position: relative; z-index: 1;">
         <div class="container is-max-desktop">
           <div class="columns is-centered">
