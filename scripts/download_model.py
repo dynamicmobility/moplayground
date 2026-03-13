@@ -5,7 +5,7 @@ from pathlib import Path
 # Dictionary mapping environment names to wandb run IDs
 ENV_RUN_IDS = {
     'cheetah':       '4303yymq',
-    'hopper':        '0000000',
+    'hopper':        'tynawjj4',
     'walker':        '0000000',
     'ant':           '0000000',
     'humanoid':      '0000000',

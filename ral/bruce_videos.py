@@ -24,10 +24,17 @@ match args.tradeoff.lower():
         T = 30.0
     case 'swing_arms':
         camera = 'side_fixed'
-        WIDTH  = 2560 #3840
+        WIDTH = 3840 # ral submission
+        # WIDTH = 1440 # personal website
         HEIGHT = 1080
         manual_speed = [0.12, 0.0, 0.0]
         T = 30.0
+    case 'swing_arms_favicon':
+        camera = 'track'
+        WIDTH = 480
+        HEIGHT = 480
+        manual_speed = [0.12, 0.0, 0.0]
+        T = 10.0
     case 'smooth':
         camera = 'up_close'
         WIDTH  = 2560
