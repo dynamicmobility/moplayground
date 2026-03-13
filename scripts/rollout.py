@@ -1,61 +1,40 @@
 import os
-os.environ["MUJOCO_GL"] = "egl"
+# os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
 import numpy as np
-from moplayground.eval.rollout import rollout_policy
-from moplayground.envs.create import create_environment
-from minimal_mjx.learning.startup import read_config
-from minimal_mjx.utils.plotting import save_metrics, save_video
+import moplayground as mop
+import minimal_mjx as mm
 from pathlib import Path
 
-config            = read_config()
-env, env_params   = create_environment(
+
+config = mm.utils.read_config()
+env, env_params = mop.envs.create_environment(
     config,
-    manual_speed    = [0.12, 0.0, 0.0],
-    idealistic      = True
+    # manual_speed    = [0.12, 0.0, 0.0],
+    # idealistic      = True
 )
 
-camera = 'side_fixed'
-# camera = 'track'
-
-# directive = np.array([1.0, 1.0, 0.5, 0.0, 0.3])
-
-# directive = np.array([0.0, 0.0, 0.0, 0.0, 1.0])
-directive = np.array([0.0, 0.0, 0.0, 1.0, 0.0])
-directive = np.array([0.0, 0.0, 1.0, 0.0, 0.6])
-# directive = np.array([0.15744586, 0.02093558, 0.02753894, 0.03695462, 0.757125  ])
-
-directive = np.array([0.0, 0.0, 0.0, 0.0, 1.0, 0.0])
-directive = np.array([0.6700963 , 0.00321807, 0.01035947, 0.04029163, 0.10730329, 0.16873129])
-directive = np.array([0.02406417, 0.01944033, 0.02713589, 0.05072681, 0.85975343, 0.0188794 ])
-directive = np.array([0.5718885 , 0.52070817, 0.24887408, 0.08074515, 0.37295792, 0.00482616])
-directive = np.array([2.0, 1.0, 0.0, 0.0, 0.5, 0.5])
-directive = np.array([0.45155084, 0.00633325, 0.40042394, 0.02089828, 0.046735  ,
-       0.0740587 ])
-
-# directive = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
-# directive = np.array([1.0, 0.5, 0.2])
-# directive = np.array([1.0, 1.0])
-# directive = np.array([0.0, 1.0])
+camera = 'track'
+directive = np.array([0.0, 1.0])
 
 
-frames, reward_plotter, _, _ = rollout_policy(
+frames, reward_plotter, _, _ = mop.eval.rollout_policy(
     env         = env,
     config      = config,
     directive   = directive,
     T           = 10.0,
     camera      = camera,
-    # width       = 2560,
-    # height      = 1080
+    width       = 640,
+    height      = 480
 )
 
-save_video(
+mm.utils.plotting.save_video(
     frames,
     env.dt,
     Path(f'output/videos/{config['env']}-rollout.mp4')
 )
 
-save_metrics(
+mm.utils.plotting.save_metrics(
     reward_plotter,
     Path(f'output/videos/{config['env']}-reward.pdf')
 )

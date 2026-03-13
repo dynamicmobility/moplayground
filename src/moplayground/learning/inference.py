@@ -4,7 +4,7 @@ from etils import epath
 import functools
 from brax.training.checkpoint import get_network
 from brax.training.agents.ppo import checkpoint
-from minimal_mjx.learning.inference import get_last_model
+from minimal_mjx.learning.inference import *
 from moplayground.moppo.factory import make_moppo_networks, make_mo_inference_fn
 
 def load_mo_policy(

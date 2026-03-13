@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from minimal_mjx.utils.plotting import get_subplot_grid
-from moplayground.eval.pareto import get_pareto_statistics, get_nondominated
+from moplayground.utils.pareto import get_pareto_statistics
 
 
 def plot_pareto(
@@ -9,7 +9,8 @@ def plot_pareto(
         pareto: np.ndarray, 
         directive: np.ndarray = None, 
         objectives: list[str] = None,
-        nondominated=False
+        nondominated=None,
+        alpha=1.0
     ):
     if directive is None: directive = np.zeros_like(pareto)
     if objectives is None: objectives = [''] * pareto.shape[1]
@@ -26,12 +27,14 @@ def plot_pareto(
             c       = c,
             alpha   = alpha
         )
-        if nondominated:
-            nd_idx = get_nondominated(pareto)
+        if nondominated is not None:
+            nd_idx = nondominated
             ax.scatter(
                 pareto[nd_idx, 0],
                 pareto[nd_idx, 1],
-                s = 24,
+                alpha=1.0,
+                zorder=1,
+                s = 12,
                 edgecolors='black', # Border color
                 linewidths=1.5,   # Border width,
                 c = c[nd_idx,:],
@@ -43,27 +46,36 @@ def plot_pareto(
         return ax
     elif pareto.shape[1] == 3:
         c = np.zeros((pareto.shape[0], 3))
-        c[:, 0] = directive[:, 0]
-        c[:, 1] = directive[:, 1]
-        c[:, 2] = directive[:, 2]
+        # Convert directive weights to HSV-like color scheme
+        # Use directive weights to create more distinct colors
+        # c[:, 0] = 0.2 + 0.6 * directive[:, 0]  # Red channel: warm tones
+        # c[:, 1] = 1.0 - 0.7 * directive[:, 1]  # Green channel: cool tones  
+        # c[:, 2] = 0.3 + 0.7 * directive[:, 2]  # Blue channel: mid tones
+        c[:, 0] = (1 - directive[:, 0]) * 0.9  # Red channel: warm tones
+        c[:, 1] = (1 - directive[:, 1]) * 0.9  # Green channel: cool tones  
+        c[:, 2] = (1 - directive[:, 2]) * 0.9  # Blue channel: mid tones
         ax.scatter(
             pareto[:, 0],
             pareto[:, 1],
             pareto[:, 2],
             s=24,
             c=c,
-            alpha=0.01
+            alpha=0.01,
+            axlim_clip=True
         )
-        if nondominated:
-            nd_idx = get_nondominated(pareto)
+        if nondominated is not None:
+            nd_idx = nondominated
             ax.scatter(
                 pareto[nd_idx, 0],
                 pareto[nd_idx, 1],
                 pareto[nd_idx, 2],
-                s = 24,
-                edgecolors='black', # Border color
-                linewidths=0.5,   # Border width,
+                s = 12,
+                alpha=0.99,
+                zorder=1,
+                # edgecolors='black', # Border color
+                # linewidths=0.5,   # Border width,
                 c = c[nd_idx,:],
+                axlim_clip=True
             )
             ax.set_xlim((0.95 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
             ax.set_ylim((0.95 * np.min(pareto[nd_idx, 1]), 1.05 * np.max(pareto[nd_idx, 1])))

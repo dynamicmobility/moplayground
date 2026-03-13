@@ -2,19 +2,9 @@ import jax
 import functools
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from jax import numpy as jnp
 from tqdm import tqdm
 from pathlib import Path
-
-from pymoo.indicators.hv import HV
-from pymoo.util.normalization import normalize
-from pymoo.indicators.spacing import SpacingIndicator
-from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
-
-from minimal_mjx.learning.startup import read_config
-from minimal_mjx.learning.inference import get_all_models
-# from moplayground.learning.inference import load_hypernetwork
+import moplayground as mop
 
 
 def get_pareto_rollout(env, N_STEPS, make_policy):
@@ -48,13 +38,13 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
     keys = jax.random.split(rng, NUM_ENVS)
     NUM_OBJS = len(config['env_config']['reward']['optimization']['objectives'])
     directives = jax.random.dirichlet(rng, alpha=np.ones(NUM_OBJS), shape=(NUM_ENVS,))
-    model_files = get_all_models(config)
+    model_files = mop.learning.inference.get_all_models(config)
     if only_final:
         model_files = [model_files[-1]]
-    make_policy, _ = load_hypernetwork(config, path=model_files[0])
+    make_policy, _ = mop.learning.inference.load_hypernetwork(config, path=model_files[0])
     run_rollouts = get_pareto_rollout(env, N_STEPS, make_policy)
     for i, file in enumerate(tqdm(model_files)):
-        _, moppo_params = load_hypernetwork(config, path=file)
+        _, moppo_params = mop.learning.inference.load_hypernetwork(config, path=file)
         (_, rewards), _ = run_rollouts(keys, directives, moppo_params)
         rewards_over_iters.append(rewards)
         if save_results:
@@ -98,11 +88,11 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
     NUM_OBJS = len(config['env_config']['reward']['optimization']['objectives'])
     directives = jax.random.dirichlet(rng, alpha=np.ones(NUM_OBJS), shape=(NUM_ENVS,))
     print(directives.shape)
-    model_files = get_all_models(config)
+    model_files = mop.learning.inference.get_all_models(config)
     if only_final:
         model_files = [model_files[-1]]
     for i, file in enumerate(tqdm(model_files)):
-        make_policy, moppo_params = load_hypernetwork(config, path=file)
+        make_policy, moppo_params = mop.learning.inference.load_hypernetwork(config, path=file)
         (_, rewards), _ = run_rollouts(keys, directives, moppo_params)
         rewards_over_iters.append(rewards)
         if save_results:
@@ -116,56 +106,3 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
         rewards_over_iters.shape[0], 
         axis=0
     )
-
-
-def get_nondominated(F, epsilon=None):
-    nds = NonDominatedSorting(epsilon=epsilon)
-    front_indices = nds.do(-F, only_non_dominated_front=True)
-    return front_indices
-
-def hypervolume_from_nondominated(F_min):
-    # Reference point must be worse in minimization space
-    # i.e., larger than all points in F_min
-    ref_point = np.zeros(F_min.shape[1])
-
-    hv = HV(ref_point=ref_point)
-    hypervolume = hv(F_min)
-    return hypervolume
-
-def sparsity_from_normalized_nondominated(F_min_norm):
-    spacing = SpacingIndicator()
-    sparsity = spacing(F_min_norm)
-    return sparsity
-
-def get_pareto_statistics(F):
-    # Extract nondominated front to do calculations
-    F_max = F[get_nondominated(F)]
-    F_norm = normalize(F_max.copy())
-
-    # Convert to minimization
-    F_min = -F_max.copy()
-    F_min_norm = -F_norm.copy()
-
-    if F_min_norm.shape[0] == 1:
-        # Sparsity always needs 2 points to calculate
-        F_min_norm = np.repeat(F_min_norm, 2, axis=0)
-    return (
-        hypervolume_from_nondominated(F_min), 
-        sparsity_from_normalized_nondominated(F_min_norm)
-    )
-
-if __name__ == '__main__':
-    config = read_config()
-    F = pd.read_csv(f'eval/data/{config['env']}.csv')
-    F = F.iloc[:, 1:].values
-    hypervolume, sparsity = get_pareto_statistics(F)
-    # print("Hypervolume:", hypervolume)
-    print(f"Hypervolume: {hypervolume:.3e}")
-    print(f"spacing", sparsity)
-
-    fig, ax = plt.subplots()
-    ax.scatter(*(F.T))
-    ax.set_xlim((0, 1.1 * np.max(F[0, :])))
-    ax.set_ylim((0, 1.1 * np.max(F[1, :])))
-    fig.savefig('img.pdf')
-    print(F.T.shape)

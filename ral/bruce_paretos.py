@@ -23,7 +23,7 @@ mpl.rcParams.update({
     "ytick.major.width"     : 1.0,
     "legend.frameon"        : False,
 })
-import moplayground as mp
+import moplayground as mop
 import matplotlib.pyplot as plt
 import numpy as np
 from ral import FINAL_YAMLS
@@ -35,7 +35,7 @@ from tqdm import tqdm
 from itertools import combinations
 
 def main():
-    config    = mp.learning.read_config(FINAL_YAMLS['bruce6D+DR'])
+    config    =mop.learning.read_config(FINAL_YAMLS['bruce6D+DR'])
     save_path = Path(config['save_dir']) / config['name']
     rng       = jax.random.PRNGKey(0)
     OBJS      = config['env_config']['reward']['optimization']['labels']
@@ -78,7 +78,7 @@ def main():
         pareto = paretos[-1, :, PAIR].T  # Select the last iteration's Pareto front and only the 3 objectives of interest
         tradeoff = directives[:, PAIR]
         fig, ax = plt.subplots()
-        ax = mp.utils.plotting.plot_pareto(
+        ax = mop.utils.plotting.plot_pareto(
             ax, 
             pareto, 
             tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis],
@@ -87,7 +87,7 @@ def main():
             ],
             nondominated=True
         )
-        nd_idx = mp.eval.pareto.get_nondominated(pareto, epsilon=10)
+        nd_idx = mop.eval.pareto.get_nondominated(pareto, epsilon=10)
         nd = pareto[nd_idx]
         nd_td = directives[nd_idx]
         max_x = np.argmax(nd[:, 0])

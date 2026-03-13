@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import functools
 from brax.training.agents.ppo import checkpoint
 
+import moplayground as mp
 from moplayground.moppo import moppo
 from moplayground.moppo import factory
 from moplayground.learning.wrappers import MultiObjectiveEpisodeWrapper
@@ -23,8 +24,7 @@ from brax.envs.wrappers.training import VmapWrapper
 from mujoco_playground import wrapper
 from mujoco_playground._src import mjx_env
 import numpy as np
-from minimal_mjx.utils.plotting import get_subplot_grid
-from minimal_mjx.learning.training import initialize_wandb, save_model
+import minimal_mjx as mm
 from moplayground.utils.plotting import plot_sequential_paretos, plot_sequential_hypervolume
 from dataclasses import dataclass, field
 
@@ -103,7 +103,14 @@ def mo_wrapper(
     return env
     
 def mo_train(
-    config_yaml, output_dir: Path, env, eval_env, moppo_params, network_params, policy_init_params
+    config_yaml: dict, 
+    output_dir: Path, 
+    env: mp.envs.MultiObjectiveBase, 
+    eval_env: mp.envs.MultiObjectiveBase, 
+    moppo_params,
+    network_params, 
+    policy_init_params,
+    run: wandb.Run
 ):
     train_algo = moppo.train
     network_factory = functools.partial(
@@ -117,11 +124,12 @@ def mo_train(
         normalize_observations=moppo_params.normalize_observations,
         network_factory=network_factory,
     )
-    run = initialize_wandb(name=f'{config_yaml['save_dir']}/{config_yaml['name']}') # move this outside...
     training_data = MOTrainingInfo(
         start_time = time.time(),
         labels = env.params.reward.optimization.objectives
     )
+    if run:
+        run.log_artifact(str(output_dir / 'config.yaml'), name='config')
     train_fn = functools.partial(
         train_algo, **dict(moppo_params),
         network_factory=network_factory,
@@ -133,7 +141,7 @@ def mo_train(
             training_data   = training_data
         ),
         policy_params_fn=functools.partial(
-            save_model,
+            mm.utils.logging.save_model,
             output_dir        = output_dir,
             run               = run,
             network_config    = network_config

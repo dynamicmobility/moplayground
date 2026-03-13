@@ -15,7 +15,7 @@ from moplayground.envs.locomotion.bruce import interface_westwood as bruce
 from moplayground.envs.locomotion.generic.navigait import NaviGait
 from moplayground.envs.locomotion.control.bezier import Leg
 
-from minimal_mjx.utils import geometry as geo
+from moplayground.utils import geometry as geo
 
 class Bruce(NaviGait):
     """
