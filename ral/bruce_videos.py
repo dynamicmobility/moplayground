@@ -29,6 +29,12 @@ match args.tradeoff.lower():
         HEIGHT = 1080
         manual_speed = [0.12, 0.0, 0.0]
         T = 30.0
+    case 'swing_arms_banner':
+        camera = 'side_fixed_forward'
+        WIDTH = 3840 # ral submission
+        HEIGHT = 1080
+        manual_speed = [0.12, 0.0, 0.0]
+        T = 20.5 #29.5
     case 'swing_arms_favicon':
         camera = 'track'
         WIDTH = 480

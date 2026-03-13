@@ -186,8 +186,8 @@ ral/time_logs
 ral/images
 ral/videos
 
-*.mp4
-*.png
-*.jpg
+ral/videos
+ral/plots
+ral/images
 .vscode/
 .DS_Store
