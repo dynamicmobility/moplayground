@@ -12,13 +12,18 @@ config = mm.utils.read_config()
 env, env_params = mop.envs.create_environment(
     config,
     manual_speed    = [0.12, 0.0, 0.0],
-    idealistic      = True
+    idealistic      = True,
+    track_yaw       = False,
 )
 
 camera = 'track'
 # directive = np.array([0.0, 1.0])
 # directive = np.array([1.0, 0.0])
 directive = np.array(BRUCE_TRADEOFFS['swing_arms'])
+directive = np.array(BRUCE_TRADEOFFS['smooth'])
+directive = np.array(BRUCE_TRADEOFFS['energy'])
+directive = np.array(BRUCE_TRADEOFFS['rigid_arms'])
+# directive = np.array(BRUCE_TRADEOFFS['base_tracking'])
 
 
 frames, reward_plotter, _, _ = mop.eval.rollout_policy(

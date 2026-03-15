@@ -136,7 +136,7 @@ def extract_yaw(_np, quat):
     return q_yaw
     
 
-def solve_transform(_np, qpos_des, qpos_act, reset_yaw=False, cmd_yaw_offset=0.0):
+def solve_transform(_np, qpos_des, qpos_act, reset_yaw=False, cmd_yaw_offset=None):
     """Solves the transformation, T, between two qpos for the form
     qpos_des = qpos_act @ T"""
     xyz_des  = qpos_des[:3]
@@ -148,10 +148,11 @@ def solve_transform(_np, qpos_des, qpos_act, reset_yaw=False, cmd_yaw_offset=0.0
         quat_diff = quat_mul(_np, quat_conjugate(_np, quat_des), quat_act)
         yaw_quat_act = extract_yaw(_np, quat_diff)
     else:
-        yaw_quat_act = angle2quat(_np, _np.array([0.0, 0.0, 1.0]), cmd_yaw_offset)
-        # quat_des = quat_mul(_np, yaw_quat_act, quat_des)
-        # quat_diff = quat_mul(_np, quat_conjugate(_np, quat_des), quat_act)
-        # yaw_quat_act = extract_yaw(_np, quat_diff)
+        if cmd_yaw_offset is not None:
+            yaw_quat_act = angle2quat(_np, _np.array([0.0, 0.0, 1.0]), cmd_yaw_offset)
+        else:
+            quat_diff = quat_mul(_np, quat_conjugate(_np, quat_des), quat_act)
+            yaw_quat_act = extract_yaw(_np, quat_diff)
         # yaw_quat_act = angle2quat(_np, _np.array([0.0, 0.0, 1.0]), cmd_yaw_offset)
         # yaw_quat_act = _np.array([1.0, 0.0, 0.0, 0.0])
     offset_quat = yaw_quat_act

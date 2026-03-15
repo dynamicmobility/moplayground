@@ -35,7 +35,8 @@ class NaviGait(BipedalBase):
         gait_type='P2',
         backend='jnp',
         num_degree=7,
-        animate=False
+        animate=False,
+        track_yaw=False
     ):
         # Initialize the parent (bipedal) class
         super().__init__(
@@ -46,6 +47,7 @@ class NaviGait(BipedalBase):
         self.animate = animate
         self.num_states = num_states
         self.num_degrees = num_degree
+        self.track_yaw = track_yaw
         factorial = None
         if backend == 'jnp':
             factorial = jax.scipy.special.factorial
@@ -504,7 +506,7 @@ class NaviGait(BipedalBase):
             self._np,
             new_base_des[:self.qpos_free],
             qpos[:self.qpos_free],
-            cmd_yaw_offset=-1.6 * qpos[1] #info['vdes'][2]
+            cmd_yaw_offset=-1.6 * qpos[1] if self.track_yaw else None #info['vdes'][2]
         )
         info['old_base2global'] = info['base2global'].copy()
         info['base2global'] = switched * base2global + (1 - switched) * info['base2global']

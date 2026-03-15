@@ -21,6 +21,7 @@ match args.tradeoff.lower():
         WIDTH  = 3840
         HEIGHT = 1080
         manual_speed = [0.12, 0.0, 0.0]
+        track_yaw = True
         T = 30.0
     case 'swing_arms':
         camera = 'side_fixed'
@@ -28,35 +29,41 @@ match args.tradeoff.lower():
         # WIDTH = 1440 # personal website
         HEIGHT = 1080
         manual_speed = [0.12, 0.0, 0.0]
+        track_yaw = True
         T = 30.0
     case 'swing_arms_banner':
         camera = 'side_fixed_forward'
         WIDTH = 3840 # ral submission
         HEIGHT = 1080
         manual_speed = [0.12, 0.0, 0.0]
+        track_yaw = True
         T = 20.5 #29.5
     case 'swing_arms_favicon':
         camera = 'track'
         WIDTH = 480
         HEIGHT = 480
         manual_speed = [0.12, 0.0, 0.0]
+        track_yaw = True
         T = 10.0
     case 'swing_arms_metatag':
         camera = 'side_fixed'
         WIDTH = 1200
         HEIGHT = 630
         manual_speed = [0.12, 0.0, 0.0]
+        track_yaw = True
         T = 15.0
     case 'smooth':
         camera = 'up_close'
         WIDTH  = 2560
         HEIGHT = 2560
         manual_speed = [0.12, 0.0, 0.0]
+        track_yaw = False # max smoothness discourages taking steps
         T = 10.0
     case _:
         raise Exception('Unknown trade-off', args.tradeoff)
 
 KWARGS['manual_speed'] = manual_speed
+KWARGS['track_yaw'] = track_yaw
 env, env_params = mop.envs.create_environment(config, **KWARGS)
 
 frames, _, _, _ = mop.eval.rollout_policy(
@@ -66,7 +73,7 @@ frames, _, _, _ = mop.eval.rollout_policy(
     T         = T,
     camera    = camera,
     width     = WIDTH,
-    height    = HEIGHT
+    height    = HEIGHT,
 )
 
 output_dir = Path('ral/videos')
