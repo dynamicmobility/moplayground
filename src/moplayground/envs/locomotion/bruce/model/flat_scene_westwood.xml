@@ -66,7 +66,7 @@
     <!-- <light pos="0 3 4" dir="-0 0 -15" directional="false" diffuse=".5 .5 .5" ambient=".4 .4 .4" specular="1 1 1"/> -->
     <!-- <light pos="0 -3 5" dir="0 0 -15" directional="false" diffuse=".3 .3 .3" ambient=".3 .3 .3" specular="1 1 1"/> -->
 
-    <geom name="floor" size="10 3 0.05" euler="0 0 0" type="plane" contype="1" conaffinity="1" material="groundplane" friction="1.0 0.005 0.0001"/>
+    <geom name="floor" size="5 3 0.05" euler="0 0 0" type="plane" contype="1" conaffinity="1" material="groundplane" friction="1.0 0.005 0.0001"/>
     <!-- <camera name="track" pos="0.846 -1.465 0.916" xyaxes="0.866 0.500 0.000 -0.171 0.296 0.940"/> -->
   </worldbody>
 </mujoco>

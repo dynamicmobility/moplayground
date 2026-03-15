@@ -71,7 +71,7 @@
 
     <body name="base_link" pos="0 0 0.4728" euler="0 -0 0">
     <!-- <light name="headlight" pos="1 1 10" dir="-1 -1 -10" diffuse="1 1 1" specular="0.3 0.3 0.3" directional="false"/> -->
-
+    <!-- <light name="light" pos="0 0 35" dir="0 0 -1" specular="0.1 0.1 0.1" diffuse=".2 .2 .2" exponent="-0.5" ambient="0.2 0.2 0.2" mode="trackcom"/> -->
     <camera name="track" pos="1.1 -1.1 0.5" xyaxes="0.7 0.700 0.000 -0.171 0.296 0.940" mode="trackcom"/>
     <camera name="track-zoomed" pos="0.6 -0.6 0.15" xyaxes="0.7 0.700 0.000 -0.171 0.296 0.940" mode="trackcom"/>
     <camera name="track-front" pos="1.0 -0.0 0.2" euler="70 0 90" mode="trackcom"/>
