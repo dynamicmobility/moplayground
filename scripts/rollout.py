@@ -1,5 +1,5 @@
 import os
-# os.environ["MUJOCO_GL"] = "egl"
+os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
 import numpy as np
 import moplayground as mop
@@ -16,16 +16,17 @@ env, env_params = mop.envs.create_environment(
 
 camera = 'track'
 directive = np.array([0.0, 1.0])
+# directive = np.array([1.0, 0.0])
 
 
 frames, reward_plotter, _, _ = mop.eval.rollout_policy(
     env         = env,
     config      = config,
     directive   = directive,
-    T           = 10.0,
+    T           = 6.0,
     camera      = camera,
-    width       = 640,
-    height      = 480
+    width       = 2560,
+    height      = 1440
 )
 
 mm.utils.plotting.save_video(

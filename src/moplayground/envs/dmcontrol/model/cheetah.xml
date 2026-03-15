@@ -52,8 +52,9 @@
   <worldbody>
     <geom name="ground" type="plane" conaffinity="1" pos="98 0 0" size="100 .8 .5" material="groundplane"/>
     <camera name="side_fixed" pos="2.0 -4.5 2.5" euler="70 0 0"/>
-    <light name="light_overhead" pos="2 0 20" dir="0 0 -10" mode="fixed" specular="0.02 0.02 0.02" diffuse=".4 .4 .4" ambient=".1 .1 .1"/>
-    <light name="light" pos="10 0 10" dir="-1 0 -10" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <!-- <light name="light_overhead" pos="2 0 20" dir="0 0 -10" mode="fixed" specular="0.02 0.02 0.02" diffuse=".4 .4 .4" ambient=".1 .1 .1"/> -->
+    <!-- <light name="light" pos="10 0 10" dir="-1 0 -10" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    <light name="light" pos="0 0 4" dir="0 0 -1" specular=".2 .2 .2" diffuse=".5 .5 .5" exponent="0.5" ambient="0.2 0.2 0.2" mode="trackcom"/>
     <body name="torso" pos="0 0 .7" childclass="cheetah">
      
       <camera name="track" pos="0 -3 0" quat="0.707 0.707 0 0" mode="trackcom"/>

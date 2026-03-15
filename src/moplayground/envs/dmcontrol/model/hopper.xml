@@ -50,9 +50,11 @@
     <camera name="track" pos="0 -2.8 -0.5" euler="90 0 0" mode="trackcom"/>
     <camera name="back" pos="-2 -.2 1.2" xyaxes="0.2 -1 0 .5 0 2" mode="trackcom"/>
     <geom name="floor" type="plane" conaffinity="1" pos="49 0 0" size="50 1 .2" material="groundplane"/>
-    <light name="light_overhead1" pos="5 0 50" dir="0 0 -1" mode="fixed" specular="0.25 0.25 0.25" diffuse=".4 .4 .4" ambient=".1 .1 .1"/>
+    <!-- <light name="light_overhead1" pos="5 0 50" dir="0 0 -1" mode="fixed" specular="0.25 0.25 0.25" diffuse=".4 .4 .4" ambient=".1 .1 .1"/> -->
     <!-- <light name="light_overhead2" pos="16 0 20" dir="0 0 -10" mode="fixed" specular="0.02 0.02 0.02" diffuse=".4 .4 .4" ambient=".1 .1 .1"/> -->
-    <light name="light" pos="22 0 10" dir="-2 0 -10" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <!-- <light name="light" pos="22 0 10" dir="-2 0 -10" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    <light name="light" pos="0 0 4" dir="0 0 -1" specular=".2 .2 .2" diffuse=".5 .5 .5" exponent="0.5" ambient="0.2 0.2 0.2" mode="trackcom"/>
+
     <body name="torso" pos="0 0 0" childclass="hopper">
       <joint name="rootx" type="slide" axis="1 0 0" class="free"/>
       <joint name="rootz" type="slide" axis="0 0 1" class="free"/>
