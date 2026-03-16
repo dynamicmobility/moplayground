@@ -14,6 +14,79 @@
   <link rel="stylesheet" href="static/css/index.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <style>
+    body {
+      background: #181a1b;
+      color: #e0e0e0;
+    }
+    .section, .container, .footer {
+      background: transparent;
+      color: inherit;
+    }
+    .content {
+      color: #e0e0e0;
+    }
+    .button, .external-link.button {
+      background: #23272e;
+      color: #e0e0e0;
+      border: none;
+    }
+    .button:hover, .external-link.button:hover {
+      background: #2d3136;
+      color: #fff;
+    }
+    .scroll-to-top {
+      background: #23272e;
+      color: #e0e0e0;
+      border: none;
+    }
+    pre {
+      background: #23272e !important;
+      color: #e0e0e0 !important;
+      border-radius: 6px;
+      padding: 12px 16px !important;
+      margin: 0 0 1.25rem 0 !important;
+      line-height: 1.3 !important;
+      min-height: 0 !important;
+      overflow-x: auto;
+    }
+    pre code {
+      background: #23272e !important;
+      color: inherit !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block;
+      line-height: inherit !important;
+      min-height: 0 !important;
+    }
+    /* Inline code background fix */
+    code:not(pre code) {
+      background: #181a1b !important;
+      color: #e0e0e0 !important;
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+    a {
+      color: #80bfff;
+    }
+    a:hover {
+      color: #a3d8ff;
+    }
+    /* Make titles white */
+    h1, h2, h3, h4, h5, h6 {
+      color: #fff !important;
+    }
+    .hljs {
+      background: #23272e !important;
+      color: #e0e0e0 !important;
+    }
+    /* Make bolded text white */
+    strong, b {
+      color: #fff !important;
+    }
+  </style>
 </head>
 <body>
 
@@ -22,97 +95,11 @@
   </button>
 
   <main id="main-content">
-
-    <!-- Header -->
-    <section class="hero">
-      <div class="hero-body">
-        <div class="container is-max-desktop">
-          <div class="columns is-centered">
-            <div class="column has-text-centered">
-              <h1 class="title is-1 publication-title"><u>MO</u>-Playground:</h1>
-              <h1 class="title is-2 publication-title">How To</h1>
-              <div class="column has-text-centered">
-                <div class="publication-links">
-                  <span class="link-block">
-                    <a href="index.html" class="external-link button is-normal is-rounded is-dark">
-                      <span class="icon"><i class="fas fa-home"></i></span>
-                      <span>Home</span>
-                    </a>
-                  </span>
-                  <span class="link-block">
-                    <a href="https://github.com/dynamicmobility/moplayground" target="_blank" class="external-link button is-normal is-rounded is-dark">
-                      <span class="icon"><i class="fab fa-github"></i></span>
-                      <span>Code</span>
-                    </a>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Installation -->
-    <section class="section hero is-light">
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column is-four-fifths">
-            <h2 class="title is-3 has-text-centered">Installation</h2>
-            <div class="content has-text-justified">
-              <p>Install MO-Playground via pip:</p>
-              <pre><code>pip install moplayground</code></pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Basic Usage -->
     <section class="section">
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column is-four-fifths">
-            <h2 class="title is-3 has-text-centered">Basic Usage</h2>
-            <div class="content has-text-justified">
-              <p>Add a description and code example here.</p>
-              <pre><code># example code here</code></pre>
-            </div>
-          </div>
-        </div>
+      <div class="container is-max-widescreen">
+        <div id="markdown-content" class="content"></div>
       </div>
     </section>
-
-    <!-- Running MORLAX -->
-    <section class="section hero is-light">
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column is-four-fifths">
-            <h2 class="title is-3 has-text-centered">Running MORLAX</h2>
-            <div class="content has-text-justified">
-              <p>Add a description and code example here.</p>
-              <pre><code># example code here</code></pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Custom Environments -->
-    <section class="section">
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column is-four-fifths">
-            <h2 class="title is-3 has-text-centered">Custom Environments</h2>
-            <div class="content has-text-justified">
-              <p>Add a description and code example here.</p>
-              <pre><code># example code here</code></pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <footer class="footer">
@@ -130,7 +117,17 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script>
+    fetch('howto.md')
+      .then(response => response.text())
+      .then(text => {
+        document.getElementById('markdown-content').innerHTML = marked.parse(text);
+        document.querySelectorAll('#markdown-content pre code').forEach((block) => {
+          hljs.highlightElement(block);
+        });
+      });
     function scrollToTop() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
