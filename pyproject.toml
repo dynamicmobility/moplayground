@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "moplayground"
-version = "0.1.2"
+version = "0.1.3"
 description = "GPU-Accelerable Multi-Objective Playground"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,6 +16,11 @@ dependencies = [
   "numpy",
   "jax",
   "playground",
+  "pymoo",
+  "matplotlib",
+  "opencv-python",
+  "pandas",
+  "tqdm",
 ]
 
 [project.optional-dependencies]
