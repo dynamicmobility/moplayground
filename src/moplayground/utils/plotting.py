@@ -48,12 +48,12 @@ def plot_pareto(
         c = np.zeros((pareto.shape[0], 3))
         # Convert directive weights to HSV-like color scheme
         # Use directive weights to create more distinct colors
-        # c[:, 0] = 0.2 + 0.6 * directive[:, 0]  # Red channel: warm tones
-        # c[:, 1] = 1.0 - 0.7 * directive[:, 1]  # Green channel: cool tones  
-        # c[:, 2] = 0.3 + 0.7 * directive[:, 2]  # Blue channel: mid tones
-        c[:, 0] = (1 - directive[:, 0]) * 0.9  # Red channel: warm tones
-        c[:, 1] = (1 - directive[:, 1]) * 0.9  # Green channel: cool tones  
-        c[:, 2] = (1 - directive[:, 2]) * 0.9  # Blue channel: mid tones
+        c[:, 0] = directive[:, 0]
+        c[:, 1] = directive[:, 1]  
+        c[:, 2] = directive[:, 2]
+        # c[:, 0] = (1 - directive[:, 0]) * 0.9  # Red channel: warm tones
+        # c[:, 1] = (1 - directive[:, 1]) * 0.9  # Green channel: cool tones  
+        # c[:, 2] = (1 - directive[:, 2]) * 0.9  # Blue channel: mid tones
         ax.scatter(
             pareto[:, 0],
             pareto[:, 1],
