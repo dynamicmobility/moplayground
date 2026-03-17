@@ -1,5 +1,5 @@
 # Installation
-First, clone the repository via SSH or HTTPS from [the moplayground repository](https://github.com/dynamicmobility/moplayground).
+First, clone the repository via SSH or HTTPS from [the moplayground repository](https://github.com/dynamicmobility/moplayground). 
 Note that a `pip`-installable package is coming, and will be released after double-blind review!
 
 Next, using the provided ymls, create a new conda environment.
@@ -17,10 +17,10 @@ conda activate moplayground
 conda env create -f mac_environment.yml
 conda activate moplayground
 ```
-
+------
 # Basic Usage
 Several scripts have been provided that let you train and rollout policies.
-Below, we'll show the primary usage of MO-Playground, evalauting and training policies.
+Below, we'll show the primary usage of MO-Playground, evaluating and training policies.
 ## Downloading and evaluating policies
 First, choose an environment from the following list:
 - `cheetah`
@@ -50,6 +50,7 @@ python3 -m scripts.train config_path
 where `config_path` is the path to the config of your choice.
 If you downloaded a policy in the past, you can also use those configs to run an identical training run on your system.
 
+-------
 # Advanced Usage
 For advanced usage of MO-Playground, it is generally assumed that you are familar with [MuJoCo Playground](https://playground.mujoco.org).
 Specifically, how the `MjxEnv` class works, like the `step` and `reset` functions. 
