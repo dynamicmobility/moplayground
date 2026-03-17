@@ -21,6 +21,7 @@ dependencies = [
   "opencv-python",
   "pandas",
   "tqdm",
+  "minimal-mjx",
 ]
 
 [project.optional-dependencies]
