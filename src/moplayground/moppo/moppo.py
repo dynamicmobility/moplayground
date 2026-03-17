@@ -619,7 +619,6 @@ def train(
         eval_policy_fn = functools.partial(
             make_policy,
             deterministic = deterministic_eval,
-            single_policy = False
         ),
         num_eval_envs  = num_eval_envs,
         episode_length = episode_length,
