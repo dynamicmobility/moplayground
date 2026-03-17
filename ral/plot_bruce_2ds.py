@@ -1,37 +1,16 @@
-from moplayground.utils.plotting import plot_pareto
-from moplayground.eval.pareto import get_nondominated, get_pareto_rollout
-from moplayground.envs.create import create_environment
-from moplayground.learning.startup import read_config
-from moplayground.learning.inference import load_hypernetwork, get_last_model
-from moplayground.utils.plotting import get_subplot_grid
+import moplayground as mop
 import matplotlib.pyplot as plt
 import numpy as np
 from ral import FINAL_YAMLS
 import jax
 from pathlib import Path
-import pickle
 import pandas as pd
 from tqdm import tqdm
 from itertools import combinations
 
-
-def sample_run():
-    # Create a quarter sphere as sample Pareto data
-    phi = np.linspace(0, np.pi/2, 50)  # 0 to 90 degrees
-    theta = np.linspace(0, np.pi/2, 50)  # 0 to 90 degrees
-    PHI, THETA = np.meshgrid(phi, theta)
-
-    # Convert spherical to Cartesian coordinates
-    X = np.sin(PHI) * np.cos(THETA)
-    Y = np.sin(PHI) * np.sin(THETA)  
-    Z = np.cos(PHI)
-    fig = plt.figure()
-    ax3d = fig.add_subplot(111, projection='3d')
-    ax3d = plot_pareto(ax3d, np.array([X.flatten(), Y.flatten(), Z.flatten()]).T)
-    plt.show()
-
 def main():
-    config    = read_config(FINAL_YAMLS['bruce6D+DR'])
+    # config    = read_config(FINAL_YAMLS['bruce6D+DR'])
+    config    = mop.utils.read_config('results/MOCheetah-all3/test/config.yaml')
     save_path = Path(config['save_dir']) / config['name']
     rng       = jax.random.PRNGKey(0)
     N_OBJS    = len(config['env_config']['reward']['optimization']['objectives'])
@@ -42,16 +21,16 @@ def main():
     else:
         N_STEPS       = 500
         N_ENVS        = 2**10
-        N_ITERS       = 30
+        N_ITERS       = 16
 
-        env, _                      = create_environment(
+        env, _                      = mop.envs.create_environment(
             config, 
             for_training    = True,
-            manual_speed    = [0.12, 0.0, 0.0],
-            idealistic      = True
+            # manual_speed    = [0.12, 0.0, 0.0],
+            # idealistic      = True
         )
-        make_policy, hyper_params   = load_hypernetwork(config)
-        pareto_rollout              = get_pareto_rollout(env, N_STEPS, make_policy)
+        make_policy, hyper_params   = mop.learning.inference.load_hypernetwork(config)
+        pareto_rollout              = mop.eval.pareto.get_pareto_rollout(env, N_STEPS, make_policy)
 
         rewards_over_iters = []
         directives_over_iters = []
@@ -76,7 +55,7 @@ def main():
         pd.DataFrame.from_dict(
             {f'td{i}' : tds for i, tds in enumerate(directives.T)}
         ).to_csv(Path(config['save_dir']) / config['name'] / f'the-trade-off.txt')
-
+    quit()
     pairs = list(combinations(range(N_OBJS), 2))
     nrows, ncols = get_subplot_grid(len(pairs))
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols)
