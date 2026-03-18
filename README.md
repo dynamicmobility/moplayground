@@ -30,6 +30,11 @@ if you just want to evaluate policies and explore the code (i.e. running on a Ma
 conda env create -f mac_environment.yml
 conda activate moplayground
 ```
+Finally, go to the project root and run
+```
+pip3 install -e .
+```
+to install the moplayground package.
 
 ## Evaluation
 Create an account at [Weights and Biases](https://wandb.ai/site).
