@@ -1,4 +1,4 @@
-name: test
+name: test2
 save_dir: results/MOCheetah-all3
 description: ""
 algorithm: "ppo"
