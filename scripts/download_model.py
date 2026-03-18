@@ -35,8 +35,8 @@ def main():
         run_id        = run_id,
         save_dir      = save_dir,
         model_name    = env_name,
-        entity        = 'njanwani-gatech',
-        project       = 'MO-Playground-Official'
+        entity        = 'ENTER ENTITY NAME HERE',
+        project       = 'ENTER PROJECT HERE'
     )
     
     print(f"Done! Config saved to: {save_dir / env_name / 'config.yaml'}")

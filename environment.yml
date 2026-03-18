@@ -125,4 +125,3 @@ dependencies:
       - wcwidth==0.5.0
       - werkzeug==3.1.5
       - zipp==3.23.0
-prefix: /home/njanwani/miniconda3/envs/moplayground

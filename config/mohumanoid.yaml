@@ -1,5 +1,5 @@
-name: with-tuned-height-reward
-save_dir: /home/njanwani/Documents/PbMORL/ppo-hypernet/MOHumanoid-qfrc
+name: humanoid
+save_dir: results/
 description: N/A
 env: MOHumanoid
 backend: np # jnp or np. Always uses jnp for training

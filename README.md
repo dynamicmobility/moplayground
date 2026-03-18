@@ -2,10 +2,9 @@
   <h1 align="center"><u>MO</u>-Playground: Massively Parallelized <u>M</u>ulti-<u>O</u>bjective Reinforcement Learning for Robotics
   </h1>
   <p align="center">
-    <strong>Neil Janwani, Ellen Novoseller, Vernon Lawhern, Maegan Tucker,</strong>
+    <strong>Anonynmous</strong>
 </Cheetah p>
 <p align="center">
-	https://arxiv.org/abs/2603.09237v1
 </Cheetah p>
 
 MO-Playground is a collection of multi-objective environments built in [JAX](https://github.com/jax-ml/jax) for GPU-Accelerated multi-objective RL. 
@@ -30,6 +29,11 @@ if you just want to evaluate policies and explore the code (i.e. running on a Ma
 conda env create -f mac_environment.yml
 conda activate moplayground
 ```
+Finally, go to the project root and run
+```
+pip3 install -e .
+```
+to install the moplayground package.
 
 ## Evaluation
 Create an account at [Weights and Biases](https://wandb.ai/site).

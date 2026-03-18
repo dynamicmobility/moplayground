@@ -39,7 +39,7 @@ eval_env, _  = mop.envs.create_environment(eval_config, for_training=True, **EVA
 name = train_config['save_dir'] + '/' + train_config['name']
 run = mm.utils.logging.initialize_wandb(
     name    = name.replace('/', ''),
-    entity  = 'njanwani-gatech',
-    project = 'PrefMORL'
+    entity  = 'ENTER PROJECT ENTITY HERE',
+    project = 'ENTER PROJECT NAME HERE'
 )
 mop.learning.train_policy(train_config, env, eval_env, run)

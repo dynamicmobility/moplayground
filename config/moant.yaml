@@ -1,5 +1,5 @@
-name: envs1024
-save_dir: /home/njanwani/Documents/PbMORL/ppo-hypernet/MOAnt/tuning
+name: ant
+save_dir: results/
 description: ""
 algorithm: "ppo"
 env: "MOAnt"
