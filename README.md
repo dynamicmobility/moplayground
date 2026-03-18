@@ -117,9 +117,10 @@ The application features seven possible reward functions. Note that we combine `
 
 # Citation
 ```bibtex
-@software{moplayground2026github,
-	title = {MO-Playground: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics},
-	year = {2026},
-    url = {https://anonymous.4open.science/r/moplayground-B5B4/}
+@article{janwani2026mo,
+  title={MO-Playground: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics},
+  author={Janwani, Neil and Novoseller, Ellen and Lawhern, Vernon J and Tucker, Maegan},
+  journal={arXiv preprint arXiv:2603.09237},
+  year={2026}
 }
 ```
