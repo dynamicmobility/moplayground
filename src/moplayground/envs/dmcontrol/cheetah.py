@@ -27,8 +27,8 @@ class MOCheetah(MultiObjectiveBase):
     def reset(self, rng: jax.Array) -> mjx_env.State:
         rng, qpos_key, qvel_key = self._split(rng, 3)
         qpos = self._np.hstack([
-            CheetahInterface.DEFAULT_FF,
-            CheetahInterface.DEFAULT_JT
+            self._np.array(CheetahInterface.DEFAULT_FF),
+            self._np.array(CheetahInterface.DEFAULT_JT)
         ])
         qvel = self._np.zeros(self.mj_model.nv)
         ctrl = self._np.zeros(self.mj_model.nu)
