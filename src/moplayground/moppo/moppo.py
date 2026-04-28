@@ -598,7 +598,7 @@ def train(
             ),
             {},
         )
-
+    # TODO: If we bump to jax 0.10.0 we will have to update this api
     training_state: MOTrainingState = jax.device_put_replicated(
         training_state, jax.local_devices()[:local_devices_to_use]
     )

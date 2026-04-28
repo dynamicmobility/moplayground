@@ -15,7 +15,7 @@ env, env_params = mop.envs.create_environment(
 )
 
 camera = 'track'
-directive = np.array([0.0, 1.0])
+directive = np.array([0.0, 0.0, 1.0])
 
 
 frames, reward_plotter, _, _ = mop.eval.rollout_policy(
