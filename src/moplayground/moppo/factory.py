@@ -42,26 +42,32 @@ ActivationFn = Callable[[jnp.ndarray], jnp.ndarray]
 Initializer  = Callable[..., Any]
 
 
+@dataclasses.dataclass
+class FeedForwardHypernetwork:
+    init            : Callable[..., Any]
+    apply           : Callable[..., Any]
+    get_features    : Callable[..., Any]
+    get_flat_mlps   : Callable[..., Any]
 
 @flax.struct.dataclass
 class MOPPONetworks:
-    hypernetwork                   : networks.FeedForwardNetwork
+    hypernetwork                   : FeedForwardHypernetwork
     policy_network                 : networks.FeedForwardNetwork
     value_network                  : networks.FeedForwardNetwork
     parametric_action_distribution : distribution.ParametricDistribution
 
 
-def make_mo_inference_fn(ppo_networks: MOPPONetworks):
+def make_hypernetwork_inference_fn(ppo_networks: MOPPONetworks):
     """Creates params and inference function for the PPO agent."""
 
-    def make_so_policy(
+    def hypernetwork_inference_fn(
         params: types.Params, directive: jax.Array, single_policy: bool = False, deterministic: bool = False
     ) -> types.Policy:
         normalizer_params, hypernet_params = params
         policy_network = ppo_networks.policy_network
-        policy_params = ppo_networks.hypernetwork.apply(hypernet_params, directive, single_policy)[0]
+        policy_params = ppo_networks.hypernetwork.apply(hypernet_params, directive)[0]
 
-        if single_policy:
+        if len(directive.shape) == 1:
             policy_apply = policy_network.apply
         else:
             policy_apply = jax.vmap(policy_network.apply, in_axes=(None, 0, 0))
@@ -89,7 +95,7 @@ def make_mo_inference_fn(ppo_networks: MOPPONetworks):
 
         return policy
 
-    return make_so_policy
+    return hypernetwork_inference_fn
 
 
 def make_moppo_networks(
@@ -231,16 +237,28 @@ def make_hypernetwork(
     def init(key):
         return hypernet.init(key, dummy_pref)
     
-    def apply(params, prefs, single=False):
-        if single:
+    def apply(params, prefs):
+        if len(prefs.shape) == 1:
             prefs = prefs / jnp.sum(prefs)
         else:
             prefs = prefs / jnp.sum(prefs, axis=1)[:, jnp.newaxis]
-        return hypernet.apply(params, prefs, single)
+        mlps, flat_mlps, features = hypernet.apply(params, prefs)
+        return mlps, flat_mlps, features
     
-    wrapped_hypernet = networks.FeedForwardNetwork(
-        init  = init,
-        apply = apply
+    def get_mlps(params, prefs):
+        return apply(params, prefs)[0]
+    
+    def get_flat_mlps(params, prefs):
+        return apply(params, prefs)[1]
+    
+    def get_features(params, prefs):
+        return apply(params, prefs)[2]
+    
+    wrapped_hypernet = FeedForwardHypernetwork(
+        init            = init,
+        apply           = get_mlps,
+        get_flat_mlps = get_flat_mlps,
+        get_features    = get_features
     )
     
     return wrapped_hypernet

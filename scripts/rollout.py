@@ -1,5 +1,6 @@
 import os
 os.environ["MUJOCO_GL"] = "egl"
+os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
 import numpy as np
 import moplayground as mop

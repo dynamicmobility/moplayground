@@ -337,7 +337,9 @@ def train(
         target_policy_params       = init_policy_params,
         target_value_params        = init_value_params
     )
-    make_policy = factory.make_mo_inference_fn(moppo_network)
+    hypernetwork_inference_fn = factory.make_hypernetwork_inference_fn(
+        moppo_network
+    )
 
     optimizer = optax.adam(learning_rate=learning_rate)
     if max_grad_norm is not None:
@@ -425,7 +427,7 @@ def train(
             num_objs   = state.reward.shape[1]
         )[0]
 
-        policy = make_policy(
+        policy = hypernetwork_inference_fn(
             params    = (
                 training_state.normalizer_params,
                 training_state.params.hypernetwork,
@@ -458,12 +460,7 @@ def train(
         data: acting.MultiObjectiveTransition = jax.tree_util.tree_map(
             lambda x: jnp.reshape(x, (-1,) + x.shape[2:]), data
         )
-        
-        # Normalize rewards...
-        # mins = data.reward.min(axis=(0, 1), keepdims=True)
-        # maxs = data.reward.max(axis=(0, 1), keepdims=True)
-        # data = data._replace(reward=(data.reward - mins) / (maxs - mins + 1e-8))
-        
+                
         if log_training_metrics:  # log unroll metrics
             jax.debug.callback(
                 metrics_aggregator.update_episode_metrics,
@@ -543,15 +540,6 @@ def train(
     init_params = losses.MOPPONetworkParams(
         hypernetwork = moppo_network.hypernetwork.init(key_policy),
     )
-    # moppo_network: networks.MOPPONetworks = network_factory(
-    #     key                        = key_policy,
-    #     observation_size           = obs_shape,
-    #     action_size                = env.action_size,
-    #     num_objectives             = num_objectives,
-    #     preprocess_observations_fn = normalize,
-    #     target_policy_params       = init_policy_params
-    # )
-    # make_policy = networks.make_mo_inference_fn(moppo_network)
 
     obs_shape = jax.tree_util.tree_map(
         lambda x: specs.Array(x.shape[-1:], jnp.dtype('float32')), env_state.obs
@@ -591,35 +579,23 @@ def train(
 
     if num_timesteps == 0:
         return (
-            make_policy,
+            hypernetwork_inference_fn,
             (
                 training_state.normalizer_params,
                 training_state.params.hypernetwork,
             ),
             {},
         )
-
+    # TODO: If we bump to jax 0.10.0 we will have to update this api
     training_state: MOTrainingState = jax.device_put_replicated(
         training_state, jax.local_devices()[:local_devices_to_use]
     )
 
-    # eval_env = _maybe_wrap_env(
-    #     eval_env or environment,
-    #     wrap_env,
-    #     num_eval_envs,
-    #     episode_length,
-    #     action_repeat,
-    #     device_count=1,  # eval on the host only
-    #     key_env=eval_key,
-    #     wrap_env_fn=wrap_env_fn,
-    #     randomization_fn=randomization_fn,
-    # )
     evaluator = acting.Evaluator(
         eval_env       = eval_env,
         eval_policy_fn = functools.partial(
-            make_policy,
+            hypernetwork_inference_fn,
             deterministic = deterministic_eval,
-            single_policy = False
         ),
         num_eval_envs  = num_eval_envs,
         episode_length = episode_length,
@@ -650,7 +626,7 @@ def train(
         training_state.normalizer_params,
         training_state.params.hypernetwork,
     ))
-    policy_params_fn(current_step, make_policy, params)
+    policy_params_fn(current_step, hypernetwork_inference_fn, params)
 
     for it in range(num_evals_after_init):
         logging.info('starting iteration %s %s', it, time.time() - xt)
@@ -680,7 +656,7 @@ def train(
             training_state.params.hypernetwork,
         ))
 
-        policy_params_fn(current_step, make_policy, params)
+        policy_params_fn(current_step, hypernetwork_inference_fn, params)
 
         if save_checkpoint_path is not None:
             ckpt_config = checkpoint.network_config(
@@ -719,4 +695,4 @@ def train(
     ))
     logging.info('total steps: %s', total_steps)
     pmap.synchronize_hosts()
-    return (make_policy, params, metrics)
+    return (hypernetwork_inference_fn, params, metrics)

@@ -20,7 +20,6 @@ def get_pareto_rollout(env, N_STEPS, make_policy):
             params        = params,
             deterministic = True,
             directive     = directive,
-            single_policy = True
         )
         scan_step_fn = functools.partial(
             step_fn,
@@ -71,7 +70,6 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
             params        = params,
             deterministic = True,
             directive     = directive,
-            single_policy = True
         )
         scan_step_fn = functools.partial(
             step_fn,

@@ -5,11 +5,11 @@ import functools
 from brax.training.checkpoint import get_network
 from brax.training.agents.ppo import checkpoint
 from minimal_mjx.learning.inference import *
-from moplayground.moppo.factory import make_moppo_networks, make_mo_inference_fn
+from moplayground.moppo.factory import make_moppo_networks, make_hypernetwork_inference_fn
 
 def load_mo_policy(
     config,
-    directive: np.ndarray,
+    tradeoff: np.ndarray,
     network_factory = make_moppo_networks,
     deterministic: bool = True,
 ):
@@ -20,16 +20,16 @@ def load_mo_policy(
     return make_inference_fn(
         params        = params,
         deterministic = deterministic,
-        directive     = directive,
+        directive     = tradeoff,
         single_policy = True
     )
-    
-def load_hypernetwork(
+
+def load_moppo_network(
     config,
     network_factory = make_moppo_networks,
     path = None
-):
-    """Loads policy inference function from PPO checkpoint."""
+) -> tuple[mop.moppo.factory.MOPPONetworks, dict]:
+    """Loads the MOPPO object"""
     if path is None:
         path = get_last_model(config)
     print(f'Loading model at {path.as_posix()}')
@@ -37,7 +37,7 @@ def load_hypernetwork(
     
     fullpath = epath.Path(fullpath)
     params_config = checkpoint.load_config(fullpath)
-    params = checkpoint.load(fullpath)
+    hyperparams = checkpoint.load(fullpath)
     hyperconfig = config['learning_params']['hypernetwork_params']
     network_factory = functools.partial(
         network_factory, 
@@ -46,5 +46,14 @@ def load_hypernetwork(
         **hyperconfig
     )
     moppo_network = get_network(params_config, network_factory)
-    make_inference_fn = make_mo_inference_fn(moppo_network)
-    return make_inference_fn, params
+    return moppo_network, hyperparams
+    
+def load_hypernetwork(
+    config,
+    network_factory = make_moppo_networks,
+    path = None
+):
+    """Loads policy inference function from PPO checkpoint."""
+    moppo_networks, hyperparams = load_moppo_network(config, network_factory, path)
+    make_inference_fn = make_hypernetwork_inference_fn(moppo_networks)
+    return make_inference_fn, hyperparams

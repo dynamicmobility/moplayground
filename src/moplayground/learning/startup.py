@@ -21,7 +21,7 @@ def train_policy(config, env, eval_env, run):
     # Initialize stuff
     output_dir = Path(config['save_dir']) / config['name']
     os.makedirs(output_dir, exist_ok=config['name'] == 'test')
-    ppo_params, network_params = mm.learning.training.setup_training(config.learning_params)
+    ppo_params, network_params = mm.learning.training.setup_training(config)
 
     if config.mo2so.enabled:
         weighting = np.array(config.mo2so.weighting)
