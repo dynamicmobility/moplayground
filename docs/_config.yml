@@ -1,0 +1,25 @@
+title: MO-Playground
+description: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics
+
+remote_theme: just-the-docs/just-the-docs
+
+color_scheme: dark
+search_enabled: true
+
+# Aux links shown in the upper-right of the docs layout
+aux_links:
+  "Home":
+    - "/"
+  "GitHub":
+    - "https://github.com/dynamicmobility/moplayground"
+
+aux_links_new_tab: false
+
+plugins:
+  - jekyll-remote-theme
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - README.md

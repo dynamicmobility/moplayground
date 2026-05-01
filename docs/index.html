@@ -1,3 +1,7 @@
+---
+layout: null
+nav_exclude: true
+---
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,6 +74,12 @@
             var t = getStartTime();
             console.log('[hero-video] innerWidth=' + window.innerWidth + ', startTime=' + t);
             video.currentTime = t;
+            var p = video.play();
+            if (p && typeof p.catch === 'function') {
+              p.catch(function(err) {
+                console.warn('[hero-video] play() rejected:', err);
+              });
+            }
           }
 
           // Manual loop: when currentTime hits endTime, seek back to startTime
@@ -126,9 +136,9 @@
                     </a>
                   </span>
                   <span class="link-block">
-                    <a href="howto.html" class="external-link button is-normal is-rounded is-dark">
+                    <a href="installation.html" class="external-link button is-normal is-rounded is-dark">
                       <span class="icon"><i class="fas fa-book-open"></i></span>
-                      <span>How To</span>
+                      <span>Documentation</span>
                     </a>
                   </span>
                 </div>
