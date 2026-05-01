@@ -24,12 +24,21 @@ rewards_over_iters, directives = run_experiments(
 )
 print(rewards_over_iters.shape)
 nd_idx = get_nondominated(rewards_over_iters[-1], epsilon=10)
-fig, ax = plt.subplots()
+num_objectives = len(config.env_config.reward.optimization.objectives)
+
+if(num_objectives == 3):
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+elif(num_objectives == 2):
+    fig, ax = plt.subplots()
+else:
+    raise ValueError("Can only plot 2 or 3 objective pareto frontiers")
+    
+
 ax = plot_pareto(
     ax          = ax,
     pareto      = rewards_over_iters[-1],
     directive   = directives[-1],
-    objective   = config.env_config.reward.optimization.objectives,
+    objective   = config.env_config.reward.optimization.labels,
     nondominated= nd_idx
 )
 
