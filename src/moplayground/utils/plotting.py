@@ -6,14 +6,14 @@ from moplayground.utils.pareto import get_pareto_statistics
 
 def plot_pareto(
         ax, 
-        pareto: np.ndarray, 
-        directive: np.ndarray = None, 
-        objectives: list[str] = None,
-        nondominated=None,
+        pareto: np.ndarray,  # Dataset of objective evaluations across policy family
+        directive: np.ndarray = None, # Relative weights of objectives
+        objective: list[str] = None, # Names
+        nondominated=None, # List of indices in pareto dataset that are nondominated
         alpha=1.0
     ):
     if directive is None: directive = np.zeros_like(pareto)
-    if objectives is None: objectives = [''] * pareto.shape[1]
+    if objective is None: objective = [''] * pareto.shape[1]
     
     if pareto.shape[1] == 2:
         c = np.zeros((pareto.shape[0], 3))
@@ -41,26 +41,27 @@ def plot_pareto(
             )
             ax.set_xlim((0.65 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
             ax.set_ylim((0.65 * np.min(pareto[nd_idx, 1]), 1.05 * np.max(pareto[nd_idx, 1])))
-        ax.set_xlabel(objectives[0])
-        ax.set_ylabel(objectives[1])
+        ax.set_xlabel(objective[0])
+        ax.set_ylabel(objective[1])
         return ax
     elif pareto.shape[1] == 3:
         c = np.zeros((pareto.shape[0], 3))
         # Convert directive weights to HSV-like color scheme
         # Use directive weights to create more distinct colors
-        # c[:, 0] = 0.2 + 0.6 * directive[:, 0]  # Red channel: warm tones
-        # c[:, 1] = 1.0 - 0.7 * directive[:, 1]  # Green channel: cool tones  
-        # c[:, 2] = 0.3 + 0.7 * directive[:, 2]  # Blue channel: mid tones
-        c[:, 0] = (1 - directive[:, 0]) * 0.9  # Red channel: warm tones
-        c[:, 1] = (1 - directive[:, 1]) * 0.9  # Green channel: cool tones  
-        c[:, 2] = (1 - directive[:, 2]) * 0.9  # Blue channel: mid tones
+        c[:, 0] = directive[:, 0]
+        c[:, 1] = directive[:, 1]  
+        c[:, 2] = directive[:, 2]
+        # c[:, 0] = (1 - directive[:, 0]) * 0.9  # Red channel: warm tones
+        # c[:, 1] = (1 - directive[:, 1]) * 0.9  # Green channel: cool tones  
+        # c[:, 2] = (1 - directive[:, 2]) * 0.9  # Blue channel: mid tones
+        alpha = 0.05 if nondominated else 1
         ax.scatter(
             pareto[:, 0],
             pareto[:, 1],
             pareto[:, 2],
             s=24,
             c=c,
-            alpha=0.01,
+            alpha=alpha,
             axlim_clip=True
         )
         if nondominated is not None:
@@ -70,7 +71,7 @@ def plot_pareto(
                 pareto[nd_idx, 1],
                 pareto[nd_idx, 2],
                 s = 12,
-                alpha=0.99,
+                alpha=1.0,
                 zorder=1,
                 # edgecolors='black', # Border color
                 # linewidths=0.5,   # Border width,
@@ -80,9 +81,9 @@ def plot_pareto(
             ax.set_xlim((0.95 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
             ax.set_ylim((0.95 * np.min(pareto[nd_idx, 1]), 1.05 * np.max(pareto[nd_idx, 1])))
             ax.set_zlim((1.00 * np.min(pareto[nd_idx, 2]), 1.05 * np.max(pareto[nd_idx, 2])))
-        ax.set_xlabel(objectives[0])
-        ax.set_ylabel(objectives[1])
-        ax.set_zlabel(objectives[2])
+        ax.set_xlabel(objective[0])
+        ax.set_ylabel(objective[1])
+        ax.set_zlabel(objective[2])
         return ax
     else:
         raise NotImplementedError('Only 2D and 3D paretos are supported for plotting')

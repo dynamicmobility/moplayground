@@ -1,7 +1,8 @@
-from minimal_mjx.learning.startup import read_config
+from minimal_mjx.utils import read_config
 from moplayground.envs.create import create_environment
 from moplayground.eval.pareto import run_experiments
-from moplayground.utils.plotting import plot_squential_paretos
+from moplayground.utils.plotting import plot_pareto
+from matplotlib import pyplot as plt
 import jax
 
 config = read_config()
@@ -17,12 +18,17 @@ rewards_over_iters, directives = run_experiments(
     env             = env,
     N_STEPS         = 500,
     NUM_ENVS        = 1024,
-    save_results    = True
+    save_results    = True,
+    only_final      = True
 )
-fig, ax = plot_squential_paretos(
-    ax_titles   = ['titles'],
-    paretos     = [rewards_over_iters[-1]],
-    directives  = [directives[-1]],
-    # objectives = config.env_params
+print(rewards_over_iters.shape)
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+ax = plot_pareto(
+    ax          = ax,
+    pareto      = rewards_over_iters[-1],
+    directive   = directives[-1],
+    # objective  = config.env_params
 )
-fig.savefig(f'output/plots/{config['env']}_frontier.pdf')
+
+plt.show()
+# fig.savefig(f'output/plots/{config['env']}_frontier.pdf')

@@ -34,21 +34,13 @@ mpl.rcParams.update({
     "legend.frameon"        : False,
 })
 
-from moplayground.utils.plotting import plot_pareto
-from moplayground.eval.pareto import get_nondominated, get_pareto_rollout
-from moplayground.envs.create import create_environment
-from moplayground.learning.startup import read_config
-from moplayground.learning.inference import load_hypernetwork, get_last_model
-from moplayground.utils.plotting import get_subplot_grid
+import moplayground as mop
 import matplotlib.pyplot as plt
 import numpy as np
 from ral import FINAL_YAMLS, BRUCE_TRADEOFFS
 import jax
 from pathlib import Path
-import pickle
 import pandas as pd
-from tqdm import tqdm
-from itertools import combinations
 
 
 def find_point(desc, PARETO):
@@ -124,24 +116,24 @@ def plot_tradeoff(ax, pareto_allD, tradeoff_allD, tradeoffs, trio):
 
 
 def main():
-    config    = read_config(FINAL_YAMLS['bruce6D+DR'])
+    config    = mop.utils.read_config(FINAL_YAMLS['bruce6D+DR'])
     save_path = Path(config['save_dir']) / config['name']
     rng       = jax.random.PRNGKey(0)
     if (save_path / 'the-obj.txt').exists():
         # Load existing results instead of running experiments
-        paretos = np.array([pd.read_csv(save_path / f'the-obj.txt').iloc[:, 1:].values])
-        directives = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
+        paretos = np.array([pd.read_csv(save_path / f'the-obj.txt').iloc[::10, 1:].values])
+        directives = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[::10, 1:].values)
     else:
         raise Exception('Run 2D first')
-
+    print(paretos.shape)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d', computed_zorder=False)
     trio = [2, 0, 4]
-    trio = [3, 5, 1]
+    # trio = [3, 5, 1]
     pareto = paretos[-1, :, trio].T  # Select the last iteration's Pareto front and only the 3 objectives of interest
     tradeoff = directives[:, trio]
     chosen_tradeoffs = np.array(list(BRUCE_TRADEOFFS.values()))
-    plot_tradeoff(ax, paretos[-1], directives, chosen_tradeoffs, trio)
+    # plot_tradeoff(ax, paretos[-1], directives, chosen_tradeoffs, trio)
 
     if False:
         tradeoff_key = ['smooth', 'swing-arms', 'rigid-arms']
@@ -162,14 +154,11 @@ def main():
             print(repr(pareto[idxs][ni]))
             print('--')
         
-    ax = plot_pareto(
+    ax = mop.utils.plotting.plot_pareto(
         ax, 
         pareto, 
         tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis],
-        # objectives=[
-        #     config['env_config']['reward']['optimization']['labels'][i] for i in trio
-        # ],
-        nondominated=get_nondominated(paretos[-1])
+        nondominated=np.arange(pareto.shape[0]) #mop.utils.pareto.get_nondominated(paretos[-1])
     )
     if trio == [2, 0, 4]:
         ax.set_zlim((950, 1300))
@@ -193,8 +182,8 @@ def main():
     ax.grid(False)
     fig.set_size_inches((6,5))
     fig.tight_layout()
-    # plt.show()
-    fig.savefig(f'ral/images/fronts/bruce_3d-{OBJS[0]}-{OBJS[1]}-{OBJS[2]}.png', dpi=400)
+    plt.show()
+    # fig.savefig(f'ral/images/fronts/bruce_3d-{OBJS[0]}-{OBJS[1]}-{OBJS[2]}.png', dpi=400)
 
 
 

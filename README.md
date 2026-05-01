@@ -30,6 +30,11 @@ if you just want to evaluate policies and explore the code (i.e. running on a Ma
 conda env create -f mac_environment.yml
 conda activate moplayground
 ```
+Finally, go to the project root and run
+```
+pip3 install -e .
+```
+to install the moplayground package.
 
 ## Evaluation
 Create an account at [Weights and Biases](https://wandb.ai/site).
@@ -112,9 +117,10 @@ The application features seven possible reward functions. Note that we combine `
 
 # Citation
 ```bibtex
-@software{moplayground2026github,
-	title = {MO-Playground: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics},
-	year = {2026},
-    url = {https://anonymous.4open.science/r/moplayground-B5B4/}
+@article{janwani2026mo,
+  title={MO-Playground: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics},
+  author={Janwani, Neil and Novoseller, Ellen and Lawhern, Vernon J and Tucker, Maegan},
+  journal={arXiv preprint arXiv:2603.09237},
+  year={2026}
 }
 ```

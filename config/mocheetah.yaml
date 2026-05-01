@@ -1,5 +1,5 @@
 name: test
-save_dir: results/MOCheetah-wandb
+save_dir: results/MOCheetah-all3
 description: ""
 algorithm: "ppo"
 env: "MOCheetah"
@@ -31,7 +31,7 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        [['run'], ['energy']]
+      objectives:        [['run'], ['energy'], ['height']]
       shared_objectives: ['alive']
       labels:            ['Running Speed', 'Energy Efficiency']
   termination:

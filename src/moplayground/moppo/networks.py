@@ -385,7 +385,7 @@ class DualA2CHypernet(nn.Module):
         # Wrap under "params" collection for Flax
         return {"params": nested_params}
 
-    def __call__(self, pref, single=False):
+    def __call__(self, pref):
         policy_features = self.policy_mlp(pref)
         value_features  = self.value_mlp(pref)
         policy_flat_params = jnp.dot(policy_features, self.policy_W) + self.policy_b
@@ -394,21 +394,18 @@ class DualA2CHypernet(nn.Module):
         policy_sort_params = self.unflatten_params(
             flat_params    = policy_flat_params,
             target_network = self.target_policy_info,
-            single         = single
+            single         = len(pref.shape) == 1
         )
 
         value_sort_params  = self.unflatten_params(
             flat_params    = value_flat_params,
             target_network = self.target_value_info,
-            single         = single
+            single         = len(pref.shape) == 1
         )
 
-        return policy_sort_params, value_sort_params
-    
-    def get_features(self, pref, single=False):
-        policy_features = self.policy_mlp(pref)
-        value_features  = self.value_mlp(pref)
-        return policy_features, value_features
+        return ((policy_sort_params, value_sort_params),
+                (policy_flat_params, value_flat_params),
+                (policy_features, value_features))
 
 def count_params(params):
     """Count the total number of parameters in a Flax model."""
