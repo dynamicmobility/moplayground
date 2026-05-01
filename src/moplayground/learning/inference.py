@@ -5,11 +5,11 @@ import functools
 from brax.training.checkpoint import get_network
 from brax.training.agents.ppo import checkpoint
 from minimal_mjx.learning.inference import *
-from moplayground.moppo.factory import make_moppo_networks, make_mo_inference_fn
+from moplayground.moppo.factory import make_moppo_networks, make_hypernetwork_inference_fn
 
 def load_mo_policy(
     config,
-    directive: np.ndarray,
+    tradeoff: np.ndarray,
     network_factory = make_moppo_networks,
     deterministic: bool = True,
 ):
@@ -20,7 +20,7 @@ def load_mo_policy(
     return make_inference_fn(
         params        = params,
         deterministic = deterministic,
-        directive     = directive,
+        directive     = tradeoff,
         single_policy = True
     )
     
@@ -46,5 +46,5 @@ def load_hypernetwork(
         **hyperconfig
     )
     moppo_network = get_network(params_config, network_factory)
-    make_inference_fn = make_mo_inference_fn(moppo_network)
+    make_inference_fn = make_hypernetwork_inference_fn(moppo_network)
     return make_inference_fn, params

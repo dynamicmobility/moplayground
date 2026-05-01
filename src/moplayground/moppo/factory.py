@@ -51,10 +51,10 @@ class MOPPONetworks:
     parametric_action_distribution : distribution.ParametricDistribution
 
 
-def make_mo_inference_fn(ppo_networks: MOPPONetworks):
+def make_hypernetwork_inference_fn(ppo_networks: MOPPONetworks):
     """Creates params and inference function for the PPO agent."""
 
-    def make_so_policy(
+    def hypernetwork_inference_fn(
         params: types.Params, directive: jax.Array, single_policy: bool = False, deterministic: bool = False
     ) -> types.Policy:
         normalizer_params, hypernet_params = params
@@ -89,7 +89,7 @@ def make_mo_inference_fn(ppo_networks: MOPPONetworks):
 
         return policy
 
-    return make_so_policy
+    return hypernetwork_inference_fn
 
 
 def make_moppo_networks(
