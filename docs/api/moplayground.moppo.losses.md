@@ -1,7 +1,8 @@
 ---
 layout: default
 title: "moplayground.moppo.losses"
-parent: API Reference
+parent: "moplayground.moppo"
+grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->

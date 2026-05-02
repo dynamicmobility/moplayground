@@ -1,4 +1,3 @@
-# Basic imports
 from pathlib import Path
 import time
 import datetime

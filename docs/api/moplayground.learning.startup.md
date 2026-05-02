@@ -1,7 +1,8 @@
 ---
 layout: default
 title: "moplayground.learning.startup"
-parent: API Reference
+parent: "moplayground.learning"
+grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->
@@ -16,22 +17,7 @@ parent: API Reference
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/startup.py#L12"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `mo2so`
-
-```python
-mo2so(env, weighting)
-```
-
-
-
-
-
-
----
-
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/startup.py#L18"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/startup.py#L13"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_policy`
 

@@ -1,7 +1,8 @@
 ---
 layout: default
 title: "moplayground.moppo.moppo"
-parent: API Reference
+parent: "moplayground.moppo"
+grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->
@@ -76,7 +77,7 @@ train(
     warmup_frac: float = 0.0,
     sampling: str = 'dense',
     k: int = 4,
-    network_factory: brax.training.types.NetworkFactory[moplayground.moppo.factory.MOPPONetworks] = <function make_moppo_networks at 0x7f5bdddb9c60>,
+    network_factory: brax.training.types.NetworkFactory[moplayground.moppo.factory.MOPPONetworks] = <function make_moppo_networks at 0x797cd2801b20>,
     init_policy_params: dict = None,
     init_normalizer_params: dict = None,
     init_value_params: dict = None,
@@ -88,8 +89,8 @@ train(
     deterministic_eval: bool = False,
     log_training_metrics: bool = False,
     training_metrics_steps: Optional[int] = None,
-    progress_fn: Callable[[int, Mapping[str, jax.Array]], NoneType] = <function <lambda> at 0x7f5bdddbb560>,
-    policy_params_fn: Callable[..., NoneType] = <function <lambda> at 0x7f5bdddbb600>,
+    progress_fn: Callable[[int, Mapping[str, jax.Array]], NoneType] = <function <lambda> at 0x797cd2803420>,
+    policy_params_fn: Callable[..., NoneType] = <function <lambda> at 0x797cd28034c0>,
     save_checkpoint_path: Optional[str] = None,
     restore_checkpoint_path: Optional[str] = None,
     restore_params: Optional[Any] = None,

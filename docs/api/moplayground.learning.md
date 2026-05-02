@@ -2,6 +2,7 @@
 layout: default
 title: "moplayground.learning"
 parent: API Reference
+has_children: true
 ---
 
 <!-- markdownlint-disable -->

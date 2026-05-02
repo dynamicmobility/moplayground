@@ -1,7 +1,8 @@
 ---
 layout: default
 title: "moplayground.learning.training"
-parent: API Reference
+parent: "moplayground.learning"
+grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->

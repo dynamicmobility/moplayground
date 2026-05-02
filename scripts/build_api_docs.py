@@ -65,36 +65,62 @@ def run_lazydocs() -> None:
     )
 
 
-def add_frontmatter() -> list[str]:
+def add_frontmatter() -> dict[str, list[str]]:
     """Prepend just-the-docs frontmatter to every generated module page.
 
-    Returns the list of module titles, sorted, for the index page.
+    Pages are nested by top-level subpackage: ``moplayground.envs`` is a
+    child of "API Reference" with ``has_children: true``, and any deeper
+    module (``moplayground.envs.create``, ``moplayground.envs.generic``,
+    ``moplayground.envs.generic.mobase``) becomes a child of
+    ``moplayground.envs`` with ``grand_parent: API Reference``. Just-the-docs
+    only supports 3 nav levels, so subpackages deeper than two segments
+    are flattened under their top-level subpackage.
+
+    Returns a mapping ``subpackage -> [child titles]`` for use by the index.
     """
-    titles: list[str] = []
-    for md in sorted(API_DIR.glob("*.md")):
-        if md.name == "index.md":
-            continue
-        title = md.stem  # lazydocs uses dotted module names as filenames
-        titles.append(title)
+    files = sorted(p for p in API_DIR.glob("*.md") if p.name != "index.md")
+    titles = [f.stem for f in files]
+    subpackages = sorted({t for t in titles if t.count(".") == 1})
+    children: dict[str, list[str]] = {sp: [] for sp in subpackages}
+
+    for md in files:
+        title = md.stem
         body = md.read_text()
-        frontmatter = (
-            "---\n"
-            "layout: default\n"
-            f'title: "{title}"\n'
-            "parent: API Reference\n"
-            "---\n\n"
-        )
+        if title.count(".") == 1:
+            frontmatter = (
+                "---\n"
+                "layout: default\n"
+                f'title: "{title}"\n'
+                "parent: API Reference\n"
+                "has_children: true\n"
+                "---\n\n"
+            )
+        else:
+            subpackage = ".".join(title.split(".")[:2])
+            children.setdefault(subpackage, []).append(title)
+            frontmatter = (
+                "---\n"
+                "layout: default\n"
+                f'title: "{title}"\n'
+                f'parent: "{subpackage}"\n'
+                "grand_parent: API Reference\n"
+                "---\n\n"
+            )
         md.write_text(frontmatter + body)
-    return titles
+
+    for sp in children:
+        children[sp].sort()
+    return children
 
 
-def write_index(titles: list[str]) -> None:
+def write_index(children: dict[str, list[str]]) -> None:
     lines = [
         "---",
         "layout: default",
         "title: API Reference",
         "nav_order: 7",
         "has_children: true",
+        "has_toc: false",
         "---",
         "",
         "# API Reference",
@@ -102,20 +128,22 @@ def write_index(titles: list[str]) -> None:
         "Auto-generated from the docstrings of the `moplayground` package.",
         "Regenerate with `python scripts/build_api_docs.py` after editing docstrings in `src/moplayground/`.",
         "",
-        "## Modules",
-        "",
     ]
-    for title in titles:
-        lines.append(f"- [{title}]({{% link api/{title}.md %}})")
-    lines.append("")
+    for subpackage in sorted(children):
+        lines.append(f"## [{subpackage}]({{% link api/{subpackage}.md %}})")
+        lines.append("")
+        for child in children[subpackage]:
+            lines.append(f"- [{child}]({{% link api/{child}.md %}})")
+        lines.append("")
     (API_DIR / "index.md").write_text("\n".join(lines))
 
 
 def main() -> None:
     run_lazydocs()
-    titles = add_frontmatter()
-    write_index(titles)
-    print(f"Wrote {len(titles)} module pages to {API_DIR.relative_to(REPO_ROOT)}/")
+    children = add_frontmatter()
+    write_index(children)
+    total = len(children) + sum(len(v) for v in children.values())
+    print(f"Wrote {total} module pages to {API_DIR.relative_to(REPO_ROOT)}/")
 
 
 if __name__ == "__main__":

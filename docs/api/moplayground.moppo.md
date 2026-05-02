@@ -2,6 +2,7 @@
 layout: default
 title: "moplayground.moppo"
 parent: API Reference
+has_children: true
 ---
 
 <!-- markdownlint-disable -->

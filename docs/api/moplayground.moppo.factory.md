@@ -1,7 +1,8 @@
 ---
 layout: default
 title: "moplayground.moppo.factory"
-parent: API Reference
+parent: "moplayground.moppo"
+grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->
@@ -42,10 +43,10 @@ make_moppo_networks(
     key: jax.Array,
     target_policy_params: dict = None,
     target_value_params: dict = None,
-    preprocess_observations_fn: brax.training.types.PreprocessObservationFn = <function identity_observation_preprocessor at 0x7f5cb80cfec0>,
+    preprocess_observations_fn: brax.training.types.PreprocessObservationFn = <function identity_observation_preprocessor at 0x797dacbfbd80>,
     policy_hidden_layer_sizes: Sequence[int] = (32, 32, 32, 32),
     value_hidden_layer_sizes: Sequence[int] = (256, 256, 256, 256, 256),
-    activation: Callable[[jax.Array], jax.Array] = <PjitFunction of <function silu at 0x7f5cffa4f4c0>>,
+    activation: Callable[[jax.Array], jax.Array] = <PjitFunction of <function silu at 0x797df4637380>>,
     policy_obs_key: str = 'state',
     value_obs_key: str = 'state',
     distribution_type: Literal['normal', 'tanh_normal'] = 'tanh_normal',
@@ -94,9 +95,9 @@ make_hypernetwork(
 make_mo_value_network(
     obs_size: Union[int, Mapping[str, Union[Tuple[int, ...], int]]],
     num_objectives: int,
-    preprocess_observations_fn: brax.training.types.PreprocessObservationFn = <function identity_observation_preprocessor at 0x7f5cb80cfec0>,
+    preprocess_observations_fn: brax.training.types.PreprocessObservationFn = <function identity_observation_preprocessor at 0x797dacbfbd80>,
     hidden_layer_sizes: Sequence[int] = (256, 256),
-    activation: Callable[[jax.Array], jax.Array] = <jax._src.custom_derivatives.custom_jvp object at 0x7f5cffbfa390>,
+    activation: Callable[[jax.Array], jax.Array] = <jax._src.custom_derivatives.custom_jvp object at 0x797df49d1fd0>,
     obs_key: str = 'state'
 ) → FeedForwardNetwork
 ```

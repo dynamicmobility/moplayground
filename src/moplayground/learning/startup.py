@@ -1,6 +1,6 @@
-# Internal imports
 import minimal_mjx as mm
 import moplayground as mop
+from moplayground.envs.generic import mobase
 
 # Basic imports
 import yaml
@@ -9,12 +9,6 @@ import numpy as np
 from pathlib import Path
 from ml_collections import config_dict
 
-def mo2so(env, weighting):
-    return mop.envs.generic.mobase.Multi2SingleObjective(
-        env       = env,
-        weighting = weighting
-    )
-    
 def train_policy(config, env, eval_env, run):
     """Train a policy on the given environment.
 
@@ -46,8 +40,8 @@ def train_policy(config, env, eval_env, run):
 
     if config.mo2so.enabled:
         weighting = np.array(config.mo2so.weighting)
-        env         = mo2so(env, weighting=weighting)
-        eval_env    = mo2so(eval_env, weighting=weighting)
+        env         = mobase.Multi2SingleObjective(env, weighting=weighting)
+        eval_env    = mobase.Multi2SingleObjective(eval_env, weighting=weighting)
     else:
         ppo_params = config_dict.ConfigDict(
             dict(config.learning_params.hypermorl_params) | dict(ppo_params)

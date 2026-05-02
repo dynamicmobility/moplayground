@@ -1,7 +1,8 @@
 ---
 layout: default
 title: "moplayground.learning.inference"
-parent: API Reference
+parent: "moplayground.learning"
+grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->
@@ -24,7 +25,7 @@ parent: API Reference
 load_mo_policy(
     config,
     tradeoff: numpy.ndarray,
-    network_factory=<function make_moppo_networks at 0x7f5bdddb9c60>,
+    network_factory=<function make_moppo_networks at 0x797cd2801b20>,
     deterministic: bool = True
 )
 ```
@@ -43,7 +44,7 @@ load_mo_policy(
 ```python
 load_moppo_network(
     config,
-    network_factory=<function make_moppo_networks at 0x7f5bdddb9c60>,
+    network_factory=<function make_moppo_networks at 0x797cd2801b20>,
     path=None
 ) → tuple[moplayground.moppo.factory.MOPPONetworks, dict]
 ```
@@ -60,7 +61,7 @@ Loads the MOPPO object
 ```python
 load_hypernetwork(
     config,
-    network_factory=<function make_moppo_networks at 0x7f5bdddb9c60>,
+    network_factory=<function make_moppo_networks at 0x797cd2801b20>,
     path=None
 )
 ```

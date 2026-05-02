@@ -1,7 +1,8 @@
 ---
 layout: default
 title: "moplayground.envs.generic"
-parent: API Reference
+parent: "moplayground.envs"
+grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->

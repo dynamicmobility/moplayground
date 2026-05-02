@@ -1,5 +1,3 @@
-"""Hopper environment."""
-
 from typing import Any, Dict, Optional, Union
 
 import jax
@@ -11,7 +9,11 @@ from moplayground.envs.generic.mobase import MultiObjectiveBase
 from moplayground.envs.dmcontrol.interface import AntInterface
 
 class MOAnt(MultiObjectiveBase):
-    """Hopper environment."""
+    """
+    Multi-Objective Ant Environment.
+    Objectives are vx by vy.
+    """
+
 
     def __init__(
         self,

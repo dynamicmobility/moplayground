@@ -1,7 +1,8 @@
 ---
 layout: default
 title: "moplayground.utils.pareto"
-parent: API Reference
+parent: "moplayground.utils"
+grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->
