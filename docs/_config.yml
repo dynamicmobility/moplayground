@@ -1,5 +1,6 @@
 title: MO-Playground
 description: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics
+baseurl: "/moplayground"
 
 remote_theme: just-the-docs/just-the-docs
 
