@@ -56,7 +56,7 @@ class MOTrainingState:
     """Contains training state for the learner."""
 
     optimizer_state   : optax.OptState
-    params            : losses.MOPPONetworkParams
+    params            : losses.MORLAXNetworkParams
     normalizer_params : running_statistics.RunningStatisticsState
     env_steps         : types.UInt64
 
@@ -246,8 +246,8 @@ def train(
     sampling                : str = 'dense',
     k                       : int = 4,
     network_factory: types.NetworkFactory[
-        factory.MOPPONetworks
-    ]                       = factory.make_moppo_networks,
+        factory.MORLAXNetworks
+    ]                       = factory.make_morlax_networks,
     init_policy_params      : dict = None,
     init_normalizer_params  : dict = None,
     init_value_params       : dict = None,
@@ -328,7 +328,7 @@ def train(
     normalize = lambda x, y: x
     if normalize_observations:
         normalize = running_statistics.normalize
-    moppo_network: factory.MOPPONetworks = network_factory(
+    morlax_networks: factory.MORLAXNetworks = network_factory(
         key                        = key_policy,
         observation_size           = obs_shape,
         action_size                = env.action_size,
@@ -338,7 +338,7 @@ def train(
         target_value_params        = init_value_params
     )
     hypernetwork_inference_fn = factory.make_hypernetwork_inference_fn(
-        moppo_network
+        morlax_networks
     )
 
     optimizer = optax.adam(learning_rate=learning_rate)
@@ -350,8 +350,8 @@ def train(
         )
 
     loss_fn = functools.partial(
-        losses.compute_mo_ppo_loss,
-        moppo_network       = moppo_network,
+        losses.compute_morlax_loss,
+        morlax_networks     = morlax_networks,
         entropy_cost        = entropy_cost,
         discounting         = discounting,
         reward_scaling      = reward_scaling,
@@ -537,8 +537,8 @@ def train(
         return training_state, env_state, metrics  # pytype: disable=bad-return-type  # py311-upgrade
 
     # Initialize model params and training state.
-    init_params = losses.MOPPONetworkParams(
-        hypernetwork = moppo_network.hypernetwork.init(key_policy),
+    init_params = losses.MORLAXNetworkParams(
+        hypernetwork = morlax_networks.hypernetwork.init(key_policy),
     )
 
     obs_shape = jax.tree_util.tree_map(

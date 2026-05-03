@@ -1,9 +1,8 @@
 name: test
-save_dir: results/MOCheetah-all3
-description: ""
-algorithm: "ppo"
-env: "MOCheetah"
-robot: "DMHopper"
+save_dir: accepted-results/may/3/
+description: ''
+algorithm: morlax
+env: MOCheetah
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false

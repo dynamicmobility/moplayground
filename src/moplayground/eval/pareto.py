@@ -15,11 +15,11 @@ def get_pareto_rollout(env, N_STEPS, make_policy):
         new_state = env.step(state, action)
         return (new_state, old_reward + new_state.reward * (1 - new_state.done)), None
     
-    def rollout(key, directive, params):
+    def rollout(key, tradeoff, params):
         policy = make_policy(
             params        = params,
             deterministic = True,
-            directive     = directive,
+            tradeoff     = tradeoff,
         )
         scan_step_fn = functools.partial(
             step_fn,
@@ -36,15 +36,15 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
     rewards_over_iters = []
     keys = jax.random.split(rng, NUM_ENVS)
     NUM_OBJS = len(config['env_config']['reward']['optimization']['objectives'])
-    directives = jax.random.dirichlet(rng, alpha=np.ones(NUM_OBJS), shape=(NUM_ENVS,))
+    tradeoffs = jax.random.dirichlet(rng, alpha=np.ones(NUM_OBJS), shape=(NUM_ENVS,))
     model_files = mop.learning.inference.get_all_models(config)
     if only_final:
         model_files = [model_files[-1]]
     make_policy, _ = mop.learning.inference.load_hypernetwork(config, path=model_files[0])
     run_rollouts = get_pareto_rollout(env, N_STEPS, make_policy)
     for i, file in enumerate(tqdm(model_files)):
-        _, moppo_params = mop.learning.inference.load_hypernetwork(config, path=file)
-        (_, rewards), _ = run_rollouts(keys, directives, moppo_params)
+        _, hyperparams = mop.learning.inference.load_hypernetwork(config, path=file)
+        (_, rewards), _ = run_rollouts(keys, tradeoffs, hyperparams)
         rewards_over_iters.append(rewards)
         if save_results:
             pd.DataFrame.from_dict(
@@ -53,7 +53,7 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
     
     rewards_over_iters = np.array(rewards_over_iters)
     return rewards_over_iters, np.repeat(
-        directives[np.newaxis, :, :], 
+        tradeoffs[np.newaxis, :, :], 
         rewards_over_iters.shape[0], 
         axis=0
     )
@@ -65,11 +65,11 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
         new_state = env.step(state, action)
         return (new_state, old_reward + new_state.reward * (1 - new_state.done)), None
     
-    def rollout(key, directive, params):
+    def rollout(key, tradeoff, params):
         policy = make_policy(
             params        = params,
             deterministic = True,
-            directive     = directive,
+            tradeoff     = tradeoff,
         )
         scan_step_fn = functools.partial(
             step_fn,
@@ -84,14 +84,14 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
     rewards_over_iters = []
     keys = jax.random.split(rng, NUM_ENVS)
     NUM_OBJS = len(config['env_config']['reward']['optimization']['objectives'])
-    directives = jax.random.dirichlet(rng, alpha=np.ones(NUM_OBJS), shape=(NUM_ENVS,))
-    print(directives.shape)
+    tradeoffs = jax.random.dirichlet(rng, alpha=np.ones(NUM_OBJS), shape=(NUM_ENVS,))
+    print(tradeoffs.shape)
     model_files = mop.learning.inference.get_all_models(config)
     if only_final:
         model_files = [model_files[-1]]
     for i, file in enumerate(tqdm(model_files)):
-        make_policy, moppo_params = mop.learning.inference.load_hypernetwork(config, path=file)
-        (_, rewards), _ = run_rollouts(keys, directives, moppo_params)
+        make_policy, hyperparams = mop.learning.inference.load_hypernetwork(config, path=file)
+        (_, rewards), _ = run_rollouts(keys, tradeoffs, hyperparams)
         rewards_over_iters.append(rewards)
         if save_results:
             pd.DataFrame.from_dict(
@@ -100,7 +100,7 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
     
     rewards_over_iters = np.array(rewards_over_iters)
     return rewards_over_iters, np.repeat(
-        directives[np.newaxis, :, :], 
+        tradeoffs[np.newaxis, :, :], 
         rewards_over_iters.shape[0], 
         axis=0
     )

@@ -18,9 +18,8 @@ from moplayground.moppo.acting import MultiObjectiveTransition
 
 
 @flax.struct.dataclass
-class MOPPONetworkParams:
+class MORLAXNetworkParams:
     """Contains training state for the learner."""
-
     hypernetwork: Params
 
 def compute_mo_gae(
@@ -90,12 +89,12 @@ def compute_mo_gae(
 
     return jax.lax.stop_gradient(vs), jax.lax.stop_gradient(advantages)
 
-def compute_mo_ppo_loss(
-    params              : MOPPONetworkParams,
+def compute_morlax_loss(
+    params              : MORLAXNetworkParams,
     normalizer_params   : Any,
     data                : MultiObjectiveTransition,
     rng                 : jnp.ndarray,
-    moppo_network       : factory.MOPPONetworks,
+    morlax_networks     : factory.MORLAXNetworks,
     entropy_cost        : float = 1e-4,
     discounting         : float = 0.9,
     reward_scaling      : float = 1.0,
@@ -123,11 +122,11 @@ def compute_mo_ppo_loss(
     Returns:
       A tuple (loss, metrics)
     """
-    parametric_action_distribution = moppo_network.parametric_action_distribution
-    policy_apply        = jax.vmap(moppo_network.policy_network.apply, in_axes=(None, 0, 1))
-    value_apply         = jax.vmap(moppo_network.value_network.apply,  in_axes=(None, 0, 1))
-    single_value_apply  = jax.vmap(moppo_network.value_network.apply,  in_axes=(None, 0, 0))
-    policy_params, value_params = moppo_network.hypernetwork.apply(
+    parametric_action_distribution = morlax_networks.parametric_action_distribution
+    policy_apply        = jax.vmap(morlax_networks.policy_network.apply, in_axes=(None, 0, 1))
+    value_apply         = jax.vmap(morlax_networks.value_network.apply,  in_axes=(None, 0, 1))
+    single_value_apply  = jax.vmap(morlax_networks.value_network.apply,  in_axes=(None, 0, 0))
+    policy_params, value_params = morlax_networks.hypernetwork.apply(
         params.hypernetwork, data.directive[:, 0]
     )
 

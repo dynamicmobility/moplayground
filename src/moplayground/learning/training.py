@@ -14,7 +14,7 @@ import functools
 from brax.training.agents.ppo import checkpoint
 
 import moplayground as mp
-from moplayground.moppo import moppo
+from moplayground.moppo import morlax
 from moplayground.moppo import factory
 from moplayground.learning.wrappers import MultiObjectiveEpisodeWrapper
 from brax.envs.wrappers.training import VmapWrapper
@@ -111,9 +111,9 @@ def mo_train(
     policy_init_params,
     run: wandb.Run
 ):
-    train_algo = moppo.train
+    train_algo = morlax.train
     network_factory = functools.partial(
-        factory.make_moppo_networks,
+        factory.make_morlax_networks,
         **config_yaml['learning_params']['hypernetwork_params'],
         **network_params
     )
