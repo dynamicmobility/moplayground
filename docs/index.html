@@ -1,0 +1,193 @@
+---
+layout: null
+nav_exclude: true
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="title" content="MO-Playground: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics">
+  <meta name="description" content="MO-Playground is a Python library for massively parallelized multi-objective reinforcement learning (MORL) for robotics built in JAX.">
+  <meta name="keywords" content="Multi-objective reinforcement learning, GPU-accelerated, robotics">
+  <meta name="author" content="Neil Janwani, Ellen Novoseller, Vernon Lawhern, and Maegan Tucker">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+  <title>MO-Playground: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics</title>
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+</head>
+<body>
+  <!-- Scroll to Top Button -->
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main-content">
+    <section class="hero" style="position: relative; overflow: hidden;">
+      <video id="hero-video" autoplay muted playsinline style="position: absolute; top: 0; left: 0; width: 100vw; height: 100%; object-fit: cover; z-index: 0; opacity: 0.25;">
+        <source src="static/videos/bruce_swing_arms_banner.mp4" type="video/mp4">
+      </video>
+      <script>
+        (function() {
+          var video = document.getElementById('hero-video');
+
+          function getStartTime() {
+            var w = window.innerWidth;
+            if (w < 321) {
+              return 9;  // small mobile — adjust this value
+            } else if (w < 426) {
+              return 9;  // large mobile — adjust this value
+            } else if (w < 769) {
+              return 6;  // tablet — adjust this value
+            } else if (w < 1025) {
+              return 5;  // laptop — adjust this value
+            } else if (w < 1441) {
+              return 3;  // small desktop — adjust this value
+            } else {
+              return 0;  // desktop (default)
+            }
+          }
+
+          function getEndTime() {
+            var w = window.innerWidth;
+            if (w < 321) {
+              return 13;  // small mobile — adjust this value (null = play to end)
+            } else if (w < 426) {
+              return 13.5;  // large mobile — adjust this value
+            } else if (w < 769) {
+              return 16;  // tablet — adjust this value
+            } else if (w < 1025) {
+              return 18;  // laptop — adjust this value
+            } else if (w < 1441) {
+              return 20;  // small desktop — adjust this value
+            } else {
+              return null;  // desktop (default)
+            }
+          }
+
+          function applyStartTime() {
+            var t = getStartTime();
+            console.log('[hero-video] innerWidth=' + window.innerWidth + ', startTime=' + t);
+            video.currentTime = t;
+            var p = video.play();
+            if (p && typeof p.catch === 'function') {
+              p.catch(function(err) {
+                console.warn('[hero-video] play() rejected:', err);
+              });
+            }
+          }
+
+          // Manual loop: when currentTime hits endTime, seek back to startTime
+          video.addEventListener('timeupdate', function() {
+            var end = getEndTime();
+            if (end !== null && video.currentTime >= end) {
+              video.currentTime = getStartTime();
+            }
+          });
+
+          // When the video naturally ends, loop back to startTime
+          video.addEventListener('ended', function() {
+            video.currentTime = getStartTime();
+            video.play();
+          });
+
+          if (video.readyState >= 1) {
+            applyStartTime();
+          } else {
+            video.addEventListener('loadedmetadata', applyStartTime);
+          }
+
+          // Re-apply when viewport is resized (e.g. DevTools device toggle)
+          window.addEventListener('resize', applyStartTime);
+        })();
+      </script>
+      <div class="hero-body" style="position: relative; z-index: 1;">
+        <div class="container is-max-desktop">
+          <div class="columns is-centered">
+            <div class="column has-text-centered">
+              <h1 class="title is-1 publication-title"><u>MO</u>-Playground:</h1>
+              <h1 class="title is-2 publication-title">Massively Parallelized <u>M</u>ulti-<u>O</u>bjective Reinforcement Learning for Robotics</h1>
+              <div class="is-size-5 publication-authors">
+                <span class="author-block"><a href="https://njanwani.github.io/" target="_blank">Neil Janwani</a>,</span>
+                <span class="author-block"><a href="https://ernovoseller.github.io/" target="_blank">Ellen Novoseller</a>,</span>
+                <span class="author-block"><a href="https://scholar.google.com/citations?user=9tJ4piEAAAAJ&hl=en" target="_blank">Vernon J. Lawhern</a>,</span>
+                <span class="author-block"><a href="http://maegantucker.com/" target="_blank">Maegan Tucker</a></span>
+              </div>
+              <div class="is-size-5 publication-authors">
+                <span class="author-block">Dynamic Mobility Lab, Georgia Tech<br>In Review</span>
+              </div>
+              <div class="column has-text-centered">
+                <div class="publication-links">
+                  <span class="link-block">
+                    <a href="https://github.com/dynamicmobility/moplayground" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                      <span class="icon"><i class="fab fa-github"></i></span>
+                      <span>Code</span>
+                    </a>
+                  </span>
+                  <span class="link-block">
+                    <a href="https://arxiv.org/abs/2603.09237v1" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                      <span class="icon"><i class="ai ai-arxiv"></i></span>
+                      <span>arXiv</span>
+                    </a>
+                  </span>
+                  <span class="link-block">
+                    <a href="overview.html" class="external-link button is-normal is-rounded is-dark">
+                      <span class="icon"><i class="fas fa-book-open"></i></span>
+                      <span>Documentation</span>
+                    </a>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abstract -->
+    <div id="abstract-section"></div>
+
+    <!-- MO-Playground Environments Video Grid -->
+    <div id="env-videos-section"></div>
+
+    <!-- BRUCE Example Videos -->
+    <div id="bruce-videos-section"></div>
+
+  </main>
+
+  <script>
+    // Helper function to load HTML content from a file and inject it
+    function loadSection(sectionId, filePath) {
+      fetch(filePath)
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById(sectionId).innerHTML = html;
+        });
+    }
+    // Load modular sections
+    loadSection('abstract-section', 'abstract.html');
+    loadSection('env-videos-section', 'env_videos.html');
+    loadSection('bruce-videos-section', 'bruce_videos.html');
+  </script>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content">
+            <p>
+              This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+              You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

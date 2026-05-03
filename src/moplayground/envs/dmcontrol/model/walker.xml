@@ -47,11 +47,13 @@
     <light name="light_overhead" pos="2 0 20" dir="0 0 -10" mode="fixed" specular="0.02 0.02 0.02" diffuse=".4 .4 .4" ambient=".1 .1 .1"/>
     <light name="light" pos="13 0 10" dir="-1 0 -10" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
     <camera name="side_fixed" pos="2.0 -4.5 2.5" euler="70 0 0"/>
-    <light name="light_overhead" pos="2 0 20" dir="0 0 -10" mode="fixed" specular="0.02 0.02 0.02" diffuse=".4 .4 .4" ambient=".1 .1 .1"/>
-    <light name="light" pos="10 0 10" dir="-1 0 -10" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/>
+    <!-- <light name="light_overhead" pos="2 0 20" dir="0 0 -10" mode="fixed" specular="0.02 0.02 0.02" diffuse=".4 .4 .4" ambient=".1 .1 .1"/> -->
+    <!-- <light name="light" pos="10 0 10" dir="-1 0 -10" mode="fixed" specular="1 1 1" diffuse=".8 .8 .8" ambient=".2 .2 .2"/> -->
+    <light name="light" pos="0 0 4" dir="0 0 -1" specular=".2 .2 .2" diffuse=".5 .5 .5" exponent="0.5" ambient="0.2 0.2 0.2" mode="trackcom"/>
+
     <body name="torso" pos="0 0 0.0" childclass="walker">
       <!-- <light name="light" pos="0 0 2" mode="trackcom"/> -->
-      <camera name="track" pos="0 -2 .7" euler="60 0 0" mode="trackcom"/>
+      <camera name="track" pos="0 -2.6 0.6" euler="70 0 0" mode="trackcom"/>
       <camera name="back" pos="-2 0 .5" xyaxes="0 -1 0 1 0 3" mode="trackcom"/>
       <joint name="rootx" axis="1 0 0" type="slide" limited="false" armature="0" damping="0"/>
       <joint name="rootz" axis="0 0 1" type="slide" limited="false" armature="0" damping="0"/>

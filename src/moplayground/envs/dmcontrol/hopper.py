@@ -7,6 +7,7 @@ from moplayground.envs.generic.mobase import MultiObjectiveBase
 from moplayground.envs.dmcontrol.interface import HopperInterface
 
 class MOHopper(MultiObjectiveBase):
+    """Multi-Objective Hopper Environment. Objectives are speed by height."""
     def __init__(
         self,
         env_params        : config_dict.ConfigDict,

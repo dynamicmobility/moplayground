@@ -1,39 +1,46 @@
 import os
-os.environ["MUJOCO_GL"] = "egl"
+os.environ["MUJOCO_GL"] = "egl" # (comment out if not on Ubuntu SSH)
 os.environ['JAX_PLATFORMS']='cpu'
 import numpy as np
 import moplayground as mop
 import minimal_mjx as mm
 from pathlib import Path
 
-
+# Read the config file and create the environment
 config = mm.utils.read_config()
+kwargs = {} if config['env'] != 'NaviGait' else {
+    'manual_speed'    : [0.12, 0.0, 0.0],
+    'track_yaw'       : False,
+    'idealistic'      : True
+}
 env, env_params = mop.envs.create_environment(
     config,
-    manual_speed    = [0.12, 0.0, 0.0],
-    idealistic      = True
+    **kwargs
 )
 
-camera = 'track'
-directive = np.array([0.0, 0.0, 1.0])
+# Choose a tradeoff
+camera    = 'track'
+n_objs    = mop.learning.inference.get_num_objectives(config)
+tradeoff  = np.random.dirichlet(alpha=np.ones(n_objs))
+print(f'Chosen tradeoff {tradeoff} with {n_objs} objectives')
 
-
-frames, reward_plotter, _, _ = mop.eval.rollout_policy(
+# Rollout the policy
+frames, reward_plotter, _, _ = mop.learning.inference.rollout_policy(
     env         = env,
     config      = config,
-    directive   = directive,
-    T           = 10.0,
+    tradeoff    = tradeoff,
+    T           = 6.0,
     camera      = camera,
-    width       = 640,
-    height      = 480
+    width       = 2560,
+    height      = 1440
 )
 
+# Save video and metrics
 mm.utils.plotting.save_video(
     frames,
     env.dt,
     Path(f'output/videos/{config['env']}-rollout.mp4')
 )
-
 mm.utils.plotting.save_metrics(
     reward_plotter,
     Path(f'output/videos/{config['env']}-reward.pdf')

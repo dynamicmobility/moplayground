@@ -11,7 +11,7 @@ from moplayground.envs.generic.mobase import MultiObjectiveBase
 from moplayground.envs.dmcontrol.interface import WalkerInterface
 
 class MOWalker(MultiObjectiveBase):
-    """Hopper environment."""
+    """Multi-Objective Ant Environment. Objectives are speed by energy."""
 
     def __init__(
         self,

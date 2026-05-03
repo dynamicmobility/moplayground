@@ -1,5 +1,3 @@
-"""Hopper environment."""
-
 from typing import Any
 
 import jax
@@ -11,7 +9,8 @@ from moplayground.envs.generic.mobase import MultiObjectiveBase
 from moplayground.envs.dmcontrol.interface import CheetahInterface
 
 class MOCheetah(MultiObjectiveBase):
-    """Hopper environment."""
+    """Multi-Objective Cheetah Environment. 
+    Objectives are speed, energy, and jumping height."""
 
     def __init__(
         self,

@@ -30,7 +30,8 @@ class Bruce(NaviGait):
         backend         = 'jnp',
         idealistic      = False,
         animate         = False,
-        manual_speed    = None
+        manual_speed    = None,
+        track_yaw       = False
     ):  
         # Initialize the parent class
         super().__init__(
@@ -40,7 +41,8 @@ class Bruce(NaviGait):
             backend           = backend,
             gait_type         = gait_type,
             gaitlib_path      = gaitlib_path,
-            animate           = animate
+            animate           = animate,
+            track_yaw         = track_yaw
         )
         if idealistic:
             self.params.domain_randomization.enabled                 = False

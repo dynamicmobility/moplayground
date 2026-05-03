@@ -6,7 +6,7 @@ from moplayground.envs.dmcontrol.interface import HumanoidInterface
 from moplayground.envs.generic.mobase import MultiObjectiveBase
 
 class MOHumanoid(MultiObjectiveBase):
-    """Humanoid environment."""
+    """Multi-Objective Humanoid Environment. Objectives are speed by energy."""
 
     def __init__(
         self,

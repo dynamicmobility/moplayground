@@ -27,6 +27,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "black"]
+docs = ["lazydocs"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

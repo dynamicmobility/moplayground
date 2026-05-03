@@ -1,6 +1,6 @@
-# Internal imports
 import minimal_mjx as mm
 import moplayground as mop
+from moplayground.envs.generic import mobase
 
 # Basic imports
 import yaml
@@ -9,13 +9,28 @@ import numpy as np
 from pathlib import Path
 from ml_collections import config_dict
 
-def mo2so(env, weighting):
-    return mop.envs.generic.mobase.Multi2SingleObjective(
-        env       = env,
-        weighting = weighting
-    )
-    
 def train_policy(config, env, eval_env, run):
+    """Train a policy on the given environment.
+
+    Sets up the GPU, builds PPO/network parameters from ``config``, saves
+    the resolved config alongside the run, and dispatches to either the
+    standard single-objective trainer (when ``config.mo2so.enabled`` is
+    True — wrapping ``env``/``eval_env`` with ``Multi2SingleObjective``)
+    or the multi-objective ``mo_train`` loop.
+
+    Args:
+        config: Training config (ConfigDict). Must include ``save_dir``,
+            ``name``, ``mo2so`` (with ``enabled`` and, if enabled,
+            ``weighting``), and ``learning_params``.
+        env: Training environment.
+        eval_env: Evaluation environment used for periodic rollouts.
+        run: Experiment-tracking handle (e.g. a wandb run) forwarded to the
+            multi-objective trainer; ignored on the single-objective path.
+
+    Returns:
+        Tuple ``(make_inference_fn, params)`` — a factory that builds an
+        inference function and the trained policy parameters.
+    """
     mm.utils.setupGPU.run_setup()
     
     # Initialize stuff
@@ -25,8 +40,8 @@ def train_policy(config, env, eval_env, run):
 
     if config.mo2so.enabled:
         weighting = np.array(config.mo2so.weighting)
-        env         = mo2so(env, weighting=weighting)
-        eval_env    = mo2so(eval_env, weighting=weighting)
+        env         = mobase.Multi2SingleObjective(env, weighting=weighting)
+        eval_env    = mobase.Multi2SingleObjective(eval_env, weighting=weighting)
     else:
         ppo_params = config_dict.ConfigDict(
             dict(config.learning_params.hypermorl_params) | dict(ppo_params)
