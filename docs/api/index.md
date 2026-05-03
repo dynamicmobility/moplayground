@@ -11,34 +11,34 @@ has_toc: false
 Auto-generated from the docstrings of the `moplayground` package.
 Regenerate with `python scripts/build_api_docs.py` after editing docstrings in `src/moplayground/`.
 
-## [moplayground.envs]({% link api/moplayground.envs.md %})
+## [moplayground.envs]({{ "/api/moplayground.envs.html" | relative_url }})
 
-- [moplayground.envs.create]({% link api/moplayground.envs.create.md %})
-- [moplayground.envs.generic]({% link api/moplayground.envs.generic.md %})
-- [moplayground.envs.generic.mobase]({% link api/moplayground.envs.generic.mobase.md %})
+- [moplayground.envs.create]({{ "/api/moplayground.envs.create.html" | relative_url }})
+- [moplayground.envs.generic]({{ "/api/moplayground.envs.generic.html" | relative_url }})
+- [moplayground.envs.generic.mobase]({{ "/api/moplayground.envs.generic.mobase.html" | relative_url }})
 
-## [moplayground.eval]({% link api/moplayground.eval.md %})
+## [moplayground.eval]({{ "/api/moplayground.eval.html" | relative_url }})
 
-- [moplayground.eval.pareto]({% link api/moplayground.eval.pareto.md %})
-- [moplayground.eval.rollout]({% link api/moplayground.eval.rollout.md %})
+- [moplayground.eval.pareto]({{ "/api/moplayground.eval.pareto.html" | relative_url }})
+- [moplayground.eval.rollout]({{ "/api/moplayground.eval.rollout.html" | relative_url }})
 
-## [moplayground.learning]({% link api/moplayground.learning.md %})
+## [moplayground.learning]({{ "/api/moplayground.learning.html" | relative_url }})
 
-- [moplayground.learning.inference]({% link api/moplayground.learning.inference.md %})
-- [moplayground.learning.startup]({% link api/moplayground.learning.startup.md %})
-- [moplayground.learning.training]({% link api/moplayground.learning.training.md %})
-- [moplayground.learning.wrappers]({% link api/moplayground.learning.wrappers.md %})
+- [moplayground.learning.inference]({{ "/api/moplayground.learning.inference.html" | relative_url }})
+- [moplayground.learning.startup]({{ "/api/moplayground.learning.startup.html" | relative_url }})
+- [moplayground.learning.training]({{ "/api/moplayground.learning.training.html" | relative_url }})
+- [moplayground.learning.wrappers]({{ "/api/moplayground.learning.wrappers.html" | relative_url }})
 
-## [moplayground.moppo]({% link api/moplayground.moppo.md %})
+## [moplayground.moppo]({{ "/api/moplayground.moppo.html" | relative_url }})
 
-- [moplayground.moppo.acting]({% link api/moplayground.moppo.acting.md %})
-- [moplayground.moppo.factory]({% link api/moplayground.moppo.factory.md %})
-- [moplayground.moppo.losses]({% link api/moplayground.moppo.losses.md %})
-- [moplayground.moppo.moppo]({% link api/moplayground.moppo.moppo.md %})
-- [moplayground.moppo.networks]({% link api/moplayground.moppo.networks.md %})
+- [moplayground.moppo.acting]({{ "/api/moplayground.moppo.acting.html" | relative_url }})
+- [moplayground.moppo.factory]({{ "/api/moplayground.moppo.factory.html" | relative_url }})
+- [moplayground.moppo.losses]({{ "/api/moplayground.moppo.losses.html" | relative_url }})
+- [moplayground.moppo.moppo]({{ "/api/moplayground.moppo.moppo.html" | relative_url }})
+- [moplayground.moppo.networks]({{ "/api/moplayground.moppo.networks.html" | relative_url }})
 
-## [moplayground.utils]({% link api/moplayground.utils.md %})
+## [moplayground.utils]({{ "/api/moplayground.utils.html" | relative_url }})
 
-- [moplayground.utils.geometry]({% link api/moplayground.utils.geometry.md %})
-- [moplayground.utils.pareto]({% link api/moplayground.utils.pareto.md %})
-- [moplayground.utils.plotting]({% link api/moplayground.utils.plotting.md %})
+- [moplayground.utils.geometry]({{ "/api/moplayground.utils.geometry.html" | relative_url }})
+- [moplayground.utils.pareto]({{ "/api/moplayground.utils.pareto.html" | relative_url }})
+- [moplayground.utils.plotting]({{ "/api/moplayground.utils.plotting.html" | relative_url }})

@@ -40,10 +40,10 @@ There are two ways to install moplayground: via `pip` or `git`.
 
 Several scripts have been provided that let you train and rollout policies. The following pages walk through the primary usage of MO-Playground:
 
-- [Simulating]({% link simulating.md %}) — download pre-trained policies and roll them out.
-- [Training]({% link training.md %}) — train a policy on an existing environment.
-- [Custom Environments]({% link custom-environments.md %}) — define your own environment.
-- [Plotting]({% link plotting.md %}) — visualize results.
+- [Simulating]({{ "/simulating.html" | relative_url }}) — download pre-trained policies and roll them out.
+- [Training]({{ "/training.html" | relative_url }}) — train a policy on an existing environment.
+- [Custom Environments]({{ "/custom-environments.html" | relative_url }}) — define your own environment.
+- [Plotting]({{ "/plotting.html" | relative_url }}) — visualize results.
 
 ## General notes for development
 
