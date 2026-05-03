@@ -19,7 +19,7 @@ def plot_pareto(
         c = np.zeros((pareto.shape[0], 3))
         c[:, 0] = directive[:, 0]
         c[:, 2] = directive[:, 1]
-        alpha = 0.05 if nondominated else 1
+        alpha = 0.05 if nondominated is not None else 1
         ax.scatter(
             pareto[:, 0],
             pareto[:, 1],
@@ -54,7 +54,7 @@ def plot_pareto(
         # c[:, 0] = (1 - directive[:, 0]) * 0.9  # Red channel: warm tones
         # c[:, 1] = (1 - directive[:, 1]) * 0.9  # Green channel: cool tones  
         # c[:, 2] = (1 - directive[:, 2]) * 0.9  # Blue channel: mid tones
-        alpha = 0.05 if nondominated else 1
+        alpha = 0.05 if nondominated is not None else 1
         ax.scatter(
             pareto[:, 0],
             pareto[:, 1],
