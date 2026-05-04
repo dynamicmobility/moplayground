@@ -22,6 +22,17 @@ class MORLAXNetworkParams:
     """Contains training state for the learner."""
     hypernetwork: Params
 
+
+@flax.struct.dataclass
+class AMORNetworkParams:
+    """Contains training state for the AMOR learner.
+
+    AMOR has no hypernetwork; the policy and value networks are flat MLPs that
+    take ``concat(obs, directive)`` as input.
+    """
+    policy: Params
+    value:  Params
+
 def compute_mo_gae(
     truncation: jnp.ndarray,
     termination: jnp.ndarray,
@@ -199,11 +210,103 @@ def compute_morlax_loss(
 
 
 def compute_amor_loss(
-    params              : MORLAXNetworkParams,
+    params              : AMORNetworkParams,
     normalizer_params   : Any,
     data                : MultiObjectiveTransition,
     rng                 : jnp.ndarray,
-    morlax_networks     : factory.MORLAXNetworks,
-    **ppo_loss_kwargs
+    amor_networks       : factory.AMORNetworks,
+    entropy_cost        : float = 1e-4,
+    discounting         : float = 0.9,
+    reward_scaling      : float = 1.0,
+    gae_lambda          : float = 0.95,
+    clipping_epsilon    : float = 0.3,
+    normalize_advantage : bool = True,
 ) -> Tuple[jnp.ndarray, types.Metrics]:
-    pass
+    """Multi-objective PPO loss for AMOR.
+
+    Identical to ``compute_morlax_loss`` except the policy and value networks
+    are flat (no hypernetwork): they consume ``(obs, directive)`` directly.
+    """
+    parametric_action_distribution = amor_networks.parametric_action_distribution
+
+    # Put the time dimension first: data is currently [B, T, ...].
+    data = jax.tree_util.tree_map(lambda x: jnp.swapaxes(x, 0, 1), data)
+    # Now data has leading dims [T, B, ...].
+
+    # Policy and value forward passes. Networks are shared across the batch;
+    # only obs (axis 1 in [T, B, ...]) and directive vary across the batch.
+    # Vmap over the B axis: obs/directive in_axes=1, params/normalizer shared.
+    policy_apply = jax.vmap(
+        amor_networks.policy_network.apply,
+        in_axes=(None, None, 1, 1),
+        out_axes=1,
+    )
+    value_apply = jax.vmap(
+        amor_networks.value_network.apply,
+        in_axes=(None, None, 1, 1),
+        out_axes=1,
+    )
+
+    policy_logits = policy_apply(
+        normalizer_params, params.policy, data.observation, data.directive
+    )
+    baseline = value_apply(
+        normalizer_params, params.value, data.observation, data.directive
+    )
+
+    # Bootstrap value at the terminal observation (one per env, no time axis).
+    terminal_obs = jax.tree_util.tree_map(lambda x: x[-1], data.next_observation)
+    terminal_directive = data.directive[-1]
+    single_value_apply = jax.vmap(
+        amor_networks.value_network.apply,
+        in_axes=(None, None, 0, 0),
+    )
+    bootstrap_value = single_value_apply(
+        normalizer_params, params.value, terminal_obs, terminal_directive
+    )
+
+    rewards = data.reward * reward_scaling
+    rewards = jnp.sum(data.directive * rewards, axis=2)
+
+    truncation = data.extras['state_extras']['truncation']
+    termination = (1 - data.discount) * (1 - truncation)
+
+    target_action_log_probs = parametric_action_distribution.log_prob(
+        policy_logits, data.extras['policy_extras']['raw_action']
+    )
+    behaviour_action_log_probs = data.extras['policy_extras']['log_prob']
+
+    vs, advantages = losses.compute_gae(
+        truncation      = truncation,
+        termination     = termination,
+        rewards         = rewards,
+        values          = baseline,
+        bootstrap_value = bootstrap_value,
+        lambda_         = gae_lambda,
+        discount        = discounting,
+    )
+    if normalize_advantage:
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+    rho_s = jnp.exp(target_action_log_probs - behaviour_action_log_probs)
+
+    surrogate_loss1 = rho_s * advantages
+    surrogate_loss2 = (
+        jnp.clip(rho_s, 1 - clipping_epsilon, 1 + clipping_epsilon) * advantages
+    )
+
+    policy_loss = -jnp.mean(jnp.minimum(surrogate_loss1, surrogate_loss2))
+
+    v_error = vs - baseline
+    v_loss = jnp.mean(v_error * v_error) * 0.5 * 0.5
+
+    entropy = jnp.mean(parametric_action_distribution.entropy(policy_logits, rng))
+    entropy_loss = entropy_cost * -entropy
+
+    total_loss = policy_loss + v_loss + entropy_loss
+
+    return total_loss, {
+        'total_loss'   : total_loss,
+        'policy_loss'  : policy_loss,
+        'v_loss'       : v_loss,
+        'entropy_loss' : entropy_loss,
+    }

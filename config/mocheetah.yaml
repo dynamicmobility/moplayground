@@ -1,7 +1,7 @@
-name: test
+name: bigger-network
 save_dir: accepted-results/may/3/
 description: ''
-algorithm: morlax
+algorithm: amor #morlax
 env: MOCheetah
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
@@ -74,6 +74,11 @@ learning_params:
       enabled: false
       policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml      
   amor_params:
-    network_params: 
-      policy_hidden_layer_sizes: [64, 64]
-      value_hidden_layer_sizes:  [64, 64]
+    train_fn_params:
+      alpha: 1.0
+      k: 8
+      sampling: sparse-heavytail
+      warmup_frac: 0.0
+    network_params:
+      policy_hidden_layer_sizes: [512, 512, 512]
+      value_hidden_layer_sizes:  [512, 512, 512]

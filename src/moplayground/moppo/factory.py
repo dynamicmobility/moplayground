@@ -257,40 +257,209 @@ def make_hypernetwork(
 
 @flax.struct.dataclass
 class AMORNetworks:
-    mo_policy_network                 : networks.FeedForwardNetwork
-    mo_value_network                  : networks.FeedForwardNetwork
-    parametric_action_distribution    : distribution.ParametricDistribution
-
-def make_amor_networks():
-    raise NotImplementedError('AMOR networks not implemented yet. but will use make_mo_value_network')
+    policy_network                 : networks.FeedForwardNetwork
+    value_network                  : networks.FeedForwardNetwork
+    parametric_action_distribution : distribution.ParametricDistribution
 
 
-def make_mo_value_network(
-    obs_size: types.ObservationSize,
-    num_objectives: int,
+def _amor_normalize_and_concat(
+    obs, directive, processor_params, preprocess_observations_fn, obs_key
+):
+    if isinstance(obs, Mapping):
+        normalized = preprocess_observations_fn(
+            obs[obs_key], networks.normalizer_select(processor_params, obs_key)
+        )
+    else:
+        normalized = preprocess_observations_fn(obs, processor_params)
+    return jnp.concatenate([normalized, directive], axis=-1)
+
+
+def make_amor_policy_network(
+    param_size                : int,
+    obs_size                  : types.ObservationSize,
+    num_objectives            : int,
     preprocess_observations_fn: types.PreprocessObservationFn = types.identity_observation_preprocessor,
-    hidden_layer_sizes: Sequence[int] = (256, 256),
-    activation: ActivationFn = linen.relu,
-    obs_key: str = 'state',
+    hidden_layer_sizes        : Sequence[int] = (256, 256),
+    activation                : networks.ActivationFn = linen.relu,
+    kernel_init               : Initializer = jax.nn.initializers.lecun_uniform(),
+    layer_norm                : bool = False,
+    obs_key                   : str = 'state',
+    distribution_type         : Literal['normal', 'tanh_normal'] = 'tanh_normal',
+    noise_std_type            : Literal['scalar', 'log'] = 'scalar',
+    init_noise_std            : float = 1.0,
+    state_dependent_std       : bool = False,
 ) -> networks.FeedForwardNetwork:
-    """Creates a value network."""
+    """AMOR policy network: input is concat(normalized_obs, raw_directive)."""
+    if distribution_type == 'tanh_normal':
+        policy_module = networks.MLP(
+            layer_sizes = list(hidden_layer_sizes) + [param_size],
+            activation  = activation,
+            kernel_init = kernel_init,
+            layer_norm  = layer_norm,
+        )
+    elif distribution_type == 'normal':
+        policy_module = networks.PolicyModuleWithStd(
+            param_size          = param_size,
+            hidden_layer_sizes  = hidden_layer_sizes,
+            activation          = activation,
+            kernel_init         = kernel_init,
+            layer_norm          = layer_norm,
+            noise_std_type      = noise_std_type,
+            init_noise_std      = init_noise_std,
+            state_dependent_std = state_dependent_std,
+        )
+    else:
+        raise ValueError(
+            f'Unsupported distribution type: {distribution_type}. Must be one'
+            ' of "normal" or "tanh_normal".'
+        )
+
+    def apply(processor_params, policy_params, obs, directive):
+        x = _amor_normalize_and_concat(
+            obs, directive, processor_params, preprocess_observations_fn, obs_key
+        )
+        return policy_module.apply(policy_params, x)
+
+    obs_dim = networks._get_obs_state_size(obs_size, obs_key)
+    augmented_dim = obs_dim + num_objectives
+    dummy_input = jnp.zeros((1, augmented_dim))
+
+    def init(key):
+        return policy_module.init(key, dummy_input)
+
+    return networks.FeedForwardNetwork(init=init, apply=apply)
+
+
+def make_amor_value_network(
+    obs_size                  : types.ObservationSize,
+    num_objectives            : int,
+    preprocess_observations_fn: types.PreprocessObservationFn = types.identity_observation_preprocessor,
+    hidden_layer_sizes        : Sequence[int] = (256, 256),
+    activation                : networks.ActivationFn = linen.relu,
+    obs_key                   : str = 'state',
+) -> networks.FeedForwardNetwork:
+    """AMOR value network: input is concat(normalized_obs, raw_directive),
+    output is a scalar (squeezed) value, matching MORLAX's value contract so the
+    standard scalar PPO GAE/loss can be used with directive-scalarized rewards."""
     value_module = networks.MLP(
-        layer_sizes=list(hidden_layer_sizes) + [num_objectives],
-        activation=activation,
-        kernel_init=jax.nn.initializers.lecun_uniform(),
+        layer_sizes = list(hidden_layer_sizes) + [1],
+        activation  = activation,
+        kernel_init = jax.nn.initializers.lecun_uniform(),
     )
 
-    def apply(processor_params, value_params, obs):
-        if isinstance(obs, Mapping):
-            obs = preprocess_observations_fn(
-                obs[obs_key], networks.normalizer_select(processor_params, obs_key)
-            )
-        else:
-            obs = preprocess_observations_fn(obs, processor_params)
-        return value_module.apply(value_params, obs)
+    def apply(processor_params, value_params, obs, directive):
+        x = _amor_normalize_and_concat(
+            obs, directive, processor_params, preprocess_observations_fn, obs_key
+        )
+        return jnp.squeeze(value_module.apply(value_params, x), axis=-1)
 
-    obs_size = networks._get_obs_state_size(obs_size, obs_key)
-    dummy_obs = jnp.zeros((1, obs_size))
+    obs_dim = networks._get_obs_state_size(obs_size, obs_key)
+    augmented_dim = obs_dim + num_objectives
+    dummy_input = jnp.zeros((1, augmented_dim))
     return networks.FeedForwardNetwork(
-        init=lambda key: value_module.init(key, dummy_obs), apply=apply
+        init=lambda key: value_module.init(key, dummy_input), apply=apply
     )
+
+
+def make_amor_networks(
+    observation_size          : types.ObservationSize,
+    action_size               : int,
+    num_objectives            : int,
+    key                       : jax.Array,
+    preprocess_observations_fn: types.PreprocessObservationFn = types.identity_observation_preprocessor,
+    policy_hidden_layer_sizes : Sequence[int] = (64,) * 2,
+    value_hidden_layer_sizes  : Sequence[int] = (256,) * 5,
+    activation                : networks.ActivationFn = linen.swish,
+    policy_obs_key            : str = 'state',
+    value_obs_key             : str = 'state',
+    distribution_type         : Literal['normal', 'tanh_normal'] = 'tanh_normal',
+    noise_std_type            : Literal['scalar', 'log'] = 'scalar',
+    init_noise_std            : float = 1.0,
+    state_dependent_std       : bool = False,
+) -> AMORNetworks:
+    """Make AMOR networks (tradeoff-conditioned policy + multi-objective value).
+
+    Unlike MORLAX (which uses a hypernetwork to output policy weights per directive),
+    AMOR's policy and value networks take the directive as part of their input,
+    concatenated to the (normalized) observation.
+    """
+    if distribution_type == 'normal':
+        parametric_action_distribution = distribution.NormalDistribution(
+            event_size=action_size
+        )
+    elif distribution_type == 'tanh_normal':
+        parametric_action_distribution = distribution.NormalTanhDistribution(
+            event_size=action_size
+        )
+    else:
+        raise ValueError(
+            f'Unsupported distribution type: {distribution_type}. Must be one'
+            ' of "normal" or "tanh_normal".'
+        )
+
+    policy_network = make_amor_policy_network(
+        param_size                 = parametric_action_distribution.param_size,
+        obs_size                   = observation_size,
+        num_objectives             = num_objectives,
+        preprocess_observations_fn = preprocess_observations_fn,
+        hidden_layer_sizes         = policy_hidden_layer_sizes,
+        activation                 = activation,
+        obs_key                    = policy_obs_key,
+        distribution_type          = distribution_type,
+        noise_std_type             = noise_std_type,
+        init_noise_std             = init_noise_std,
+        state_dependent_std        = state_dependent_std,
+    )
+
+    value_network = make_amor_value_network(
+        obs_size                   = observation_size,
+        num_objectives             = num_objectives,
+        preprocess_observations_fn = preprocess_observations_fn,
+        hidden_layer_sizes         = value_hidden_layer_sizes,
+        activation                 = activation,
+        obs_key                    = value_obs_key,
+    )
+
+    return AMORNetworks(
+        policy_network                 = policy_network,
+        value_network                  = value_network,
+        parametric_action_distribution = parametric_action_distribution,
+    )
+
+
+def make_amor_inference_fn(amor_networks: AMORNetworks):
+    """Creates an inference function for AMOR.
+
+    Returned closure: ``amor_inference_fn(params, deterministic=False) -> policy(obs, directive, key)``.
+    Unlike MORLAX's ``hypernetwork_inference_fn`` (which bakes the directive into the
+    closure at construction), AMOR's policy takes the directive at call time, so the
+    tradeoff can be changed at any step without rebuilding the policy.
+    """
+
+    def amor_inference_fn(
+        params: types.Params, deterministic: bool = False
+    ) -> Callable:
+        normalizer_params, policy_params = params
+        dist = amor_networks.parametric_action_distribution
+
+        def policy(
+            observations: types.Observation,
+            directive: jax.Array,
+            key_sample: jax.Array,
+        ) -> Tuple[types.Action, types.Extra]:
+            logits = amor_networks.policy_network.apply(
+                normalizer_params, policy_params, observations, directive
+            )
+            if deterministic:
+                return dist.mode(logits), {}
+            raw_actions = dist.sample_no_postprocessing(logits, key_sample)
+            log_prob = dist.log_prob(logits, raw_actions)
+            postprocessed_actions = dist.postprocess(raw_actions)
+            return postprocessed_actions, {
+                'log_prob'   : log_prob,
+                'raw_action' : raw_actions,
+            }
+
+        return policy
+
+    return amor_inference_fn
