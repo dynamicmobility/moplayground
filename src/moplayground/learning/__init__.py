@@ -1,2 +1,2 @@
-from . import inference, startup, training, wrappers
-from .startup import train_policy
+from . import inference, training, wrappers
+from .training import train_policy

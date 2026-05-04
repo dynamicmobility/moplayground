@@ -4,7 +4,6 @@ from etils import epath
 import functools
 from brax.training.checkpoint import get_network
 from brax.training.agents.ppo import checkpoint
-# from minimal_mjx.learning.inference import *
 import minimal_mjx as mm
 from moplayground.moppo.factory import make_morlax_networks, make_hypernetwork_inference_fn
 import moplayground as mop
