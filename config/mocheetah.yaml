@@ -1,13 +1,15 @@
 name: test
-save_dir: results/MOCheetah-all3
-description: ""
-algorithm: "ppo"
-env: "MOCheetah"
-robot: "DMHopper"
+save_dir: accepted-results/may/3/
+description: ''
+algorithm: morlax
+env: MOCheetah
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false
   weighting: [0.5, 0.5]
+  network_params:
+    policy_hidden_layer_sizes: [64, 64]
+    value_hidden_layer_sizes:  [64, 64]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.01
@@ -38,7 +40,7 @@ env_config:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
 learning_params:
-  ppo_params:
+  base_ppo_params:
     action_repeat: 1
     batch_size: 64
     clipping_epsilon: 0.1
@@ -56,18 +58,22 @@ learning_params:
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 20
-  hypermorl_params:
-    alpha: 1.0
-    k: 8
-    sampling: sparse-heavytail
-    warmup_frac: 0.0
-  warmup_params:
-    enabled: false
-    policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
-  network_params:
-    policy_hidden_layer_sizes: [64, 64]
-    value_hidden_layer_sizes:  [64, 64]
-  hypernetwork_params:
-    hypertype: ActorCritic
-    hypersize: [128, 128]
-    num_features: 16
+  morlax_params:
+    train_fn_params:
+      alpha: 1.0
+      k: 8
+      sampling: sparse-heavytail
+      warmup_frac: 0.0
+    network_params:
+      hypertype: ActorCritic
+      hypersize: [128, 128]
+      num_features: 16
+      policy_hidden_layer_sizes: [64, 64]
+      value_hidden_layer_sizes:  [64, 64]
+    warmup_params:
+      enabled: false
+      policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml      
+  amor_params:
+    network_params: 
+      policy_hidden_layer_sizes: [64, 64]
+      value_hidden_layer_sizes:  [64, 64]

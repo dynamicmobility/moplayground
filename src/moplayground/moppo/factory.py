@@ -50,14 +50,14 @@ class FeedForwardHypernetwork:
     get_flat_mlps   : Callable[..., Any]
 
 @flax.struct.dataclass
-class MOPPONetworks:
+class MORLAXNetworks:
     hypernetwork                   : FeedForwardHypernetwork
     policy_network                 : networks.FeedForwardNetwork
     value_network                  : networks.FeedForwardNetwork
     parametric_action_distribution : distribution.ParametricDistribution
 
 
-def make_hypernetwork_inference_fn(ppo_networks: MOPPONetworks):
+def make_hypernetwork_inference_fn(ppo_networks: MORLAXNetworks):
     """Creates params and inference function for the PPO agent."""
 
     def hypernetwork_inference_fn(
@@ -98,7 +98,7 @@ def make_hypernetwork_inference_fn(ppo_networks: MOPPONetworks):
     return hypernetwork_inference_fn
 
 
-def make_moppo_networks(
+def make_morlax_networks(
     observation_size          : types.ObservationSize,
     action_size               : int,
     num_objectives            : int,
@@ -118,7 +118,7 @@ def make_moppo_networks(
     state_dependent_std       : bool = False,
     hypertype                 : str = 'MLP',
     num_features              : int = 8
-) -> MOPPONetworks:
+) -> MORLAXNetworks:
     """Make PPO networks with preprocessor."""
     parametric_action_distribution: distribution.ParametricDistribution
     if distribution_type == 'normal':
@@ -148,14 +148,6 @@ def make_moppo_networks(
         # layer_norm                 = True
     )
     
-    # value_network = make_mo_value_network(
-    #     obs_size                   = observation_size,
-    #     num_objectives             = num_objectives,
-    #     preprocess_observations_fn = preprocess_observations_fn,
-    #     hidden_layer_sizes         = value_hidden_layer_sizes,
-    #     activation                 = activation,
-    #     obs_key                    = value_obs_key,
-    # )
     value_network = networks.make_value_network(
         obs_size                   = observation_size,
         preprocess_observations_fn = preprocess_observations_fn,
@@ -180,7 +172,7 @@ def make_moppo_networks(
         num_features       = num_features
     )
 
-    return MOPPONetworks(
+    return MORLAXNetworks(
         hypernetwork                   = hypernetwork,
         policy_network                 = policy_network,
         value_network                  = value_network,
@@ -262,6 +254,15 @@ def make_hypernetwork(
     )
     
     return wrapped_hypernet
+
+@flax.struct.dataclass
+class AMORNetworks:
+    mo_policy_network                 : networks.FeedForwardNetwork
+    mo_value_network                  : networks.FeedForwardNetwork
+    parametric_action_distribution    : distribution.ParametricDistribution
+
+def make_amor_networks():
+    raise NotImplementedError('AMOR networks not implemented yet. but will use make_mo_value_network')
 
 
 def make_mo_value_network(
