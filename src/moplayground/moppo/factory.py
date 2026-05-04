@@ -55,13 +55,6 @@ class MORLAXNetworks:
     policy_network                 : networks.FeedForwardNetwork
     value_network                  : networks.FeedForwardNetwork
     parametric_action_distribution : distribution.ParametricDistribution
-    
-
-@flax.struct.dataclass
-class AMORNetworks:
-    mo_policy_network                 : networks.FeedForwardNetwork
-    mo_value_network                  : networks.FeedForwardNetwork
-    parametric_action_distribution    : distribution.ParametricDistribution
 
 
 def make_hypernetwork_inference_fn(ppo_networks: MORLAXNetworks):
@@ -262,6 +255,11 @@ def make_hypernetwork(
     
     return wrapped_hypernet
 
+@flax.struct.dataclass
+class AMORNetworks:
+    mo_policy_network                 : networks.FeedForwardNetwork
+    mo_value_network                  : networks.FeedForwardNetwork
+    parametric_action_distribution    : distribution.ParametricDistribution
 
 def make_amor_networks():
     raise NotImplementedError('AMOR networks not implemented yet. but will use make_mo_value_network')

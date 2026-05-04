@@ -72,7 +72,7 @@ def train_policy(
     env, 
     eval_env, 
     run=None, 
-    handle_params=setup_morlax
+    handle_params=setup_morlax,
 ):
     """Train a policy on the given environment.
 

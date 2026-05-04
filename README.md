@@ -124,3 +124,6 @@ The application features seven possible reward functions. Note that we combine `
   year={2026}
 }
 ```
+
+
+please see claude.md. i would like you to look at how the morlax algorithm works. i want you to implement a baseline MORL algorithm, called AMOR. AMOR works differently from morlax in that it is a tradeoff-conditioned policy. instead of using a hypernetwork to output a policy network corresponding to a tradeoff, AMOR's policy network includes the tradeoff vector in its observation. similarly, AMOR's value network also has the tradeoff in its input. there are no hypernetworks in AMOR. however, AMOR is trained with the same 'multi objective PPO loss' as MORLAX. i want you to implement AMOR and test whether it works using the MOCheetah enviornment. Note that training scripts are run via python3 -m scripts.train config/mocheetah.yaml. I also want the AMOR policy to allow for changing the tradeoff at any time. I'm envision that, for instance, when the inference_fn is created, 

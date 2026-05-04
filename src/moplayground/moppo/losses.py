@@ -196,3 +196,14 @@ def compute_morlax_loss(
         'v_loss'       : v_loss,
         'entropy_loss' : entropy_loss,
     }
+
+
+def compute_amor_loss(
+    params              : MORLAXNetworkParams,
+    normalizer_params   : Any,
+    data                : MultiObjectiveTransition,
+    rng                 : jnp.ndarray,
+    morlax_networks     : factory.MORLAXNetworks,
+    **ppo_loss_kwargs
+) -> Tuple[jnp.ndarray, types.Metrics]:
+    pass
