@@ -265,8 +265,7 @@ def compute_amor_loss(
         normalizer_params, params.value, terminal_obs, terminal_directive
     )
 
-    rewards = data.reward * reward_scaling
-    rewards = jnp.sum(data.directive * rewards, axis=2)
+    rewards = data.reward * reward_scaling  # [T, B, M]
 
     truncation = data.extras['state_extras']['truncation']
     termination = (1 - data.discount) * (1 - truncation)
@@ -276,7 +275,8 @@ def compute_amor_loss(
     )
     behaviour_action_log_probs = data.extras['policy_extras']['log_prob']
 
-    vs, advantages = losses.compute_gae(
+    # Vector GAE: per-objective vs and advantages of shape [T, B, M].
+    vs, vec_advantages = compute_mo_gae(
         truncation      = truncation,
         termination     = termination,
         rewards         = rewards,
@@ -285,6 +285,8 @@ def compute_amor_loss(
         lambda_         = gae_lambda,
         discount        = discounting,
     )
+    # Scalarize advantages with the per-step directive for the policy update.
+    advantages = jnp.sum(data.directive * vec_advantages, axis=-1)  # [T, B]
     if normalize_advantage:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
     rho_s = jnp.exp(target_action_log_probs - behaviour_action_log_probs)
@@ -296,7 +298,8 @@ def compute_amor_loss(
 
     policy_loss = -jnp.mean(jnp.minimum(surrogate_loss1, surrogate_loss2))
 
-    v_error = vs - baseline
+    # Vector value loss: equal weight across objectives (no normalization).
+    v_error = vs - baseline  # [T, B, M]
     v_loss = jnp.mean(v_error * v_error) * 0.5 * 0.5
 
     entropy = jnp.mean(parametric_action_distribution.entropy(policy_logits, rng))

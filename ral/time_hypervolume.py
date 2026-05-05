@@ -3,10 +3,6 @@ os.environ["MUJOCO_GL"] = "egl"
 # os.environ['JAX_PLATFORMS']='cpu'
 from minimal_mjx.utils.setupGPU import run_setup
 from pathlib import Path
-from minimal_mjx.learning.startup import read_config
-from moplayground.envs.create import create_environment
-from moplayground.learning.inference import load_hypernetwork
-from minimal_mjx.learning.inference import get_all_models
 import jax
 from jax import numpy as jnp
 import numpy as np
@@ -14,32 +10,33 @@ import functools
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import pandas as pd
-from moplayground.eval.pareto import run_experiments, get_pareto_statistics, get_nondominated
-from minimal_mjx.utils.plotting import get_subplot_grid
 import argparse
 from ral import FINAL_YAMLS, HYPER_TIMES
+
+import moplayground as mop
+import minimal_mjx as mm
 
 if __name__ == '__main__':
     run_setup()
     parser = argparse.ArgumentParser()
     parser.add_argument("env", type=str, help="Env to train on")
     args = parser.parse_args()
-    config = read_config(FINAL_YAMLS[args.env])
+    config = mm.utils.read_config(FINAL_YAMLS[args.env])
     obj_files = list(Path(config['save_dir'], config['name']).glob('obj*.txt'))
     obj_files.sort(key=lambda x: int(x.name[3:].split('.')[0]))
     if obj_files:
         hvs = []
-        nrows, ncols = get_subplot_grid(len(obj_files))
+        nrows, ncols = mm.utils.plotting.get_subplot_grid(len(obj_files))
         fig, axs = plt.subplots(nrows, ncols)
         axs = axs.flatten()
         PLOT_PARETOS = True
         for idx, (file, ax) in enumerate(zip(obj_files, axs)):
             F = pd.read_csv(file).iloc[:, 1:].values
-            hv, _ = get_pareto_statistics(F)
+            hv, _ = mop.utils.pareto.get_pareto_statistics(F)
             hvs.append(hv)
             
             if PLOT_PARETOS:
-                F_max = F[get_nondominated(F)]
+                F_max = F[mop.utils.pareto.get_nondominated(F)]
                 ax.scatter(*(F.T), c='black', s=1)
                 ax.scatter(*(F_max.T), c='r', s=3)
                 ax.set_title(str(file.name))
@@ -49,17 +46,17 @@ if __name__ == '__main__':
             fig.tight_layout()
             fig.savefig(f'ral/plots/{config['env']}-pareto.pdf')
     else:
-        rewards_over_iters, directives = run_experiments(
+        rewards_over_iters, directives = mop.eval.pareto.run_experiments(
             config          = config,
             rng             = jax.random.PRNGKey(0),
-            env             = create_environment(config, for_training=True)[0],
+            env             = mop.envs.create_environment(config, for_training=True)[0],
             N_STEPS         = 500,
             NUM_ENVS        = 2**10,
             save_results    = True
         )
         hvs = []
         for F in rewards_over_iters:
-            hv, sp = get_pareto_statistics(np.array(F))
+            hv, sp = mop.utils.pareto.get_pareto_statistics(np.array(F))
             hvs.append(hv)
     jax_progress = pd.read_csv(Path(config['save_dir']) / config['name'] / 'progress.csv')
     

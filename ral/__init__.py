@@ -1,14 +1,26 @@
-FINAL_YAMLS = {
+MORLAX_FINAL_YAMLS = {
     'cheetah'   : 'results/MOCheetah/final/config.yaml',
     'hopper'    : 'results/MOHopper/clean-front/back-to-small-network/config.yaml',
     'walker'    : 'results/MOWalker/lower-lr-shorter/config.yaml',
     'humanoid'  : 'config/mohumanoid.yaml',
     'ant'       : 'config/moant.yaml',
     'bruce5D'   : 'bruce-results/5D/jt-debugging/test/config.yaml',
-    # 'bruce5D'   : 'bruce-results/5D/jt-debugging/tighter-sigmas/config.yaml',
     'bruce6D'   : 'bruce-results/6D/normal-sigmas/tuned-energy/config.yaml',
     'bruce6D+DR': 'bruce-results/6D/dr-first-try/longer-more-aggressive/config.yaml'
 }
+
+AMOR_FINAL_YAMLS = {
+    'cheetah'   : 'accepted-results/may/4/amor-run/config.yaml',
+    'hopper'    : 'n/a',
+    'walker'    : 'n/a',
+    'humanoid'  : 'n/a',
+    'ant'       : 'n/a',
+    'bruce5D'   : 'n/a',
+    'bruce6D'   : 'n/a',
+    'bruce6D+DR': 'n/a',
+}
+
+FINAL_YAMLS = {'morlax': MORLAX_FINAL_YAMLS, 'amor': AMOR_FINAL_YAMLS}
 
 HYPER_PARETOS = {
     'cheetah'   : 'ral/pareto_logs/HyperCheetah.csv',

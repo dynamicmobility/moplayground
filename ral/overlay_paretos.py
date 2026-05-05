@@ -26,9 +26,9 @@ mpl.rcParams.update({
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from moplayground.learning.startup import read_config
+import moplayground as mop
+import minimal_mjx as mm
 from pathlib import Path
-from moplayground.eval.pareto import get_nondominated
 import argparse
 from ral import FINAL_YAMLS, HYPER_PARETOS
 
@@ -40,12 +40,12 @@ def make_plot(config, hyper_path):
     obj_files.sort(key=lambda x: int(x.name[3:].split('.')[0]))
     morlax_df       = pd.read_csv(obj_files[-1])
     morlax_F        = morlax_df.iloc[:, 1:].values
-    morlax_F_max    = morlax_F[get_nondominated(morlax_F)]
+    morlax_F_max    = morlax_F[mop.utils.pareto.get_nondominated(morlax_F)]
 
 
     hyper_df      = pd.read_csv(hyper_path)
     hyper_F       = hyper_df.iloc[:, 1:].values
-    hyper_F_max   = hyper_F[get_nondominated(hyper_F)]
+    hyper_F_max   = hyper_F[mop.utils.pareto.get_nondominated(hyper_F)]
 
     fig, ax = plt.subplots(figsize=FIGSIZE)
     ax.scatter(morlax_df['obj0'], morlax_df['obj1'], s=3, color=[0, 0, 1], alpha=0.15, label='MORLaX')
@@ -90,9 +90,9 @@ if __name__ == '__main__':
     if args.env == 'all':
         for key in FINAL_YAMLS:
             if 'bruce' in key: continue
-            config = read_config(FINAL_YAMLS[key])
+            config = mm.utils.read_config(FINAL_YAMLS[key])
             make_plot(config, HYPER_PARETOS[key])
     else:
         print('here')
-        config = read_config(FINAL_YAMLS[args.env])
+        config = mm.utils.read_config(FINAL_YAMLS[args.env])
         make_plot(config, HYPER_PARETOS[args.env])

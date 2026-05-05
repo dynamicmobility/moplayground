@@ -339,10 +339,10 @@ def make_amor_value_network(
     obs_key                   : str = 'state',
 ) -> networks.FeedForwardNetwork:
     """AMOR value network: input is concat(normalized_obs, raw_directive),
-    output is a scalar (squeezed) value, matching MORLAX's value contract so the
-    standard scalar PPO GAE/loss can be used with directive-scalarized rewards."""
+    output is a vector of length ``num_objectives`` — one expected return per
+    objective. The directive-scalarized advantage is formed in the loss."""
     value_module = networks.MLP(
-        layer_sizes = list(hidden_layer_sizes) + [1],
+        layer_sizes = list(hidden_layer_sizes) + [num_objectives],
         activation  = activation,
         kernel_init = jax.nn.initializers.lecun_uniform(),
     )
@@ -351,7 +351,7 @@ def make_amor_value_network(
         x = _amor_normalize_and_concat(
             obs, directive, processor_params, preprocess_observations_fn, obs_key
         )
-        return jnp.squeeze(value_module.apply(value_params, x), axis=-1)
+        return value_module.apply(value_params, x)
 
     obs_dim = networks._get_obs_state_size(obs_size, obs_key)
     augmented_dim = obs_dim + num_objectives

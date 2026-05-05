@@ -48,19 +48,19 @@ def load_mo_policy(
     elif algo == 'amor':
         if network_factory is None:
             network_factory = make_amor_networks
-        amor_inference_fn, params = load_amor_inference_fn(
+        make_amor_inference_fn, params = load_make_amor_inference_fn(
             config,
             network_factory,
         )
         # checkpoint stores (normalizer, policy, value); inference uses (normalizer, policy).
         normalizer_params, policy_params = params[0], params[1]
-        raw_policy = amor_inference_fn(
+        amor_inference_fn = make_amor_inference_fn(
             params        = (normalizer_params, policy_params),
             deterministic = deterministic,
         )
         tradeoff_jnp = jax.numpy.asarray(tradeoff)
         def policy(obs, key):
-            return raw_policy(obs, tradeoff_jnp, key)
+            return amor_inference_fn(obs, tradeoff_jnp, key)
         return policy
     else:
         raise ValueError(f"Unknown algorithm '{algo}' in config.")
@@ -125,7 +125,7 @@ def load_amor_networks(
     return amor_networks, saved_params
 
 
-def load_amor_inference_fn(
+def load_make_amor_inference_fn(
     config,
     network_factory = make_amor_networks,
     path = None,

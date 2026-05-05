@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
 import moplayground as mop
-
+import minimal_mjx as mm
 
 def get_pareto_rollout(env, N_STEPS, make_policy):
     policy_rng = jax.random.PRNGKey(0)
@@ -15,11 +15,11 @@ def get_pareto_rollout(env, N_STEPS, make_policy):
         new_state = env.step(state, action)
         return (new_state, old_reward + new_state.reward * (1 - new_state.done)), None
     
-    def rollout(key, tradeoff, params):
+    def rollout(key, directive, params):
         policy = make_policy(
             params        = params,
             deterministic = True,
-            tradeoff     = tradeoff,
+            directive     = directive,
         )
         scan_step_fn = functools.partial(
             step_fn,
@@ -32,18 +32,18 @@ def get_pareto_rollout(env, N_STEPS, make_policy):
     run_rollouts = jax.jit(jax.vmap(rollout, in_axes=(0, 0, None)))
     return run_rollouts
 
-def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, only_final=False):
+def get_morlax_fronts(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, only_final=False):
     rewards_over_iters = []
     keys = jax.random.split(rng, NUM_ENVS)
     NUM_OBJS = len(config['env_config']['reward']['optimization']['objectives'])
     tradeoffs = jax.random.dirichlet(rng, alpha=np.ones(NUM_OBJS), shape=(NUM_ENVS,))
-    model_files = mop.learning.inference.get_all_models(config)
+    model_files = mm.learning.inference.get_all_models(config)
     if only_final:
         model_files = [model_files[-1]]
-    make_policy, _ = mop.learning.inference.load_hypernetwork(config, path=model_files[0])
+    make_policy, _ = mop.learning.inference.load_hypernetwork_inference_fn(config, path=model_files[0])
     run_rollouts = get_pareto_rollout(env, N_STEPS, make_policy)
     for i, file in enumerate(tqdm(model_files)):
-        _, hyperparams = mop.learning.inference.load_hypernetwork(config, path=file)
+        _, hyperparams = mop.learning.inference.load_hypernetworks(config, path=file)
         (_, rewards), _ = run_rollouts(keys, tradeoffs, hyperparams)
         rewards_over_iters.append(rewards)
         if save_results:
@@ -57,41 +57,38 @@ def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, onl
         rewards_over_iters.shape[0], 
         axis=0
     )
-
-def run_experiments(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, only_final=False):
-    def step_fn(carry, x, policy):
-        state, old_reward = carry
-        action, _ = policy(state.obs, rng)
-        new_state = env.step(state, action)
-        return (new_state, old_reward + new_state.reward * (1 - new_state.done)), None
     
-    def rollout(key, tradeoff, params):
-        policy = make_policy(
-            params        = params,
-            deterministic = True,
-            tradeoff     = tradeoff,
-        )
-        scan_step_fn = functools.partial(
-            step_fn,
-            policy=policy
-        )
-        state = env.reset(key)
-        carry = (state, state.reward)
-        return jax.lax.scan(scan_step_fn, carry, (), N_STEPS)
+def get_amor_fronts(config, rng, env, N_STEPS, NUM_ENVS, save_results=False, only_final=False):
     
-    run_rollouts = jax.jit(jax.vmap(rollout, in_axes=(0, 0, None)))
-
-    rewards_over_iters = []
+    
+    def make_amor_so_policy(_make_amor_inference_fn, params, deterministic, directive):
+        # checkpoint stores (normalizer, policy, value); inference uses (normalizer, policy).
+        normalizer_params, policy_params = params[0], params[1]
+        amor_inference_fn = _make_amor_inference_fn(
+            params        = (normalizer_params, policy_params),
+            deterministic = deterministic,
+        )
+        tradeoff_jnp = jax.numpy.asarray(directive)
+        def policy(obs, key):
+            return amor_inference_fn(obs, tradeoff_jnp, key)
+    
+        return policy
+    
     keys = jax.random.split(rng, NUM_ENVS)
     NUM_OBJS = len(config['env_config']['reward']['optimization']['objectives'])
     tradeoffs = jax.random.dirichlet(rng, alpha=np.ones(NUM_OBJS), shape=(NUM_ENVS,))
-    print(tradeoffs.shape)
-    model_files = mop.learning.inference.get_all_models(config)
+    model_files = mm.learning.inference.get_all_models(config)
     if only_final:
         model_files = [model_files[-1]]
+        
+    make_amor_inference_fn, _ = mop.learning.inference.load_make_amor_inference_fn(config, path=model_files[0])
+    make_policy = functools.partial(make_amor_so_policy, make_amor_inference_fn)
+    run_rollouts = get_pareto_rollout(env, N_STEPS, make_policy)
+    
+    rewards_over_iters = []
     for i, file in enumerate(tqdm(model_files)):
-        make_policy, hyperparams = mop.learning.inference.load_hypernetwork(config, path=file)
-        (_, rewards), _ = run_rollouts(keys, tradeoffs, hyperparams)
+        _, params = mop.learning.inference.load_make_amor_inference_fn(config, path=file)
+        (_, rewards), _ = run_rollouts(keys, tradeoffs, params)
         rewards_over_iters.append(rewards)
         if save_results:
             pd.DataFrame.from_dict(

@@ -1,5 +1,5 @@
-name: bigger-network
-save_dir: accepted-results/may/3/
+name: amor-run
+save_dir: accepted-results/may/4/
 description: ''
 algorithm: amor #morlax
 env: MOCheetah
@@ -33,7 +33,7 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        [['run'], ['energy'], ['height']]
+      objectives:        [['run'], ['energy']]
       shared_objectives: ['alive']
       labels:            ['Running Speed', 'Energy Efficiency', 'Height']
   termination:
@@ -80,5 +80,5 @@ learning_params:
       sampling: sparse-heavytail
       warmup_frac: 0.0
     network_params:
-      policy_hidden_layer_sizes: [512, 512, 512]
-      value_hidden_layer_sizes:  [512, 512, 512]
+      policy_hidden_layer_sizes: [256, 256, 256]
+      value_hidden_layer_sizes:  [256, 256, 256]
