@@ -1,20 +1,19 @@
-name: morlax-run-ant-envs1024-batch64-discount99
+name: amor-run-hopper-long
 save_dir: accepted-results/may/4/
-description: ""
-algorithm: morlax
-env: "MOAnt"
-robot: "DMHopper"
+description: N/A
+env: MOHopper
+algorithm: amor #morlax
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false
-  weighting: [0.5, 0.5]
+  weighting: [1.0, 0.0]
   network_params:
     policy_hidden_layer_sizes: [64, 64]
     value_hidden_layer_sizes:  [64, 64]
 env_config:
   ctrl_dt: 0.01
-  sim_dt: 0.01
-  action_scale: 1.0
+  sim_dt: 0.005
+  action_scale: 3.0
   history_length: 5
   ideal_base_height: 0.5
   ideal_base_vel: 0.5
@@ -23,10 +22,11 @@ env_config:
   add_random_pitch: False
   reward:
     weights: 
-      vx:         1.0
-      vy:         1.0
-      energy:     0.5
+      run:        1.5
+      jump:       12.0
+      ctrl_cost: -0.0002
       alive:      1.0
+      upright:    4.0
       done:       0
     sigmas:
       height:     0.01
@@ -34,31 +34,30 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        [['vx'], ['vy']]
-      shared_objectives: ['alive', 'energy']
-      labels:            ['$x$ velocity', '$y$ velocity']
+      objectives:        [['run'], ['jump']]
+      shared_objectives: ['alive', 'ctrl_cost']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
 learning_params:
   base_ppo_params:
     action_repeat: 1
-    batch_size: 64
+    batch_size: 32
     clipping_epsilon: 0.2
     deterministic_eval: true
     discounting: 0.99
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.00002
+    learning_rate: 0.000001
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024
     num_evals: 15
-    num_minibatches: 16
-    num_timesteps: 200000000
+    num_minibatches: 32
+    num_timesteps: 6000000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
-    unroll_length: 20
+    unroll_length: 30
   morlax_params:
     train_fn_params:
       alpha: 1.0
@@ -73,12 +72,12 @@ learning_params:
       value_hidden_layer_sizes:  [64, 64]
     warmup_params:
       enabled: false
-      policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml      
+      policy: results/MOHopper-as-so/warm-start/test/config.yaml
   amor_params:
     train_fn_params:
       alpha: 1.0
       k: 8
-      sampling: dense
+      sampling: sparse-heavytail
       warmup_frac: 0.0
     network_params:
       policy_hidden_layer_sizes: [256, 256, 256]

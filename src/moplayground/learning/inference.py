@@ -69,12 +69,13 @@ def load_mo_policy(
 def load_hypernetworks(
     config,
     network_factory = make_morlax_networks,
-    path = None
+    path = None,
+    quiet = True
 ) -> tuple[mop.moppo.factory.MORLAXNetworks, dict]:
     """Loads the MOPPO object"""
     if path is None:
         path = mm.learning.inference.get_last_model(config)
-    print(f'Loading model at {path.as_posix()}')
+    if not quiet: print(f'Loading model at {path.as_posix()}')
     fullpath = path.resolve()
 
     fullpath = epath.Path(fullpath)
@@ -106,11 +107,12 @@ def load_amor_networks(
     config,
     network_factory = make_amor_networks,
     path = None,
+    quiet = True
 ) -> tuple:
     """Load AMOR networks + saved (normalizer, policy, value) params."""
     if path is None:
         path = mm.learning.inference.get_last_model(config)
-    print(f'Loading model at {path.as_posix()}')
+    if not quiet: print(f'Loading model at {path.as_posix()}')
     fullpath = epath.Path(path.resolve())
     params_config = checkpoint.load_config(fullpath)
     saved_params = checkpoint.load(fullpath)

@@ -1,6 +1,6 @@
 import os
 os.environ["MUJOCO_GL"] = "egl"
-os.environ['JAX_PLATFORMS']='cpu'
+# os.environ['JAX_PLATFORMS']='cpu'
 from minimal_mjx.utils.setupGPU import run_setup
 from pathlib import Path
 import jax
@@ -30,7 +30,7 @@ if __name__ == '__main__':
             rng             = jax.random.PRNGKey(0),
             env             = mop.envs.create_environment(config, for_training=True)[0],
             N_STEPS         = 500,
-            NUM_ENVS        = 2**4, #10,
+            NUM_ENVS        = 2**10,
             save_results    = True
         )
     elif args.algo == 'amor':
@@ -39,6 +39,6 @@ if __name__ == '__main__':
             rng             = jax.random.PRNGKey(0),
             env             = mop.envs.create_environment(config, for_training=True)[0],
             N_STEPS         = 500,
-            NUM_ENVS        = 2**4, #10,
+            NUM_ENVS        = 2**10,
             save_results    = True
         )

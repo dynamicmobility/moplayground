@@ -1,14 +1,15 @@
-name: just-run-with-energy
-save_dir: "playground-results/SO-MOHumanoid-again"
-description: ""
-algorithm: "ppo"
-env: "MOPlayground-Humanoid"
-robot: "Humanoid"
-backend: "np" # jnp or np. Always uses jnp for training 
+name: lower-lr-shorter
+save_dir: results/MOWalker
+description: N/A
+env: MOWalker
+backend: np # jnp or np. Always uses jnp for training
+mo2so:
+  enabled: false
+  weighting: [0.5, 0.5]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005
-  action_scale: 1.0
+  action_scale: 3.0
   history_length: 5
   ideal_base_height: 0.5
   ideal_base_vel: 0.5
@@ -17,9 +18,9 @@ env_config:
   add_random_pitch: False
   reward:
     weights: 
-      run:        3.00
-      energy:     1.00
-      alive:      0.50
+      run:        1.0
+      energy:     1.0
+      alive:      1.0
       done:       0
     sigmas:
       height:     0.01
@@ -27,8 +28,9 @@ env_config:
       energy:     0.1
       imitation:  0.03
     optimization:
-      objectives:        ['run', 'energy']
+      objectives:        [['run'], ['energy']]
       shared_objectives: ['alive']
+      labels:            ['Running Speed', 'Energy Efficiency']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
@@ -36,25 +38,33 @@ learning_params:
   ppo_params:
     action_repeat: 1
     batch_size: 64
-    clipping_epsilon: 0.2
-    discounting: 0.99
+    clipping_epsilon: 0.15
+    deterministic_eval: true
+    discounting: 0.995
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.0003
+    learning_rate: 0.000006
     max_grad_norm: 1.0
     normalize_observations: true
-    num_envs: 512
+    num_envs: 1024
     num_evals: 15
-    num_minibatches: 8
+    num_minibatches: 16
     num_timesteps: 150000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30
   hypermorl_params:
-    warmup_frac: 0.25
     alpha: 1.0
-    sampling: sparse-heavytail
     k: 6
+    sampling: sparse-heavytail
+    warmup_frac: 0.0
+  warmup_params:
+    enabled: false
+    policy: ppo-hypernet/SO-MOHopper/longer-length-002-lr/config.yaml
   network_params:
     policy_hidden_layer_sizes: [64, 64]
     value_hidden_layer_sizes:  [64, 64]
+  hypernetwork_params:
+    hypertype: ActorCritic
+    hypersize: [128, 128]
+    num_features: 16

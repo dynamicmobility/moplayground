@@ -24,7 +24,6 @@ mpl.rcParams.update({
     "legend.frameon"        : False,
 })
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import moplayground as mop
 import minimal_mjx as mm
@@ -35,52 +34,54 @@ from ral import FINAL_YAMLS, HYPER_PARETOS
 
 FIGSIZE = (2, 2.0)
 
-def make_plot(config, hyper_path):
+
+def read_final_front(config):
     obj_files = list(Path(config['save_dir'], config['name']).glob('obj*.txt'))
     obj_files.sort(key=lambda x: int(x.name[3:].split('.')[0]))
-    morlax_df       = pd.read_csv(obj_files[-1])
-    morlax_F        = morlax_df.iloc[:, 1:].values
-    morlax_F_max    = morlax_F[mop.utils.pareto.get_nondominated(morlax_F)]
+    F = pd.read_csv(obj_files[-1]).iloc[:, 1:].values
+    return F, F[mop.utils.pareto.get_nondominated(F)]
 
 
-    hyper_df      = pd.read_csv(hyper_path)
-    hyper_F       = hyper_df.iloc[:, 1:].values
-    hyper_F_max   = hyper_F[mop.utils.pareto.get_nondominated(hyper_F)]
+def read_hyper_front(hyper_path):
+    F = pd.read_csv(hyper_path).iloc[:, 1:].values
+    return F, F[mop.utils.pareto.get_nondominated(F)]
+
+
+def scatter_front(ax, F, F_nd, color, label):
+    ax.scatter(F[:, 0], F[:, 1], s=3, color=color, alpha=0.15, label=label)
+    ax.scatter(F_nd[:, 0], F_nd[:, 1], s=15, color=color, edgecolors='black',
+               label=f'{label} non-dominated')
+
+
+def make_plot(env, morlax_config, amor_config, hyper_path):
+    morlax_F, morlax_F_nd = read_final_front(morlax_config)
+    amor_F, amor_F_nd     = read_final_front(amor_config)
+    hyper_F, hyper_F_nd   = read_hyper_front(hyper_path)
 
     fig, ax = plt.subplots(figsize=FIGSIZE)
-    ax.scatter(morlax_df['obj0'], morlax_df['obj1'], s=3, color=[0, 0, 1], alpha=0.15, label='MORLaX')
-    ax.scatter(*(morlax_F_max.T), s=15, color=[0, 0, 1], edgecolors='black', label='MORLaX non-dominated')
-    ax.scatter(hyper_df['0'], hyper_df['1'], s=3, color=[1, 0, 0], alpha=0.15, label='HYPER-MORL')
-    ax.scatter(*(hyper_F_max.T), s=15, color=[1, 0, 0], edgecolors='black', label='HYPER-MORL non-dominated')
+    scatter_front(ax, morlax_F, morlax_F_nd, [0, 0, 1], 'MORLaX')
+    scatter_front(ax, amor_F,   amor_F_nd,   [0, 0.6, 0], 'AMOR')
+    scatter_front(ax, hyper_F,  hyper_F_nd,  [1, 0, 0], 'HYPER-MORL')
 
-    ax.set_xlabel(f'{config['env_config']['reward']['optimization']['labels'][0]}')
-    ax.set_ylabel(f'{config['env_config']['reward']['optimization']['labels'][1]}')
-    # ax.set_xlim((0, None))
-    # ax.set_ylim((0, None))
-    # ax.legend()
-    # ax.set_aspect('equal')
+    labels = morlax_config['env_config']['reward']['optimization']['labels']
+    ax.set_xlabel(labels[0])
+    ax.set_ylabel(labels[1])
 
-    fig.subplots_adjust(
-        left=0.3,    # 20% from left
-        right=0.9,   # 90% from left
-        top=0.8,     # 90% from bottom
-        bottom=0.2   # 20% from bottom
-    )
+    fig.subplots_adjust(left=0.3, right=0.9, top=0.8, bottom=0.2)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
-    ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    # fig.suptitle(f'{config['env']}')
+    ax.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
+    ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
 
-    # fig.set_size_inches((5, 5))
-    # ax.set_position([0.15, 0.15, 0.75, 0.75])
-    # fig.tight_layout()
-    # ax.locator_params(axis='x', nbins=5)
-    # ax.locator_params(axis='y', nbins=5)
-    save_path = f'ral/plots/{config['env']}_overlayed_pareto.svg'
+    save_path = f'ral/plots/{env}_overlayed_pareto.svg'
     fig.savefig(save_path)
     print(f'Saving to {save_path}')
 
+
+def run(env):
+    morlax_config = mm.utils.read_config(FINAL_YAMLS['morlax'][env])
+    amor_config   = mm.utils.read_config(FINAL_YAMLS['amor'][env])
+    make_plot(env, morlax_config, amor_config, HYPER_PARETOS[env])
 
 
 if __name__ == '__main__':
@@ -88,11 +89,9 @@ if __name__ == '__main__':
     parser.add_argument("env", type=str, help="Env to train on")
     args = parser.parse_args()
     if args.env == 'all':
-        for key in FINAL_YAMLS:
-            if 'bruce' in key: continue
-            config = mm.utils.read_config(FINAL_YAMLS[key])
-            make_plot(config, HYPER_PARETOS[key])
+        for env in HYPER_PARETOS:
+            if FINAL_YAMLS['amor'].get(env, 'n/a') == 'n/a':
+                continue
+            run(env)
     else:
-        print('here')
-        config = mm.utils.read_config(FINAL_YAMLS[args.env])
-        make_plot(config, HYPER_PARETOS[args.env])
+        run(args.env)

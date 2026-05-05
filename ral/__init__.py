@@ -3,7 +3,7 @@ MORLAX_FINAL_YAMLS = {
     'hopper'    : 'results/MOHopper/clean-front/back-to-small-network/config.yaml',
     'walker'    : 'results/MOWalker/lower-lr-shorter/config.yaml',
     'humanoid'  : 'config/mohumanoid.yaml',
-    'ant'       : 'config/moant.yaml',
+    'ant'       : 'accepted-results/may/4/morlax-run-ant-envs1024-batch64-discount99/config.yaml',
     'bruce5D'   : 'bruce-results/5D/jt-debugging/test/config.yaml',
     'bruce6D'   : 'bruce-results/6D/normal-sigmas/tuned-energy/config.yaml',
     'bruce6D+DR': 'bruce-results/6D/dr-first-try/longer-more-aggressive/config.yaml'
@@ -11,10 +11,10 @@ MORLAX_FINAL_YAMLS = {
 
 AMOR_FINAL_YAMLS = {
     'cheetah'   : 'accepted-results/may/4/amor-run/config.yaml',
-    'hopper'    : 'n/a',
+    'hopper'    : 'accepted-results/may/4/amor-run-hopper/config.yaml',
     'walker'    : 'n/a',
     'humanoid'  : 'n/a',
-    'ant'       : 'n/a',
+    'ant'       : 'accepted-results/may/4/amor-run-ant/config.yaml',
     'bruce5D'   : 'n/a',
     'bruce6D'   : 'n/a',
     'bruce6D+DR': 'n/a',
