@@ -1,7 +1,7 @@
 name: amor-run
 save_dir: accepted-results/may/4/
 description: ''
-algorithm: amor #morlax
+algorithm: morlax
 env: MOCheetah
 backend: np # jnp or np. Always uses jnp for training
 mo2so:

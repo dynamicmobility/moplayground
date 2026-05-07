@@ -72,21 +72,31 @@ if __name__ == '__main__':
     max_hyper_hv        = np.max(hyperdf['hypervolume'].values)
     max_morlax_hv       = np.max(morlax_statistics[0])
     max_amor_hv         = np.max(amor_statistics[0])
-    hyper_finish_line   = np.argmax(hyperdf['hypervolume'].values)
-    hyper_idx_finish    = np.argmax(hyperdf['hypervolume'].values >= max_hyper_hv)
-    morlax_idx_finish   = np.argmax(np.array(morlax_statistics[0]) >= max_hyper_hv)
-    print('MORLAX idx finish:', morlax_idx_finish)
-    amor_idx_finish     = np.argmax(np.array(amor_statistics[0]) >= max_hyper_hv)
+
+    
+    if max_amor_hv < max_hyper_hv:
+        min_algo = 'amor'
+        min_hv = max_amor_hv
+    else:
+        min_algo = 'hyper'
+        min_hv = max_hyper_hv
+    
+    hyper_finish        = np.argmax(hyperdf['hypervolume'].values >= min_hv)
+    hyper_idx_finish    = np.argmax(hyperdf['hypervolume'].values >= min_hv)
+    morlax_idx_finish   = np.argmax(np.array(morlax_statistics[0]) >= min_hv)
+    amor_idx_finish     = np.argmax(np.array(amor_statistics[0]) >= min_hv)
 
     MORLAX_duration     = morlax_progress['times'].iloc[morlax_idx_finish] - morlax_progress['times'].iloc[0]
     AMOR_duration       = amor_progress['times'].iloc[amor_idx_finish] - amor_progress['times'].iloc[0]
     HYPER_duration      = hyperdf['seconds'].iloc[hyper_idx_finish]
     
-    print('MORLAX finish time', MORLAX_duration)
-    print('AMOR finish time', AMOR_duration)
-    print('HYPER-MORL finish time', HYPER_duration)
-    print('Speedup factor from HYPER-MORL:', HYPER_duration / MORLAX_duration)
-    print('Speedup factor from AMOR:', AMOR_duration / MORLAX_duration)
+    print('---')
+    print('Smallest Max HV Algo =', min_algo)
+    print('MORLAX finish time',     round(MORLAX_duration, 1))
+    print('AMOR finish time',       round(AMOR_duration, 1))
+    print('HYPER-MORL finish time', round(HYPER_duration, 1))
+    print('Speedup factor HYPER-MORL vs MORLAX:', HYPER_duration / MORLAX_duration)
+    print('Speedup factor from AMOR vs MORLAX:', AMOR_duration / MORLAX_duration)
     print('---')
     print('Max hypervolume (MORLAX):', f'{max_morlax_hv:.2e}')
     print('Max hypervolume (AMOR):', f'{max_amor_hv:.2e}')
@@ -96,14 +106,16 @@ if __name__ == '__main__':
     print('MORLAX improvement over HYPER-MORL:', f'{hypermorl_improvement_ratio:.2f}x')
     print('MORLAX improvement over AMOR:', f'{amor_improvement_ratio:.2f}x')
     print('---')
-    total_morlax_time = morlax_progress['times'].iloc[np.argmax(morlax_statistics[0])] - morlax_progress['times'].iloc[0]
-    total_amor_time = amor_progress['times'].iloc[np.argmax(amor_statistics[0])] - amor_progress['times'].iloc[0]
+    best_morlax_hv = np.argmax(morlax_statistics[0])
+    best_amor_hv = np.argmax(amor_statistics[0])
+    total_morlax_time = morlax_progress['times'].iloc[best_morlax_hv] - morlax_progress['times'].iloc[0]
+    total_amor_time = amor_progress['times'].iloc[best_amor_hv] - amor_progress['times'].iloc[0]
     total_hyper_time = hyperdf['seconds'].iloc[np.argmax(hyperdf['hypervolume'].values)]
-    print('Total time (MORLAX):', total_morlax_time)
-    print('Total time (AMOR):', total_amor_time)
+    print('Total time (MORLAX):', total_morlax_time, best_morlax_hv)
+    print('Total time (AMOR):', total_amor_time, best_amor_hv)
     print('Total time (HYPER-MORL):', total_hyper_time)
     print('---')
-    print('Final sparsity (MORLAX):', f'{morlax_statistics[1][np.argmin(morlax_statistics[1][7:])]:.3f}')
+    print('Final sparsity (MORLAX):', f'{morlax_statistics[1][np.argmax(morlax_statistics[0])]:.3f}')
     print('Final sparsity (AMOR):', f'{amor_statistics[1][np.argmax(amor_statistics[0])]:.3f}')
     print('Final sparsity (HYPER-MORL):', f'{hyperdf["sparsity"].iloc[np.argmax(hyperdf["hypervolume"].values)]:.3f}')
 

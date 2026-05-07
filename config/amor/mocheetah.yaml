@@ -1,5 +1,5 @@
-name: amor-run
-save_dir: accepted-results/may/4/
+name: cheetah
+save_dir: accepted-results/amor_final/
 description: ''
 algorithm: amor #morlax
 env: MOCheetah
@@ -77,7 +77,7 @@ learning_params:
     train_fn_params:
       alpha: 1.0
       k: 8
-      sampling: sparse-heavytail
+      sampling: dense
       warmup_frac: 0.0
     network_params:
       policy_hidden_layer_sizes: [256, 256, 256]

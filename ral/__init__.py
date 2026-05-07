@@ -10,11 +10,11 @@ MORLAX_FINAL_YAMLS = {
 }
 
 AMOR_FINAL_YAMLS = {
-    'cheetah'   : 'accepted-results/may/4/amor-run/config.yaml',
+    'cheetah'   : 'accepted-results/amor_final/cheetah/config.yaml',
     'hopper'    : 'accepted-results/may/4/amor-run-hopper/config.yaml',
-    'walker'    : 'n/a',
-    'humanoid'  : 'n/a',
-    'ant'       : 'accepted-results/may/4/amor-run-ant/config.yaml',
+    'walker'    : 'accepted-results/may/6/amor-walker-try-much-longer/config.yaml',
+    'humanoid'  : 'accepted-results/may/6/amor-humanoid-try/config.yaml',
+    'ant'       : 'accepted-results/may/6/amor-ant-trial-long4/config.yaml',
     'bruce5D'   : 'n/a',
     'bruce6D'   : 'n/a',
     'bruce6D+DR': 'n/a',

@@ -1,11 +1,15 @@
-name: with-tuned-height-reward
-save_dir: /home/njanwani/Documents/PbMORL/ppo-hypernet/MOHumanoid-qfrc
+name: amor-humanoid-try
+save_dir: accepted-results/may/6/
 description: N/A
+algorithm: amor #morlax
 env: MOHumanoid
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false
   weighting: [0.0, 0.5]
+  network_params:
+      policy_hidden_layer_sizes: [128, 128]
+      value_hidden_layer_sizes:  [128, 128]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005
@@ -35,7 +39,7 @@ env_config:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
 learning_params:
-  ppo_params:
+  base_ppo_params:
     action_repeat: 1
     batch_size: 64
     clipping_epsilon: 0.1
@@ -49,22 +53,31 @@ learning_params:
     num_envs: 1024
     num_evals: 15
     num_minibatches: 16
-    num_timesteps: 400000000
+    num_timesteps: 800000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30
-  hypermorl_params:
-    alpha: 1.0
-    k: 6
-    sampling: sparse-heavytail
-    warmup_frac: 0.0
-  warmup_params:
-    enabled: false
-    policy: ppo-hypernet/SO-MOHopper/longer-length-002-lr/config.yaml
-  network_params:
-    policy_hidden_layer_sizes: [128, 128]
-    value_hidden_layer_sizes:  [128, 128]
-  hypernetwork_params:
-    hypertype: ActorCritic
-    hypersize: [512, 512]
-    num_features: 32
+  morlax_params:
+    train_fn_params:
+      alpha: 1.0
+      k: 8
+      sampling: sparse-heavytail
+      warmup_frac: 0.0
+    network_params:
+      hypertype: ActorCritic
+      hypersize: [512, 512]
+      num_features: 32
+      policy_hidden_layer_sizes: [128, 128]
+      value_hidden_layer_sizes:  [128, 128]
+    warmup_params:
+      enabled: false
+      policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml      
+  amor_params:
+    train_fn_params:
+      alpha: 1.0
+      k: 8
+      sampling: dense
+      warmup_frac: 0.0
+    network_params:
+      policy_hidden_layer_sizes: [512, 512, 512]
+      value_hidden_layer_sizes:  [512, 512, 512]

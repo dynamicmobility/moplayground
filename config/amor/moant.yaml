@@ -1,7 +1,7 @@
-name: morlax-run-ant-envs1024-batch64-discount99
-save_dir: accepted-results/may/4/
+name: amor-ant-trial-long4
+save_dir: accepted-results/may/6/
 description: ""
-algorithm: morlax
+algorithm: amor
 env: "MOAnt"
 robot: "DMHopper"
 backend: np # jnp or np. Always uses jnp for training
@@ -55,7 +55,7 @@ learning_params:
     num_envs: 1024
     num_evals: 15
     num_minibatches: 16
-    num_timesteps: 200000000
+    num_timesteps: 400000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 20
