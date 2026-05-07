@@ -1,8 +1,8 @@
-name: amor-run
-save_dir: accepted-results/may/4/
-description: ''
-algorithm: morlax
-env: MOCheetah
+name: amor-walker-try-much-longer
+save_dir: accepted-results/may/6/
+description: N/A
+algorithm: amor #morlax
+env: MOWalker
 backend: np # jnp or np. Always uses jnp for training
 mo2so:
   enabled: false
@@ -12,8 +12,8 @@ mo2so:
     value_hidden_layer_sizes:  [64, 64]
 env_config:
   ctrl_dt: 0.01
-  sim_dt: 0.01
-  action_scale: 1.0
+  sim_dt: 0.005
+  action_scale: 3.0
   history_length: 5
   ideal_base_height: 0.5
   ideal_base_vel: 0.5
@@ -23,7 +23,6 @@ env_config:
   reward:
     weights: 
       run:        1.0
-      height:     10.0
       energy:     1.0
       alive:      1.0
       done:       0
@@ -35,7 +34,7 @@ env_config:
     optimization:
       objectives:        [['run'], ['energy']]
       shared_objectives: ['alive']
-      labels:            ['Running Speed', 'Energy Efficiency', 'Height']
+      labels:            ['Running Speed', 'Energy Efficiency']
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
@@ -43,21 +42,21 @@ learning_params:
   base_ppo_params:
     action_repeat: 1
     batch_size: 64
-    clipping_epsilon: 0.1
+    clipping_epsilon: 0.15
     deterministic_eval: true
-    discounting: 0.98
+    discounting: 0.995
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.0005
+    learning_rate: 0.000006
     max_grad_norm: 1.0
     normalize_observations: true
-    num_envs: 128
+    num_envs: 1024
     num_evals: 15
-    num_minibatches: 2
-    num_timesteps: 50000000
+    num_minibatches: 16
+    num_timesteps: 450000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
-    unroll_length: 20
+    unroll_length: 30
   morlax_params:
     train_fn_params:
       alpha: 1.0
@@ -77,7 +76,7 @@ learning_params:
     train_fn_params:
       alpha: 1.0
       k: 8
-      sampling: sparse-heavytail
+      sampling: dense
       warmup_frac: 0.0
     network_params:
       policy_hidden_layer_sizes: [256, 256, 256]

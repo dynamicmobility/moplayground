@@ -18,6 +18,7 @@ from brax.training.agents.ppo import checkpoint
 
 import moplayground as mop
 from moplayground.moppo import morlax
+from moplayground.moppo import amor
 from moplayground.moppo import factory
 from moplayground.envs.generic import mobase
 from moplayground.learning.wrappers import MultiObjectiveEpisodeWrapper
@@ -51,8 +52,25 @@ def setup_morlax(config):
     return train_fn, network_factory
 
 def setup_amor(config):
-    pass
-    
+    general_ppo_params = config.learning_params.base_ppo_params
+    amor_algo_params   = config.learning_params.amor_params.train_fn_params
+    network_params     = config.learning_params.amor_params.network_params
+
+    train_fn_params = dict(general_ppo_params) | dict(amor_algo_params)
+
+    network_factory = functools.partial(
+        factory.make_amor_networks,
+        **network_params
+    )
+
+    train_fn = functools.partial(
+        amor.train, **dict(train_fn_params),
+        network_factory=network_factory,
+    )
+
+    return train_fn, network_factory
+
+
 def create_training_directory(config):
     output_dir = Path(config['save_dir']) / config['name']
     os.makedirs(output_dir, exist_ok=config['name'] == 'test')
@@ -67,12 +85,18 @@ def create_training_directory(config):
 
     return output_dir
 
+_ALGO_HANDLERS = {
+    'morlax': setup_morlax,
+    'amor':   setup_amor,
+}
+
+
 def train_policy(
-    config, 
-    env, 
-    eval_env, 
-    run=None, 
-    handle_params=setup_morlax,
+    config,
+    env,
+    eval_env,
+    run=None,
+    handle_params=None,
 ):
     """Train a policy on the given environment.
 
@@ -97,8 +121,15 @@ def train_policy(
     """
     mm.utils.setupGPU.run_setup()
     config = mm.utils.config.create_config_dict(config)
-    
+
     output_dir = create_training_directory(config)
+    if handle_params is None:
+        algo = config.algorithm
+        if algo not in _ALGO_HANDLERS:
+            raise ValueError(
+                f"Unknown algorithm '{algo}'. Expected one of {list(_ALGO_HANDLERS)}."
+            )
+        handle_params = _ALGO_HANDLERS[algo]
     train_fn, network_factory = handle_params(config)
 
     if config.mo2so.enabled:

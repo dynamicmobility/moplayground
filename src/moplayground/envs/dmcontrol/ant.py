@@ -9,10 +9,7 @@ from moplayground.envs.generic.mobase import MultiObjectiveBase
 from moplayground.envs.dmcontrol.interface import AntInterface
 
 class MOAnt(MultiObjectiveBase):
-    """
-    Multi-Objective Ant Environment.
-    Objectives are vx by vy.
-    """
+    """Multi-Objective Ant Environment. Objectives are vx by vy."""
 
 
     def __init__(
