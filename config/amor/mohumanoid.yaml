@@ -64,7 +64,7 @@ learning_params:
       sampling: sparse-heavytail
       warmup_frac: 0.0
     network_params:
-      hypertype: ActorCritic
+      hypertype: dual
       hypersize: [512, 512]
       num_features: 32
       policy_hidden_layer_sizes: [128, 128]

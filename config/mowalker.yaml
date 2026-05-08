@@ -65,6 +65,6 @@ learning_params:
     policy_hidden_layer_sizes: [64, 64]
     value_hidden_layer_sizes:  [64, 64]
   hypernetwork_params:
-    hypertype: ActorCritic
+    hypertype: dual
     hypersize: [128, 128]
     num_features: 16

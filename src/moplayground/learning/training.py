@@ -71,14 +71,14 @@ def setup_amor(config):
     return train_fn, network_factory
 
 
-def create_training_directory(config):
+def create_training_directory(config, warn_github_changes=True):
     output_dir = Path(config['save_dir']) / config['name']
     os.makedirs(output_dir, exist_ok=config['name'] == 'test')
     
     # Save configuration
     config_save_path = Path(output_dir) / 'config.yaml'
     if config.name != 'test':
-        git_hash = mm.utils.config.get_commit_hash()
+        git_hash = mm.utils.config.get_commit_hash(warn=warn_github_changes)
         config.git_hash = git_hash
     with open(config_save_path, 'w') as f:
         yaml.dump(config.to_dict(), f)
@@ -97,6 +97,7 @@ def train_policy(
     eval_env,
     run=None,
     handle_params=None,
+    warn_github_changes=True,
 ):
     """Train a policy on the given environment.
 
@@ -122,7 +123,7 @@ def train_policy(
     mm.utils.setupGPU.run_setup()
     config = mm.utils.config.create_config_dict(config)
 
-    output_dir = create_training_directory(config)
+    output_dir = create_training_directory(config, warn_github_changes=warn_github_changes)
     if handle_params is None:
         algo = config.algorithm
         if algo not in _ALGO_HANDLERS:

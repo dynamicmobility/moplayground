@@ -190,22 +190,16 @@ def make_hypernetwork(
     target_value_dict  : dict = None,
 ):
     obs_dim = networks._get_obs_state_size(observation_size, policy_obs_key)
-    if hypertype == 'MLP':
-        hypernet = HypernetMLP(
-            target_model_dict = target_policy_dict,
-            num_objs          = num_objectives,
-            obs_dim           = obs_dim,
-            hypersize         = hypersize
+    if hypertype == 'single':
+        hypernet = ActorCriticHypernet(
+            target_policy_dict = target_policy_dict,
+            target_value_dict  = target_value_dict,
+            num_objs           = num_objectives,
+            obs_dim            = obs_dim,
+            hypersize          = hypersize,
+            num_features       = num_features
         )
-    elif hypertype == 'affine':
-        hypernet = Hypernet(
-            target_model_dict = target_policy_dict,
-            num_objs          = num_objectives,
-            obs_dim           = obs_dim,
-            hypersize         = hypersize,
-            num_features      = num_features
-        )
-    elif hypertype == 'ActorCritic':
+    elif hypertype == 'dual':
         hypernet = DualA2CHypernet(
             target_policy_dict = target_policy_dict,
             target_value_dict  = target_value_dict,
@@ -213,17 +207,9 @@ def make_hypernetwork(
             obs_dim            = obs_dim,
             hypersize          = hypersize,
             num_features       = num_features
-        )        
-    elif hypertype == 'fake':
-        print('WARNING. Fake Hypernetwork in use.')
-        hypernet = FakeHypernet(
-            target_model_dict = target_policy_dict,
-            num_objs          = num_objectives,
-            obs_dim           = obs_dim,
-            hypersize         = hypersize
         )
     else:
-        raise Exception(f'Invalid hypertype {hypertype}')
+        raise Exception(f'Invalid hypertype {hypertype}. Must be "single" or "dual".')
     
     dummy_pref = jnp.zeros(num_objectives)
     def init(key):
