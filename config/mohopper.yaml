@@ -1,5 +1,5 @@
 name: amor-run-hopper
-save_dir: accepted-results/may/4/
+save_dir: accepted-results/may/8/hopper-ablation
 description: N/A
 env: MOHopper
 algorithm: morlax

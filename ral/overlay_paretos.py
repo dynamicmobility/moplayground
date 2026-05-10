@@ -59,9 +59,9 @@ def make_plot(env, morlax_config, amor_config, hyper_path):
     hyper_F, hyper_F_nd   = read_hyper_front(hyper_path)
 
     fig, ax = plt.subplots(figsize=FIGSIZE)
-    scatter_front(ax, morlax_F, morlax_F_nd, [0, 0, 1], 'MORLaX')
     scatter_front(ax, amor_F,   amor_F_nd,   [0, 0.6, 0], 'AMOR')
     scatter_front(ax, hyper_F,  hyper_F_nd,  [1, 0, 0], 'HYPER-MORL')
+    scatter_front(ax, morlax_F, morlax_F_nd, [0, 0, 1], 'MORLaX')
 
     labels = morlax_config['env_config']['reward']['optimization']['labels']
     ax.set_xlabel(labels[0])

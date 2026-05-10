@@ -1,6 +1,7 @@
 MORLAX_FINAL_YAMLS = {
     'cheetah'   : 'results/MOCheetah/final/config.yaml',
-    'hopper'    : 'results/MOHopper/clean-front/back-to-small-network/config.yaml',
+    # 'hopper'    : 'results/MOHopper/clean-front/back-to-small-network/config.yaml',
+    'hopper'    : 'accepted-results/may/8/hopper-ablation/amor-run-hopper-h=dual-s=sparse-heavytail-k=16/config.yaml',
     'walker'    : 'results/MOWalker/lower-lr-shorter/config.yaml',
     'humanoid'  : 'config/mohumanoid.yaml',
     'ant'       : 'accepted-results/may/4/morlax-run-ant-envs1024-batch64-discount99/config.yaml',
