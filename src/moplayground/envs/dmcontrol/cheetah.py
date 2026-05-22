@@ -16,9 +16,10 @@ class MOCheetah(MultiObjectiveBase):
         self,
         env_params        : config_dict.ConfigDict,
         backend           : str,
+        xml_path          : str = CheetahInterface.XML,
     ):
         super().__init__(
-            xml_path          = CheetahInterface.XML,
+            xml_path          = xml_path,
             env_params        = env_params,
             backend           = backend,
         )
