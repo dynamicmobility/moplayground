@@ -283,25 +283,28 @@ class ActorCriticHypernet(nn.Module):
         # Wrap under "params" collection for Flax
         return {"params": nested_params}
 
-    def __call__(self, pref, single=False):
+    def __call__(self, pref):
+        single = len(pref.shape) == 1
         features = self.mlp(pref)
         flat_params = jnp.dot(features, self.W) + self.b
 
-        policy_flat_params = flat_params[:self.num_policy_params]
+        policy_flat_params = flat_params[..., :self.num_policy_params]
         policy_sort_params = self.unflatten_params(
             flat_params    = policy_flat_params,
             target_network = self.target_policy_info,
             single         = single
         )
 
-        value_flat_params  = flat_params[-self.num_value_params:]
+        value_flat_params  = flat_params[..., -self.num_value_params:]
         value_sort_params  = self.unflatten_params(
             flat_params    = value_flat_params,
             target_network = self.target_value_info,
             single         = single
         )
 
-        return policy_sort_params, value_sort_params
+        return ((policy_sort_params, value_sort_params),
+                (policy_flat_params, value_flat_params),
+                features)
     
     
 class DualA2CHypernet(nn.Module):

@@ -18,6 +18,7 @@ from brax.training.agents.ppo import checkpoint
 
 import moplayground as mop
 from moplayground.moppo import morlax
+from moplayground.moppo import amor
 from moplayground.moppo import factory
 from moplayground.envs.generic import mobase
 from moplayground.learning.wrappers import MultiObjectiveEpisodeWrapper
@@ -51,28 +52,52 @@ def setup_morlax(config):
     return train_fn, network_factory
 
 def setup_amor(config):
-    pass
-    
-def create_training_directory(config):
+    general_ppo_params = config.learning_params.base_ppo_params
+    amor_algo_params   = config.learning_params.amor_params.train_fn_params
+    network_params     = config.learning_params.amor_params.network_params
+
+    train_fn_params = dict(general_ppo_params) | dict(amor_algo_params)
+
+    network_factory = functools.partial(
+        factory.make_amor_networks,
+        **network_params
+    )
+
+    train_fn = functools.partial(
+        amor.train, **dict(train_fn_params),
+        network_factory=network_factory,
+    )
+
+    return train_fn, network_factory
+
+
+def create_training_directory(config, warn_github_changes=True):
     output_dir = Path(config['save_dir']) / config['name']
     os.makedirs(output_dir, exist_ok=config['name'] == 'test')
     
     # Save configuration
     config_save_path = Path(output_dir) / 'config.yaml'
     if config.name != 'test':
-        git_hash = mm.utils.config.get_commit_hash()
+        git_hash = mm.utils.config.get_commit_hash(warn=warn_github_changes)
         config.git_hash = git_hash
     with open(config_save_path, 'w') as f:
         yaml.dump(config.to_dict(), f)
 
     return output_dir
 
+_ALGO_HANDLERS = {
+    'morlax': setup_morlax,
+    'amor':   setup_amor,
+}
+
+
 def train_policy(
-    config, 
-    env, 
-    eval_env, 
-    run=None, 
-    handle_params=setup_morlax,
+    config,
+    env,
+    eval_env,
+    run=None,
+    handle_params=None,
+    warn_github_changes=True,
 ):
     """Train a policy on the given environment.
 
@@ -97,8 +122,15 @@ def train_policy(
     """
     mm.utils.setupGPU.run_setup()
     config = mm.utils.config.create_config_dict(config)
-    
-    output_dir = create_training_directory(config)
+
+    output_dir = create_training_directory(config, warn_github_changes=warn_github_changes)
+    if handle_params is None:
+        algo = config.algorithm
+        if algo not in _ALGO_HANDLERS:
+            raise ValueError(
+                f"Unknown algorithm '{algo}'. Expected one of {list(_ALGO_HANDLERS)}."
+            )
+        handle_params = _ALGO_HANDLERS[algo]
     train_fn, network_factory = handle_params(config)
 
     if config.mo2so.enabled:

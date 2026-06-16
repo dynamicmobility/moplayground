@@ -1,5 +1,5 @@
-name: test
-save_dir: accepted-results/may/3/
+name: cheetah3
+save_dir: accepted-results/may/8/cheetah-3
 description: ''
 algorithm: morlax
 env: MOCheetah
@@ -65,7 +65,7 @@ learning_params:
       sampling: sparse-heavytail
       warmup_frac: 0.0
     network_params:
-      hypertype: ActorCritic
+      hypertype: dual
       hypersize: [128, 128]
       num_features: 16
       policy_hidden_layer_sizes: [64, 64]
@@ -74,6 +74,11 @@ learning_params:
       enabled: false
       policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml      
   amor_params:
-    network_params: 
-      policy_hidden_layer_sizes: [64, 64]
-      value_hidden_layer_sizes:  [64, 64]
+    train_fn_params:
+      alpha: 1.0
+      k: 8
+      sampling: sparse-heavytail
+      warmup_frac: 0.0
+    network_params:
+      policy_hidden_layer_sizes: [256, 256, 256]
+      value_hidden_layer_sizes:  [256, 256, 256]

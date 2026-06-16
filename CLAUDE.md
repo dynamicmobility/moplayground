@@ -29,9 +29,41 @@ pip install -e .                             # install moplayground in editable 
 
 Train / roll out:
 ```bash
-python -m scripts.train                      # or: bash scripts/train.sh
-python -m scripts.rollout
+python -m scripts.train config/mocheetah.yaml   # pass YAML config path directly
+python -m scripts.rollout                       # or: bash scripts/train.sh
 ```
+
+Run a MORLAX ablation sweep (sequential, in-process, one wandb run per combo):
+```bash
+python -m scripts.ablation --base config/mocheetah.yaml \
+    --hypertypes single,dual \
+    --samplings dense,sparse-heavytail \
+    --ks 4,8,16
+```
+- `--hypertypes`: `single` (one shared feature MLP → both policy and value heads, via `ActorCriticHypernet`) and/or `dual` (separate feature MLPs per head, via `DualA2CHypernet`). These are the only valid `hypertype` values.
+- `--samplings`: any of `dense`, `sparse`, `sparse-heavytail`, `single-avg` (see `morlax.sample_preferences`). `dense` ignores `--ks`, so the driver dedupes it across k values.
+- `--ks`: comma-separated ints (number of Dirichlet samples for sparse / sparse-heavytail).
+- `--skip-existing`: skip combos whose `save_dir/name` directory is non-empty (lets you resume after a crash).
+- Each combo overrides `learning_params.morlax_params.network_params.hypertype`, `learning_params.morlax_params.train_fn_params.sampling`, `learning_params.morlax_params.train_fn_params.k`, and renames the run `{base_name}-h={hypertype}-s={sampling}-k={k}`. Failures in one combo don't abort the sweep — a summary table prints at the end.
+
+## MORL algorithms
+
+`moplayground` ships two multi-objective RL algorithms, both PPO-based, both using directive (tradeoff) scalarization of per-objective rewards. Selected via `algorithm:` in the YAML config.
+
+- **MORLAX** (`src/moplayground/moppo/morlax.py`) — *hypernetwork* approach. A hypernet maps directive → policy/value MLP weights. The base policy/value MLPs are not trained directly; only the hypernet is. Configured under `learning_params.morlax_params` (`hypertype`, `hypersize`, `num_features`, plus target `policy_hidden_layer_sizes` / `value_hidden_layer_sizes`). `hypertype` is `single` (shared feature MLP, separate W/b heads → `ActorCriticHypernet`) or `dual` (separate feature MLPs per head → `DualA2CHypernet`).
+- **AMOR** (`src/moplayground/moppo/amor.py`) — *tradeoff-conditioned policy* baseline. The directive is concatenated to the (normalized) obs and fed into flat policy/value MLPs. No hypernetwork. Configured under `learning_params.amor_params` (`policy_hidden_layer_sizes`, `value_hidden_layer_sizes`).
+
+Shared infrastructure lives in `src/moplayground/moppo/`:
+- `factory.py` — `make_morlax_networks`, `make_amor_networks`, and their inference-fn factories (`make_hypernetwork_inference_fn`, `make_amor_inference_fn`).
+- `losses.py` — `compute_morlax_loss`, `compute_amor_loss`, plus `MORLAXNetworkParams` / `AMORNetworkParams`.
+- `acting.py` — shared `MultiObjectiveTransition`, `actor_step`, `generate_unroll`, `Evaluator`.
+- `networks.py` — hypernet variants (`Hypernet`, `HypernetMLP`, `DualA2CHypernet`, etc.).
+
+Dispatch happens in `learning/training.py::train_policy` and `learning/inference.py::load_mo_policy` based on `config.algorithm`. AMOR's inference fn natively takes the directive at call time (`policy(obs, directive, key)`); `load_mo_policy` returns a 2-arg `policy(obs, key)` with the tradeoff baked in for compatibility with `mm.eval.rollout_policy`. To switch the directive at runtime, use `make_amor_inference_fn` directly.
+
+Checkpoint formats differ:
+- MORLAX: `(normalizer, hypernet)` 2-tuple.
+- AMOR: `(normalizer, policy, value)` 3-tuple — matches the standard brax layout.
 
 Regenerate API docs (writes Markdown into `docs/api/` from `moplayground` docstrings via `lazydocs`):
 ```bash
