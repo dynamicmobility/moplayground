@@ -150,7 +150,7 @@ def train_policy(
             'Started training at', 
             datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d %H:%M:%S %Z")
         )
-        make_inference_fn, trained_params, metrics = train_fn(
+        make_inference_fn, params, metrics = train_fn(
             environment=env,
             wrap_env_fn=mo_wrapper,
             init_policy_params=policy_init_params[1],
@@ -158,10 +158,8 @@ def train_policy(
             init_value_params=policy_init_params[2],
             eval_env=eval_env
         )
-        
-        return make_inference_fn, trained_params, metrics
     
-    return make_inference_fn, params
+    return make_inference_fn, params, metrics
 
 @dataclass(frozen=False)
 class MOTrainingInfo:
