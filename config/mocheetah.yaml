@@ -1,15 +1,9 @@
-name: cheetah3
-save_dir: accepted-results/may/8/cheetah-3
+name: test
+save_dir: accepted-results/jun/17
 description: ''
-algorithm: morlax
+algorithm: so_ppo
 env: MOCheetah
 backend: np # jnp or np. Always uses jnp for training
-mo2so:
-  enabled: false
-  weighting: [0.5, 0.5]
-  network_params:
-    policy_hidden_layer_sizes: [64, 64]
-    value_hidden_layer_sizes:  [64, 64]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.01

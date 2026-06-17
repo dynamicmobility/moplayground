@@ -1,7 +1,74 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from dataclasses import dataclass, field
+import pandas as pd
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import time
 from minimal_mjx.utils.plotting import get_subplot_grid
 from moplayground.utils.pareto import get_pareto_statistics
+import wandb
+from pathlib import Path
+
+@dataclass(frozen=False)
+class MOTrainingPlottingInfo:
+    start_time    : float
+    times         : list = field(default_factory=list)
+    iterations    : list = field(default_factory=list)
+    paretos       : list = field(default_factory=list)
+    directives    : list = field(default_factory=list)
+    labels        : list = field(default_factory=list)
+    
+    def save(self, save_dir, create_time=True):
+        pd.DataFrame(
+            {
+                'times': [self.start_time] + self.times if create_time else self.times,
+                'iters': [0] + self.iterations if create_time else self.iterations
+            }
+        ).to_csv(save_dir)
+
+def plot_mo_progress(
+    num_steps       : int,
+    metrics         : dict,
+    training_data   : MOTrainingPlottingInfo,
+    save_dir        : Path,
+    run             : wandb.Run = None
+):
+    # print current itme
+    tz = ZoneInfo("America/New_York")
+    now = datetime.now(tz)
+    print(now.strftime("%Y-%m-%d %H:%M:%S %Z"))
+    
+    # save data from iteration
+    training_data.iterations.append(num_steps)
+    training_data.paretos.append(metrics['reward'])
+    training_data.directives.append(metrics['directive'])
+    training_data.times.append(time.time())
+    training_data.save(save_dir / 'progress.csv')
+
+    if np.array(training_data.directives).shape[2] == 2:
+        # create the plot
+        fig, axs = plot_sequential_paretos(
+            ax_titles   = training_data.iterations,
+            paretos     = training_data.paretos,
+            directives  = training_data.directives,
+            objectives  = training_data.labels
+        )
+    else:
+        fig, axs = plot_sequential_hypervolume(
+            iterations    = training_data.iterations,
+            paretos       = training_data.paretos
+        )
+    
+    # save and upload to wandb
+    fig.savefig(save_dir / 'progress.svg')
+    if run:
+        with open(save_dir / 'progress.svg', "r") as f:
+            svg = f.read()
+        run.log(
+            {"reward_plot": wandb.Html(svg)},
+            step=num_steps,
+        )
 
 
 def plot_pareto(

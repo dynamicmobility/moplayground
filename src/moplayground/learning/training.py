@@ -6,11 +6,6 @@ import datetime
 import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from ml_collections import config_dict
-
-# Graphics and plotting.
-import wandb
-import matplotlib.pyplot as plt
 
 # RL imports
 import functools
@@ -20,17 +15,13 @@ import moplayground as mop
 from moplayground.moppo import morlax
 from moplayground.moppo import amor
 from moplayground.moppo import factory
-from moplayground.envs.generic import mobase
 from moplayground.learning.wrappers import MultiObjectiveEpisodeWrapper
 from brax.envs.wrappers.training import VmapWrapper
 
 # jax and MJX imports
 from mujoco_playground import wrapper
 from mujoco_playground._src import mjx_env
-import numpy as np
 import minimal_mjx as mm
-from moplayground.utils.plotting import plot_sequential_paretos, plot_sequential_hypervolume
-from dataclasses import dataclass, field
 
 def setup_morlax(config):
     general_ppo_params = config.learning_params.base_ppo_params
@@ -97,7 +88,8 @@ def train_policy(
     eval_env,
     run=None,
     handle_params=None,
-    warn_github_changes=True,
+    warn_github_changes=False,
+    progress_fn=mop.utils.plotting.plot_mo_progress
 ):
     """Train a policy on the given environment.
 
@@ -115,6 +107,15 @@ def train_policy(
         eval_env: Evaluation environment used for periodic rollouts.
         run: (optional) Experiment-tracking handle (e.g. a wandb run) forwarded to the
             multi-objective trainer; ignored on the single-objective path.
+        handle_params: (optional) Callable ``config -> (train_fn, network_factory)``.
+            Defaults to the handler registered for ``config.algorithm`` in
+            ``_ALGO_HANDLERS``.
+        warn_github_changes: (optional) If True, warn about uncommitted git
+            changes when creating the training directory. Defaults to False.
+        progress_fn: (optional) Callback invoked each eval step as
+            ``progress_fn(run, num_steps, metrics, save_dir, training_data)``
+            to log/plot training progress. Defaults to
+            ``mop.utils.plotting.plot_mo_progress``.
 
     Returns:
         Tuple ``(make_inference_fn, params)`` — a factory that builds an
@@ -122,9 +123,11 @@ def train_policy(
     """
     mm.utils.setupGPU.run_setup()
     config = mm.utils.config.create_config_dict(config)
-
     output_dir = create_training_directory(config, warn_github_changes=warn_github_changes)
+
+    # Load training and network structure
     if handle_params is None:
+        print('Using default parameter handler')
         algo = config.algorithm
         if algo not in _ALGO_HANDLERS:
             raise ValueError(
@@ -133,128 +136,48 @@ def train_policy(
         handle_params = _ALGO_HANDLERS[algo]
     train_fn, network_factory = handle_params(config)
 
-    if config.mo2so.enabled:
-        weighting = np.array(config.mo2so.weighting)
-        env         = mobase.Multi2SingleObjective(env, weighting=weighting)
-        eval_env    = mobase.Multi2SingleObjective(eval_env, weighting=weighting)
-        make_inference_fn, params, metrics = mm.learning.training.train(
-            config, output_dir, env, eval_env, train_fn_params, network_factory_params
-        )
-    else:
-        # if config.learning_params.warmup_params.enabled:
-        #     policy_init_params = mm.learning.inference.get_params(
-        #         mm.utils.config.read_yaml(config.learning_params.warmup_params.policy),
-        #     )
-        # else:
-        policy_init_params = (None, None, None)
+    network_config = checkpoint.network_config(
+        observation_size=eval_env.observation_size,
+        action_size=eval_env.action_size,
+        normalize_observations=config.learning_params.base_ppo_params.normalize_observations,
+        network_factory=network_factory,
+    )
+    training_data = mop.utils.plotting.MOTrainingPlottingInfo(
+        start_time = time.time(),
+        labels = env.params.reward.optimization.objectives
+    )
         
-        network_config = checkpoint.network_config(
-            observation_size=eval_env.observation_size,
-            action_size=eval_env.action_size,
-            normalize_observations=config.learning_params.base_ppo_params.normalize_observations,
-            network_factory=network_factory,
-        )
-        training_data = MOTrainingInfo(
-            start_time = time.time(),
-            labels = env.params.reward.optimization.objectives
-        )
-        if run:
-            run.log_artifact(str(output_dir / 'config.yaml'), name='config')
-            
-        train_fn = functools.partial(
-            train_fn,
-            progress_fn=lambda num_steps, metrics: plot_mo_progress(
-                run             = run,
-                num_steps       = num_steps,
-                metrics         = metrics,
-                save_dir        = output_dir,
-                training_data   = training_data
-            ),
-            policy_params_fn=functools.partial(
-                mm.utils.logging.save_model,
-                output_dir        = output_dir,
-                run               = run,
-                network_config    = network_config
-            ),
-        )
-        
-        print(
-            'Started training at', 
-            datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d %H:%M:%S %Z")
-        )
-        make_inference_fn, trained_params, metrics = train_fn(
-            environment=env,
-            wrap_env_fn=mo_wrapper,
-            init_policy_params=policy_init_params[1],
-            init_normalizer_params=policy_init_params[0],
-            init_value_params=policy_init_params[2],
-            eval_env=eval_env
-        )
-        
-        return make_inference_fn, trained_params, metrics
+    train_fn = functools.partial(
+        train_fn,
+        progress_fn=lambda num_steps, metrics: progress_fn(
+            run             = run,
+            num_steps       = num_steps,
+            metrics         = metrics,
+            save_dir        = output_dir,
+            training_data   = training_data
+        ),
+        policy_params_fn=functools.partial(
+            mm.utils.logging.save_model,
+            output_dir        = output_dir,
+            run               = run,
+            network_config    = network_config
+        ),
+    )
     
-    return make_inference_fn, params
-
-@dataclass(frozen=False)
-class MOTrainingInfo:
-    start_time    : float
-    times         : list = field(default_factory=list)
-    iterations    : list = field(default_factory=list)
-    paretos       : list = field(default_factory=list)
-    directives    : list = field(default_factory=list)
-    labels        : list = field(default_factory=list)
-    
-    def save(self, save_dir, create_time=True):
-        pd.DataFrame(
-            {
-                'times': [self.start_time] + self.times if create_time else self.times,
-                'iters': [0] + self.iterations if create_time else self.iterations
-            }
-        ).to_csv(save_dir)
-
-def plot_mo_progress(
-    num_steps       : int,
-    metrics         : dict,
-    training_data   : MOTrainingInfo,
-    save_dir        : Path,
-    run             : wandb.Run = None
-):
-    # print current itme
-    tz = ZoneInfo("America/New_York")
-    now = datetime.now(tz)
-    print(now.strftime("%Y-%m-%d %H:%M:%S %Z"))
-    
-    # save data from iteration
-    training_data.iterations.append(num_steps)
-    training_data.paretos.append(metrics['reward'])
-    training_data.directives.append(metrics['directive'])
-    training_data.times.append(time.time())
-    training_data.save(save_dir / 'progress.csv')
-
-    if np.array(training_data.directives).shape[2] == 2:
-        # create the plot
-        fig, axs = plot_sequential_paretos(
-            ax_titles   = training_data.iterations,
-            paretos     = training_data.paretos,
-            directives  = training_data.directives,
-            objectives  = training_data.labels
-        )
-    else:
-        fig, axs = plot_sequential_hypervolume(
-            iterations    = training_data.iterations,
-            paretos       = training_data.paretos
-        )
-    
-    # save and upload to wandb
-    fig.savefig(save_dir / 'progress.svg')
+    # Start training
     if run:
-        with open(save_dir / 'progress.svg', "r") as f:
-            svg = f.read()
-        run.log(
-            {"reward_plot": wandb.Html(svg)},
-            step=num_steps,
-        )
+        run.log_artifact(str(output_dir / 'config.yaml'), name='config')
+    print(
+        'Started training at', 
+        datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d %H:%M:%S %Z")
+    )
+    make_inference_fn, trained_params, metrics = train_fn(
+        environment=env,
+        wrap_env_fn=mo_wrapper,
+        eval_env=eval_env
+    )
     
+    return make_inference_fn, trained_params, metrics    
 
 def mo_wrapper(
     env: mjx_env.MjxEnv,

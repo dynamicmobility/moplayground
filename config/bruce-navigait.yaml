@@ -7,9 +7,6 @@ robot: BRUCE
 backend: jnp 
 # gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10
 gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10_witharms
-mo2so:
-  enabled: false
-  weighting: [0.5, 0.5]
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
   sim_dt:           0.004   # Simulation (mujoco) timestep

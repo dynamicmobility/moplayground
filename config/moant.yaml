@@ -5,12 +5,6 @@ algorithm: morlax
 env: "MOAnt"
 robot: "DMHopper"
 backend: np # jnp or np. Always uses jnp for training
-mo2so:
-  enabled: false
-  weighting: [0.5, 0.5]
-  network_params:
-    policy_hidden_layer_sizes: [64, 64]
-    value_hidden_layer_sizes:  [64, 64]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.01
