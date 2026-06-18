@@ -89,7 +89,7 @@ def train_policy(
     run=None,
     handle_params=None,
     warn_github_changes=False,
-    progress_fn=mop.utils.plotting.plot_mo_progress
+    progress_fn=None,
 ):
     """Train a policy on the given environment.
 
@@ -121,6 +121,8 @@ def train_policy(
         Tuple ``(make_inference_fn, params)`` — a factory that builds an
         inference function and the trained policy parameters.
     """
+    if progress_fn is None:
+        progress_fn = mop.utils.plotting.plot_mo_progress
     mm.utils.setupGPU.run_setup()
     config = mm.utils.config.create_config_dict(config)
     output_dir = create_training_directory(config, warn_github_changes=warn_github_changes)
