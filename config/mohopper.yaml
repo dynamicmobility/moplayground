@@ -4,12 +4,6 @@ description: N/A
 env: MOHopper
 algorithm: morlax
 backend: np # jnp or np. Always uses jnp for training
-mo2so:
-  enabled: false
-  weighting: [1.0, 0.0]
-  network_params:
-    policy_hidden_layer_sizes: [64, 64]
-    value_hidden_layer_sizes:  [64, 64]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005
