@@ -147,105 +147,6 @@ def train_policy(
         labels = env.params.reward.optimization.objectives
     )
         
-<<<<<<< HEAD
-        network_config = checkpoint.network_config(
-            observation_size=eval_env.observation_size,
-            action_size=eval_env.action_size,
-            normalize_observations=config.learning_params.base_ppo_params.normalize_observations,
-            network_factory=network_factory,
-        )
-        training_data = MOTrainingInfo(
-            start_time = time.time(),
-            labels = env.params.reward.optimization.objectives
-        )
-        if run:
-            run.log_artifact(str(output_dir / 'config.yaml'), name='config')
-            
-        train_fn = functools.partial(
-            train_fn,
-            progress_fn=lambda num_steps, metrics: plot_mo_progress(
-                run             = run,
-                num_steps       = num_steps,
-                metrics         = metrics,
-                save_dir        = output_dir,
-                training_data   = training_data
-            ),
-            policy_params_fn=functools.partial(
-                mm.utils.logging.save_model,
-                output_dir        = output_dir,
-                run               = run,
-                network_config    = network_config
-            ),
-        )
-        
-        print(
-            'Started training at', 
-            datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d %H:%M:%S %Z")
-        )
-        make_inference_fn, params, metrics = train_fn(
-            environment=env,
-            wrap_env_fn=mo_wrapper,
-            init_policy_params=policy_init_params[1],
-            init_normalizer_params=policy_init_params[0],
-            init_value_params=policy_init_params[2],
-            eval_env=eval_env
-        )
-    
-    return make_inference_fn, params, metrics
-
-@dataclass(frozen=False)
-class MOTrainingInfo:
-    start_time    : float
-    times         : list = field(default_factory=list)
-    iterations    : list = field(default_factory=list)
-    paretos       : list = field(default_factory=list)
-    directives    : list = field(default_factory=list)
-    labels        : list = field(default_factory=list)
-    
-    def save(self, save_dir, create_time=True):
-        pd.DataFrame(
-            {
-                'times': [self.start_time] + self.times if create_time else self.times,
-                'iters': [0] + self.iterations if create_time else self.iterations
-            }
-        ).to_csv(save_dir)
-
-def plot_mo_progress(
-    num_steps       : int,
-    metrics         : dict,
-    training_data   : MOTrainingInfo,
-    save_dir        : Path,
-    run             : wandb.Run = None
-):
-    # print current itme
-    tz = ZoneInfo("America/New_York")
-    now = datetime.now(tz)
-    print(now.strftime("%Y-%m-%d %H:%M:%S %Z"))
-    
-    # save data from iteration
-    training_data.iterations.append(num_steps)
-    training_data.paretos.append(metrics['reward'])
-    training_data.directives.append(metrics['directive'])
-    training_data.times.append(time.time())
-    training_data.save(save_dir / 'progress.csv')
-
-    if np.array(training_data.directives).shape[2] == 2:
-        # create the plot
-        fig, axs = plot_sequential_paretos(
-            ax_titles   = training_data.iterations,
-            paretos     = training_data.paretos,
-            directives  = training_data.directives,
-            objectives  = training_data.labels
-        )
-    else:
-        fig, axs = plot_sequential_hypervolume(
-            iterations    = training_data.iterations,
-            paretos       = training_data.paretos
-        )
-    
-    # save and upload to wandb
-    fig.savefig(save_dir / 'progress.svg')
-=======
     train_fn = functools.partial(
         train_fn,
         progress_fn=lambda num_steps, metrics: progress_fn(
@@ -264,7 +165,6 @@ def plot_mo_progress(
     )
     
     # Start training
->>>>>>> main
     if run:
         run.log_artifact(str(output_dir / 'config.yaml'), name='config')
     print(
