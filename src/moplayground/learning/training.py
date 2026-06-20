@@ -89,7 +89,7 @@ def train_policy(
     run=None,
     handle_params=None,
     warn_github_changes=False,
-    progress_fn=None
+    progress_fn=None,
 ):
     """Train a policy on the given environment.
 
