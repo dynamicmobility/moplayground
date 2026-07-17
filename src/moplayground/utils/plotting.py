@@ -6,7 +6,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import time
 from minimal_mjx.utils.plotting import get_subplot_grid
-from moplayground.utils.pareto import get_pareto_statistics
+from moplayground.utils.pareto import get_pareto_statistics, get_nondominated
 import wandb
 from pathlib import Path
 
@@ -70,90 +70,84 @@ def plot_mo_progress(
             step=num_steps,
         )
 
+def default_coloring(tradeoff):
+    # Map a tradeoff (or batch of tradeoffs) to an RGB color
+    tradeoff = np.asarray(tradeoff, dtype=float)
+    pad = max(0, 3 - tradeoff.shape[-1])
+    if pad:
+        tradeoff = np.pad(tradeoff, [(0, 0)] * (tradeoff.ndim - 1) + [(0, pad)])
+    return tradeoff[..., :3]
+
+
+def _decide_color_kwargs(colors, idx=None):
+    """Build the matplotlib scatter color kwarg. A per-point ``(n, 3|4)`` array goes
+    through ``c=`` (optionally indexed to ``idx``); anything else (a single named or
+    RGB(A) color, or ``None``) goes through ``color=`` to avoid value-mapping."""
+    if colors is None:
+        return {}
+    if isinstance(colors, np.ndarray) and colors.ndim == 2:
+        return {"c": colors if idx is None else colors[idx]}
+    return {"color": colors}
+
 
 def plot_pareto(
-        ax, 
-        pareto: np.ndarray,  # Dataset of objective evaluations across policy family
-        directive: np.ndarray = None, # Relative weights of objectives
-        objective: list[str] = None, # Names
-        nondominated=None, # List of indices in pareto dataset that are nondominated
-        alpha=1.0
-    ):
-    if directive is None: directive = np.zeros_like(pareto)
-    if objective is None: objective = [''] * pareto.shape[1]
-    
-    if pareto.shape[1] == 2:
-        c = np.zeros((pareto.shape[0], 3))
-        c[:, 0] = directive[:, 0]
-        c[:, 2] = directive[:, 1]
-        alpha = 0.05 if nondominated is not None else 1
-        ax.scatter(
-            pareto[:, 0],
-            pareto[:, 1],
-            s       = 8,
-            c       = c,
-            alpha   = alpha
-        )
-        if nondominated is not None:
-            nd_idx = nondominated
-            ax.scatter(
-                pareto[nd_idx, 0],
-                pareto[nd_idx, 1],
-                alpha=1.0,
-                zorder=1,
-                s = 12,
-                edgecolors='black', # Border color
-                linewidths=1.5,   # Border width,
-                c = c[nd_idx,:],
-            )
-            ax.set_xlim((0.65 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
-            ax.set_ylim((0.65 * np.min(pareto[nd_idx, 1]), 1.05 * np.max(pareto[nd_idx, 1])))
-        ax.set_xlabel(objective[0])
-        ax.set_ylabel(objective[1])
-        return ax
-    elif pareto.shape[1] == 3:
-        c = np.zeros((pareto.shape[0], 3))
-        # Convert directive weights to HSV-like color scheme
-        # Use directive weights to create more distinct colors
-        c[:, 0] = directive[:, 0]
-        c[:, 1] = directive[:, 1]  
-        c[:, 2] = directive[:, 2]
-        # c[:, 0] = (1 - directive[:, 0]) * 0.9  # Red channel: warm tones
-        # c[:, 1] = (1 - directive[:, 1]) * 0.9  # Green channel: cool tones  
-        # c[:, 2] = (1 - directive[:, 2]) * 0.9  # Blue channel: mid tones
-        alpha = 0.05 if nondominated is not None else 1
-        ax.scatter(
-            pareto[:, 0],
-            pareto[:, 1],
-            pareto[:, 2],
-            s=24,
-            c=c,
-            alpha=alpha,
-            axlim_clip=True
-        )
-        if nondominated is not None:
-            nd_idx = nondominated
-            ax.scatter(
-                pareto[nd_idx, 0],
-                pareto[nd_idx, 1],
-                pareto[nd_idx, 2],
-                s = 12,
-                alpha=1.0,
-                zorder=1,
-                # edgecolors='black', # Border color
-                # linewidths=0.5,   # Border width,
-                c = c[nd_idx,:],
-                axlim_clip=True
-            )
-            ax.set_xlim((0.95 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
-            ax.set_ylim((0.95 * np.min(pareto[nd_idx, 1]), 1.05 * np.max(pareto[nd_idx, 1])))
-            ax.set_zlim((1.00 * np.min(pareto[nd_idx, 2]), 1.05 * np.max(pareto[nd_idx, 2])))
-        ax.set_xlabel(objective[0])
-        ax.set_ylabel(objective[1])
-        ax.set_zlabel(objective[2])
-        return ax
-    else:
+    ax                    : plt.Axes,
+    pareto                : np.ndarray,
+    colors                : str | np.ndarray = None,
+    objective             : list[str] = None,
+    nondominated_alpha    : float = 1.0,
+    dominated_alpha       : float = 1.0,
+    label                 : str = None,
+    set_lims              : bool = True,
+):
+    """
+    Plot a pareto frontier.
+
+    ``colors`` is a single matplotlib color or per-point color. RGB(A)
+    ``label`` names the front in the legend; 
+    ``set_lims`` zooms to the nondominated front.
+    """
+    num_objs = pareto.shape[1]
+    if num_objs not in (2, 3):
         raise NotImplementedError('Only 2D and 3D paretos are supported for plotting')
+
+    if objective is None: objective = [''] * num_objs
+    c = np.asarray(colors) if isinstance(colors, (list, tuple, np.ndarray)) else colors
+    nd_idx = get_nondominated(pareto)
+    d_idx = np.setdiff1d(np.arange(pareto.shape[0]), nd_idx)
+    clip = {'axlim_clip': True} if num_objs == 3 else {}
+
+    ax.scatter(
+        *(pareto[d_idx].T),
+        s       = 8,
+        alpha   = dominated_alpha,
+        **_decide_color_kwargs(c, d_idx),
+        **clip,
+    )
+    ax.scatter(
+        *(pareto[nd_idx].T),
+        alpha         = nondominated_alpha,
+        zorder        = 1,
+        s             = 12,
+        edgecolors    = 'black',
+        linewidths    = 1.5,
+        label         = label,
+        **_decide_color_kwargs(c, nd_idx),
+        **clip,
+    )
+
+    if set_lims:
+        ax.set_xlim((0.95 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
+        ax.set_ylim((0.95 * np.min(pareto[nd_idx, 1]), 1.05 * np.max(pareto[nd_idx, 1])))
+        if num_objs == 3:
+            ax.set_zlim((1.00 * np.min(pareto[nd_idx, 2]), 1.05 * np.max(pareto[nd_idx, 2])))
+
+    ax.set_xlabel(objective[0])
+    ax.set_ylabel(objective[1])
+    if num_objs == 3:
+        ax.set_zlabel(objective[2])
+
+    return ax
 
 def plot_sequential_paretos(
     ax_titles: list[str],
@@ -180,7 +174,7 @@ def plot_sequential_paretos(
     xlim   = xlim + border * np.abs(xlim[1] - xlim[0]) * 0.1
     ylim   = ylim + border * np.abs(ylim[1] - ylim[0]) * 0.1
     for ax, x, y, d in zip(axs, ax_titles, paretos, directives):
-        ax = plot_pareto(ax, y, d, objectives)
+        ax = plot_pareto(ax, y, default_coloring(d), objectives, set_lims=False)
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         ax.set_title(x)

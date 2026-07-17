@@ -155,10 +155,9 @@ def main():
             print('--')
         
     ax = mop.utils.plotting.plot_pareto(
-        ax, 
-        pareto, 
-        tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis],
-        nondominated=np.arange(pareto.shape[0]) #mop.utils.pareto.get_nondominated(paretos[-1])
+        ax,
+        pareto,
+        mop.utils.plotting.default_coloring(tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis]),
     )
     if trio == [2, 0, 4]:
         ax.set_zlim((950, 1300))

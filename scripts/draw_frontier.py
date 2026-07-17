@@ -1,7 +1,7 @@
 from minimal_mjx.utils import read_config
 from moplayground.envs.create import create_environment
 from moplayground.eval.pareto import run_experiments
-from moplayground.utils.plotting import plot_pareto
+from moplayground.utils.plotting import plot_pareto, default_coloring
 from moplayground.utils.pareto import get_nondominated
 from matplotlib import pyplot as plt
 import jax
@@ -37,9 +37,8 @@ else:
 ax = plot_pareto(
     ax          = ax,
     pareto      = rewards_over_iters[-1],
-    directive   = directives[-1],
+    colors      = default_coloring(directives[-1]),
     objective   = config.env_config.reward.optimization.labels,
-    nondominated= nd_idx
 )
 
 plt.show()

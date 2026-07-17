@@ -78,13 +78,12 @@ def main():
         tradeoff = directives[:, PAIR]
         fig, ax = plt.subplots()
         ax = mop.utils.plotting.plot_pareto(
-            ax, 
-            pareto, 
-            tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis],
-            objectives=[
+            ax,
+            pareto,
+            mop.utils.plotting.default_coloring(tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis]),
+            objective=[
                 OBJS[i] for i in PAIR
             ],
-            nondominated=True
         )
         nd_idx = mop.eval.pareto.get_nondominated(pareto, epsilon=10)
         nd = pareto[nd_idx]

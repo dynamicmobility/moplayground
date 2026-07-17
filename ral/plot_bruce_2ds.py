@@ -67,13 +67,12 @@ def main():
         pareto = paretos[-1, :, pair].T  # Select the last iteration's Pareto front and only the 3 objectives of interest
         tradeoff = directives[:, pair]
         ax = plot_pareto(
-            ax, 
-            pareto, 
-            tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis],
-            objectives=[
+            ax,
+            pareto,
+            mop.utils.plotting.default_coloring(tradeoff / np.sum(tradeoff, axis=1)[:,np.newaxis]),
+            objective=[
                 config['env_config']['reward']['optimization']['labels'][i] for i in pair
             ],
-            nondominated=True
         )
         # ax.set_xlim((0, None))
         # ax.set_ylim((0, None))
