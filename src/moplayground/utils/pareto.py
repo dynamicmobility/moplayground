@@ -12,10 +12,6 @@ def get_nondominated(F, epsilon=None):
 def hypervolume_from_nondominated(F_min):
     """Compute the hypervolume of a non-dominated front in minimization space.
 
-    Uses the origin as the reference point, so callers must pass an
-    already-non-dominated, already-negated front (see
-    ``get_pareto_statistics`` for the typical pipeline).
-
     Args:
         F_min: ``(n_points, n_objectives)`` array of points in
             minimization space (i.e. negated objective values).
@@ -36,12 +32,6 @@ def sparsity_from_normalized_nondominated(F_min_norm):
 
 def get_pareto_statistics(F):
     """Compute hypervolume and sparsity for a set of objective vectors.
-
-    Extracts the non-dominated front of ``F`` (treated as a maximization
-    problem), normalizes it, converts to minimization space, and returns
-    the resulting hypervolume and spacing-based sparsity. When the front
-    contains only one point, it is duplicated so the spacing indicator
-    has at least two points to work with.
 
     Args:
         F: ``(n_points, n_objectives)`` array of objective vectors
