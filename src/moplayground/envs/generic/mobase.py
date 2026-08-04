@@ -21,7 +21,7 @@ class MultiObjectiveBase(SwappableBase):
             one list per objective dimension), and
             ``reward.optimization.shared_objectives`` (list of reward keys
             added to every objective).
-        backend: ``'jnp'`` for JAX (training), ``'np'`` for NumPy (eval).
+        backend: ``'jax'`` for JAX (training), ``'np'`` for NumPy (eval).
         num_free: Number of free joints in the model. Forwarded to
             ``SwappableBase``.
     """
@@ -29,7 +29,7 @@ class MultiObjectiveBase(SwappableBase):
     def __init__(self,
         xml_path          : Path,
         env_params        : config_dict.ConfigDict,
-        backend           : str = 'jnp',
+        backend           : str = 'jax',
         num_free          : int = 3
     ):
         self.objectives        = env_params.reward.optimization.objectives
