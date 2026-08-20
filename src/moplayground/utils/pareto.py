@@ -2,7 +2,41 @@ from pymoo.indicators.hv import HV
 from pymoo.util.normalization import normalize
 from pymoo.indicators.spacing import SpacingIndicator
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
+from scipy.spatial import cKDTree
 import numpy as np
+
+
+def project_to_simplex(v):
+    """Euclidean projection of ``v`` onto the probability simplex.
+    """
+    v = np.asarray(v, dtype=float).reshape(-1)
+    sorted_v = np.sort(v)[::-1]
+    cumulative = np.cumsum(sorted_v)
+    support = np.arange(1, v.size + 1)
+    # Largest support size whose sorted entry still clears the running threshold.
+    rho = support[sorted_v - (cumulative - 1.0) / support > 0][-1]
+    theta = (cumulative[rho - 1] - 1.0) / rho
+    return np.maximum(v - theta, 0.0)
+
+
+def closest_points(points, targets):
+    """Index into ``points`` of the nearest (Euclidean) neighbor of each target.
+
+    Args:
+        points: ``(n_points, dim)`` array searched over.
+        targets: ``(dim,)`` or ``(n_targets, dim)`` query point(s).
+
+    Returns:
+        ``(n_targets,)`` integer indices into ``points``.
+    """
+    return cKDTree(np.asarray(points)).query(np.atleast_2d(targets))[1]
+
+
+def corner_tradeoffs(tradeoffs):
+    """Indices of the tradeoffs nearest each one-hot corner of the simplex.
+    """
+    tradeoffs = np.asarray(tradeoffs)
+    return closest_points(tradeoffs, np.eye(tradeoffs.shape[1]))
 
 def get_nondominated(F, epsilon=None):
     nds = NonDominatedSorting(epsilon=epsilon)

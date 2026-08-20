@@ -118,6 +118,9 @@ _EXPORTS = {
 
     # --- utils -----------------------------------------------------------
     'get_nondominated': 'moplayground.utils.pareto',
+    'project_to_simplex': 'moplayground.utils.pareto',
+    'closest_points': 'moplayground.utils.pareto',
+    'corner_tradeoffs': 'moplayground.utils.pareto',
     'get_pareto_statistics': 'moplayground.utils.pareto',
     'hypervolume_from_nondominated': 'moplayground.utils.pareto',
     'sparsity_from_normalized_nondominated': 'moplayground.utils.pareto',
@@ -280,7 +283,10 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         solve_transform as solve_transform,
     )
     from .utils.pareto import (
+        closest_points as closest_points,
+        corner_tradeoffs as corner_tradeoffs,
         get_nondominated as get_nondominated,
+        project_to_simplex as project_to_simplex,
         get_pareto_statistics as get_pareto_statistics,
         hypervolume_from_nondominated as hypervolume_from_nondominated,
         sparsity_from_normalized_nondominated as sparsity_from_normalized_nondominated,
