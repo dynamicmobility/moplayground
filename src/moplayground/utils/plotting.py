@@ -107,6 +107,7 @@ def plot_pareto(
     ``label`` names the front in the legend; 
     ``set_lims`` zooms to the nondominated front.
     """
+    # TODO: this doesn't work for 3d fronts
     num_objs = pareto.shape[1]
     if num_objs not in (2, 3):
         raise NotImplementedError('Only 2D and 3D paretos are supported for plotting')
