@@ -95,8 +95,13 @@ def plot_pareto(
     pareto                : np.ndarray,
     colors                : str | np.ndarray = None,
     objective             : list[str] = None,
+    connect               : bool = False,
+    show_dominated        : bool = True,
     nondominated_alpha    : float = 1.0,
     dominated_alpha       : float = 1.0,
+    nondominated_s        : int = 20,
+    dominated_s           : int = 8,
+    outline_nondominated  : float = 0.0,
     label                 : str = None,
     set_lims              : bool = True,
 ):
@@ -118,24 +123,39 @@ def plot_pareto(
     d_idx = np.setdiff1d(np.arange(pareto.shape[0]), nd_idx)
     clip = {'axlim_clip': True} if num_objs == 3 else {}
 
-    ax.scatter(
-        *(pareto[d_idx].T),
-        s       = 8,
-        alpha   = dominated_alpha,
-        **_decide_color_kwargs(c, d_idx),
-        **clip,
-    )
+    if show_dominated:
+        # dominated points
+        ax.scatter(
+            *(pareto[d_idx].T),
+            s       = dominated_s,
+            alpha   = dominated_alpha,
+            **_decide_color_kwargs(c, d_idx),
+            **clip,
+        )
+    
+
+    # non-dominated points
     ax.scatter(
         *(pareto[nd_idx].T),
         alpha         = nondominated_alpha,
         zorder        = 1,
-        s             = 12,
+        s             = nondominated_s,
         edgecolors    = 'black',
-        linewidths    = 1.5,
+        linewidths    = outline_nondominated,
         label         = label,
         **_decide_color_kwargs(c, nd_idx),
         **clip,
     )
+    if connect:
+        if num_objs == 3:
+            raise NotImplementedError('connect is 2D only; a 3D front is a surface')
+        pts = pareto[nd_idx]
+        ax.plot(
+            *(pts[np.argsort(pts[:, 0])].T),
+            zorder        = 0,
+            color         = 'black',
+        )
+
 
     if set_lims:
         ax.set_xlim((0.95 * np.min(pareto[nd_idx, 0]), 1.05 * np.max(pareto[nd_idx, 0])))
