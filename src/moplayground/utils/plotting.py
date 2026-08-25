@@ -104,6 +104,7 @@ def plot_pareto(
     outline_nondominated  : float = 0.0,
     label                 : str = None,
     set_lims              : bool = True,
+    **plot_kwargs
 ):
     """
     Plot a pareto frontier.
@@ -131,6 +132,7 @@ def plot_pareto(
             alpha   = dominated_alpha,
             **_decide_color_kwargs(c, d_idx),
             **clip,
+            **plot_kwargs,
         )
     
 
@@ -145,6 +147,7 @@ def plot_pareto(
         label         = label,
         **_decide_color_kwargs(c, nd_idx),
         **clip,
+        **plot_kwargs,
     )
     if connect:
         if num_objs == 3:
@@ -163,8 +166,8 @@ def plot_pareto(
         if num_objs == 3:
             ax.set_zlim((1.00 * np.min(pareto[nd_idx, 2]), 1.05 * np.max(pareto[nd_idx, 2])))
 
-    ax.set_xlabel(objective[0])
-    ax.set_ylabel(objective[1])
+    ax.set_xlabel(objective[0], fontsize=16)
+    ax.set_ylabel(objective[1], fontsize=16)
     if num_objs == 3:
         ax.set_zlabel(objective[2])
 
