@@ -81,7 +81,7 @@ def load_hypernetworks(
     fullpath = epath.Path(fullpath)
     params_config = checkpoint.load_config(fullpath)
     hyperparams = checkpoint.load(fullpath)
-    hyperconfig = config['learning_params']['morlax_params']['network_params']
+    hyperconfig = config['learning_params']['network_params']
     network_factory = functools.partial(
         network_factory,
         key            = jax.random.PRNGKey(0),

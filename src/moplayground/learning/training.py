@@ -24,9 +24,9 @@ from mujoco_playground._src import mjx_env
 import minimal_mjx as mm
 
 def setup_morlax(config):
-    general_ppo_params = config.learning_params.base_ppo_params
-    morlax_algo_params = config.learning_params.morlax_params.train_fn_params
-    network_params = config.learning_params.morlax_params.network_params
+    general_ppo_params = config.learning_params.ppo_params
+    morlax_algo_params = config.learning_params.morlax_params
+    network_params = config.learning_params.network_params
     
     train_fn_params = dict(general_ppo_params) | dict(morlax_algo_params)
     

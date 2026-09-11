@@ -7,11 +7,12 @@ def rollout_policy(
     env,
     config,
     tradeoff = None,
-    T=10.0,
+    n_steps = 500,
     camera = 'track',
     width  = 1080,
     height = 720
 ):
+    # TOOD: fix docstring
     """Roll out a trained policy on ``env`` and return rendered frames.
 
     Loads the policy specified by ``config`` (single-objective if
@@ -38,22 +39,18 @@ def rollout_policy(
     """
     if tradeoff is None:
         tradeoff = np.ones(len(config.env_config.reward.optimization.objectives))
-    if config['mo2so']['enabled']:
-        print('Loading single objective policy')
-        inference_fn = mm.learning.inference.load_policy(config, deterministic=True)
-    else:
-        print('Loading multi-objective policy')
-        inference_fn = mop.learning.inference.load_mo_policy(
-            config          = config,
-            tradeoff        = tradeoff,
-            deterministic   = True
-        )
+    print('Loading multi-objective policy')
+    inference_fn = mop.learning.inference.load_mo_policy(
+        config          = config,
+        tradeoff        = tradeoff,
+        deterministic   = True
+    )
     
     inference_fn = jax.jit(inference_fn)
     return mm.eval.rollout_policy(
         inference_fn    = inference_fn,
         env             = env,
-        T               = T,
+        n_steps         = n_steps,
         height          = height,
         width           = width,
         camera          = camera
