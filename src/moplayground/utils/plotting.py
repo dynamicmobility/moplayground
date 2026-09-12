@@ -104,6 +104,7 @@ def plot_pareto(
     outline_nondominated  : float = 0.0,
     label                 : str = None,
     set_lims              : bool = True,
+    label_fontsize        : int = 16,
     **plot_kwargs
 ):
     """
@@ -116,7 +117,7 @@ def plot_pareto(
     # TODO: this doesn't work for 3d fronts
     num_objs = pareto.shape[1]
     if num_objs not in (2, 3):
-        raise NotImplementedError('Only 2D and 3D paretos are supported for plotting')
+        raise NotImplementedError(f'Only 2D and 3D paretos are supported for plotting, yours has {num_objs}')
 
     if objective is None: objective = [''] * num_objs
     c = np.asarray(colors) if isinstance(colors, (list, tuple, np.ndarray)) else colors
@@ -166,10 +167,10 @@ def plot_pareto(
         if num_objs == 3:
             ax.set_zlim((1.00 * np.min(pareto[nd_idx, 2]), 1.05 * np.max(pareto[nd_idx, 2])))
 
-    ax.set_xlabel(objective[0], fontsize=16)
-    ax.set_ylabel(objective[1], fontsize=16)
+    ax.set_xlabel(objective[0], fontsize=label_fontsize)
+    ax.set_ylabel(objective[1], fontsize=label_fontsize)
     if num_objs == 3:
-        ax.set_zlabel(objective[2])
+        ax.set_zlabel(objective[2], fontsize=label_fontsize)
 
     return ax
 
