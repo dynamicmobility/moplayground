@@ -105,6 +105,8 @@ def plot_pareto(
     label                 : str = None,
     set_lims              : bool = True,
     label_fontsize        : int = 16,
+    special_idxs          : np.ndarray = None,
+    special_marker        : str = '*',
     **plot_kwargs
 ):
     """
@@ -150,6 +152,22 @@ def plot_pareto(
         **clip,
         **plot_kwargs,
     )
+
+    if(special_idxs is not None):
+        # non-dominated points
+        ax.scatter(
+            *(pareto[special_idxs].T),
+            alpha         = nondominated_alpha,
+            zorder        = 1,
+            s             = nondominated_s*20,
+            edgecolors    = 'black',
+            linewidths    = outline_nondominated,
+            label         = label,
+            **_decide_color_kwargs(c, special_idxs),
+            **clip,
+            **{**plot_kwargs, 'marker': special_marker},
+        )
+
     if connect:
         if num_objs == 3:
             raise NotImplementedError('connect is 2D only; a 3D front is a surface')
