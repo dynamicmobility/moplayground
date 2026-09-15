@@ -107,6 +107,7 @@ def plot_pareto(
     label_fontsize        : int = 16,
     special_idxs          : np.ndarray = None,
     special_marker        : str = '*',
+    connect_line_color    : str | np.ndarray = 'black',
     **plot_kwargs
 ):
     """
@@ -175,7 +176,7 @@ def plot_pareto(
         ax.plot(
             *(pts[np.argsort(pts[:, 0])].T),
             zorder        = 0,
-            color         = 'black',
+            color         = connect_line_color,
         )
 
 
