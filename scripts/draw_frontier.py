@@ -1,13 +1,11 @@
 from minimal_mjx.utils import read_config
-from moplayground.envs.create import create_environment
+import moplayground as mop
 from moplayground.eval.pareto import run_experiments
-from moplayground.utils.plotting import plot_pareto, default_coloring
-from moplayground.utils.pareto import get_nondominated
 from matplotlib import pyplot as plt
 import jax
 
 config = read_config()
-env, env_config = create_environment(
+env, env_config = mop.create_environment(
     config, 
     for_training = True, 
     manual_speed = True,
@@ -23,7 +21,7 @@ rewards_over_iters, directives = run_experiments(
     only_final      = True
 )
 print(rewards_over_iters.shape)
-nd_idx = get_nondominated(rewards_over_iters[-1], epsilon=10)
+nd_idx = mop.get_nondominated(rewards_over_iters[-1], epsilon=10)
 num_objectives = len(config.env_config.reward.optimization.objectives)
 
 if(num_objectives == 3):
@@ -34,10 +32,10 @@ else:
     raise ValueError("Can only plot 2 or 3 objective pareto frontiers")
     
 
-ax = plot_pareto(
+ax = mop.plot_pareto(
     ax          = ax,
     pareto      = rewards_over_iters[-1],
-    colors      = default_coloring(directives[-1]),
+    colors      = mop.default_coloring(directives[-1]),
     objective   = config.env_config.reward.optimization.labels,
 )
 

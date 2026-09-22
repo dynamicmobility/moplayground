@@ -56,8 +56,8 @@ def apply_overrides(base_config, hypertype, sampling, k):
 
 
 def run_one(cfg):
-    env, _      = mop.envs.create_environment(cfg, for_training=True)
-    eval_env, _ = mop.envs.create_environment(cfg, for_training=True)
+    env, _      = mop.create_environment(cfg, for_training=True)
+    eval_env, _ = mop.create_environment(cfg, for_training=True)
     name = cfg.save_dir + '/' + cfg.name
     run = mm.utils.logging.initialize_wandb(
         name    = name.replace('/', ''),
@@ -65,7 +65,7 @@ def run_one(cfg):
         project = 'PrefMORL',
     )
     try:
-        mop.learning.train_policy(cfg, env, eval_env, run, warn_github_changes=False)
+        mop.train_policy(cfg, env, eval_env, run, warn_github_changes=False)
     finally:
         try:
             wandb.finish()
@@ -84,7 +84,7 @@ def main():
                         help='Skip combo if save_dir/name already exists.')
     args = parser.parse_args()
 
-    base_config = mop.utils.read_config(args.base)
+    base_config = mop.read_config(args.base)
     hypertypes  = parse_csv(args.hypertypes)
     samplings   = parse_csv(args.samplings)
     ks          = parse_csv(args.ks, cast=int)
