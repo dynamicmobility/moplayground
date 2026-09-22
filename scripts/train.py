@@ -29,7 +29,7 @@ name = train_config['save_dir'] + '/' + train_config['name']
 run = mm.utils.logging.initialize_wandb(
     name    = name.replace('/', ''),
     entity  = 'njanwani-gatech',
-    project = 'PrefMORL',
+    project = 'MO-Playground-2',
     config  = dict(train_config)
 )
 mop.learning.train_policy(train_config, env, eval_env, run)

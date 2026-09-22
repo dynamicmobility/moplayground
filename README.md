@@ -57,7 +57,7 @@ note that you can supply a desired save directory via `--save_dir`.
 The default directory is simply `results/wandb-downloads`.
 Finally, you can run the policy via
 ```bash
-python3 -m scripts.rollout_policy config_path
+python3 -m scripts.rollout config_path
 ```
 where `config_path` is the `config.yaml` file where your model was saved. 
 It will be at `save_dir/env_name/config.yaml`, where `save_dir` and `env_name` are defined above.
@@ -73,7 +73,7 @@ where `config_path` is the path to the config of your choice.
 If you downloaded a policy in the past, you can also use those configs to run an identical training run on your system.
 
 ## Creating your own environment
-To create a custom environment, check out how the `cheeah` environment works at `src/moplayground/envs/dmcontrol/cheetah.py`.
+To create a custom environment, check out how the `cheetah` environment works at `src/moplayground/envs/dmcontrol/cheetah.py`.
 You should need to make your child class a member of the `MultiObjectiveBase` class. You will also need to make a `config.yaml`
 file for your environment to specify the training parameters.
 
