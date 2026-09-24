@@ -13,14 +13,14 @@ kwargs = {} if config['env'] != 'NaviGait' else {
     'track_yaw'       : False,
     'idealistic'      : True
 }
-env, env_params = mop.envs.create_environment(
+env, env_params = mop.create_environment(
     config,
     **kwargs
 )
 
 # Choose a tradeoff
 camera    = 'track'
-n_objs    = mop.learning.inference.get_num_objectives(config)
+n_objs    = mop.get_num_objectives(config)
 tradeoff  = np.random.dirichlet(alpha=np.ones(n_objs))
 print(f'Chosen tradeoff {tradeoff} with {n_objs} objectives')
 
