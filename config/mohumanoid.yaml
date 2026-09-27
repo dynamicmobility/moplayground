@@ -33,7 +33,7 @@ env_config:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
 learning_params:
-  ppo_params:
+  base_ppo_params:
     action_repeat: 1
     batch_size: 64
     clipping_epsilon: 0.1
@@ -52,20 +52,19 @@ learning_params:
     reward_scaling: 1.0
     unroll_length: 30
   morlax_params:
-    train_fn_params:
-      alpha: 1.0
-      k: 8
-      sampling: sparse-heavytail
-      warmup_frac: 0.0
-    network_params:
-      hypertype: dual
-      hypersize: [512, 512]
-      num_features: 32
-      policy_hidden_layer_sizes: [128, 128]
-      value_hidden_layer_sizes:  [128, 128]
-    warmup_params:
-      enabled: false
-      policy: results/MOHopper-as-so/warm-start/test/config.yaml
+    alpha: 1.0
+    k: 8
+    sampling: sparse-heavytail
+    warmup_frac: 0.0
+  network_params:
+    hypertype: dual
+    hypersize: [512, 512]
+    num_features: 32
+    policy_hidden_layer_sizes: [128, 128]
+    value_hidden_layer_sizes:  [128, 128]
+  morlax_warmup_params:
+    enabled: false
+    policy: results/MOHopper-as-so/warm-start/test/config.yaml
   amor_params:
     train_fn_params:
       alpha: 1.0

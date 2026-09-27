@@ -45,10 +45,10 @@ def build_combos(hypertypes, samplings, ks):
 
 def apply_overrides(base_config, hypertype, sampling, k):
     cfg = copy.deepcopy(base_config)
-    morlax = cfg.learning_params.morlax_params
-    morlax.network_params.hypertype = hypertype
-    morlax.train_fn_params.sampling = sampling
-    morlax.train_fn_params.k = k
+    # network_params and morlax_params are siblings under learning_params (not nested), per setup_morlax
+    cfg.learning_params.network_params.hypertype = hypertype
+    cfg.learning_params.morlax_params.sampling = sampling
+    cfg.learning_params.morlax_params.k = k
 
     base_name = cfg.name
     cfg.name = f"{base_name}-h={hypertype}-s={sampling}-k={k}"

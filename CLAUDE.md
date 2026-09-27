@@ -44,13 +44,13 @@ python -m scripts.ablation --base config/mocheetah.yaml \
 - `--samplings`: any of `dense`, `sparse`, `sparse-heavytail`, `single-avg` (see `morlax.sample_preferences`). `dense` ignores `--ks`, so the driver dedupes it across k values.
 - `--ks`: comma-separated ints (number of Dirichlet samples for sparse / sparse-heavytail).
 - `--skip-existing`: skip combos whose `save_dir/name` directory is non-empty (lets you resume after a crash).
-- Each combo overrides `learning_params.morlax_params.network_params.hypertype`, `learning_params.morlax_params.train_fn_params.sampling`, `learning_params.morlax_params.train_fn_params.k`, and renames the run `{base_name}-h={hypertype}-s={sampling}-k={k}`. Failures in one combo don't abort the sweep — a summary table prints at the end.
+- Each combo overrides `learning_params.network_params.hypertype`, `learning_params.morlax_params.sampling`, `learning_params.morlax_params.k`, and renames the run `{base_name}-h={hypertype}-s={sampling}-k={k}`. Failures in one combo don't abort the sweep — a summary table prints at the end.
 
 ## MORL algorithms
 
 `moplayground` ships two multi-objective RL algorithms, both PPO-based, both using directive (tradeoff) scalarization of per-objective rewards. Selected via `algorithm:` in the YAML config.
 
-- **MORLAX** (`src/moplayground/moppo/morlax.py`) — *hypernetwork* approach. A hypernet maps directive → policy/value MLP weights. The base policy/value MLPs are not trained directly; only the hypernet is. Configured under `learning_params.morlax_params` (`hypertype`, `hypersize`, `num_features`, plus target `policy_hidden_layer_sizes` / `value_hidden_layer_sizes`). `hypertype` is `single` (shared feature MLP, separate W/b heads → `ActorCriticHypernet`) or `dual` (separate feature MLPs per head → `DualA2CHypernet`).
+- **MORLAX** (`src/moplayground/moppo/morlax.py`) — *hypernetwork* approach. A hypernet maps directive → policy/value MLP weights. The base policy/value MLPs are not trained directly; only the hypernet is. `alpha`/`k`/`sampling`/`warmup_frac` are configured under `learning_params.morlax_params`; network shape (`hypertype`, `hypersize`, `num_features`, plus target `policy_hidden_layer_sizes` / `value_hidden_layer_sizes`) is configured under the sibling key `learning_params.network_params`. `hypertype` is `single` (shared feature MLP, separate W/b heads → `ActorCriticHypernet`) or `dual` (separate feature MLPs per head → `DualA2CHypernet`).
 - **AMOR** (`src/moplayground/moppo/amor.py`) — *tradeoff-conditioned policy* baseline. The directive is concatenated to the (normalized) obs and fed into flat policy/value MLPs. No hypernetwork. Configured under `learning_params.amor_params` (`policy_hidden_layer_sizes`, `value_hidden_layer_sizes`).
 
 Shared infrastructure lives in `src/moplayground/moppo/`:

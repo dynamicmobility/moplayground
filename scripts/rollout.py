@@ -24,12 +24,19 @@ n_objs    = mop.get_num_objectives(config)
 tradeoff  = np.random.dirichlet(alpha=np.ones(n_objs))
 print(f'Chosen tradeoff {tradeoff} with {n_objs} objectives')
 
+# Build the policy manually
+inference_fn = mop.load_mo_policy(
+    config          = config,
+    tradeoff        = tradeoff,
+    deterministic   = True
+)
+
 # Rollout the policy
-frames, reward_plotter, _, _ = mop.learning.inference.rollout_policy(
-    env         = env,
-    config      = config,
-    tradeoff    = tradeoff,
-    T           = 6.0,
+frames, reward_plotter, _, _ = mop.rollout_policy(
+    env          = env,
+    config       = config,
+    inference_fn = inference_fn,
+    T            = 6.0,
     camera      = camera,
     width       = 2560,
     height      = 1440

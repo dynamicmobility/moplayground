@@ -1,7 +1,7 @@
 name: test
-save_dir: accepted-results/jun/17
+save_dir: maako_optimization
 description: ''
-algorithm: so_ppo
+algorithm: morlax
 env: MOCheetah
 backend: np # jnp or np. Always uses jnp for training
 env_config:
@@ -53,20 +53,19 @@ learning_params:
     reward_scaling: 1.0
     unroll_length: 20
   morlax_params:
-    train_fn_params:
-      alpha: 1.0
-      k: 8
-      sampling: sparse-heavytail
-      warmup_frac: 0.0
-    network_params:
-      hypertype: dual
-      hypersize: [128, 128]
-      num_features: 16
-      policy_hidden_layer_sizes: [64, 64]
-      value_hidden_layer_sizes:  [64, 64]
-    warmup_params:
-      enabled: false
-      policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml      
+    alpha: 1.0
+    k: 8
+    sampling: sparse-heavytail
+    warmup_frac: 0.0
+  network_params:
+    hypertype: dual
+    hypersize: [128, 128]
+    num_features: 16
+    policy_hidden_layer_sizes: [64, 64]
+    value_hidden_layer_sizes:  [64, 64]
+  morlax_warmup_params:
+    enabled: false
+    policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
   amor_params:
     train_fn_params:
       alpha: 1.0
