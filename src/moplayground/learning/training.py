@@ -23,44 +23,6 @@ from mujoco_playground import wrapper
 from mujoco_playground._src import mjx_env
 import minimal_mjx as mm
 
-def setup_morlax(config):
-    general_ppo_params = config.learning_params.ppo_params
-    morlax_algo_params = config.learning_params.morlax_params
-    network_params = config.learning_params.network_params
-    
-    train_fn_params = dict(general_ppo_params) | dict(morlax_algo_params)
-    
-    network_factory = functools.partial(
-        factory.make_morlax_networks,
-        **network_params
-    )
-
-    train_fn = functools.partial(
-        morlax.train, **dict(train_fn_params),
-        network_factory=network_factory,
-    )
-        
-    return train_fn, network_factory
-
-def setup_amor(config):
-    general_ppo_params = config.learning_params.base_ppo_params
-    amor_algo_params   = config.learning_params.amor_params.train_fn_params
-    network_params     = config.learning_params.amor_params.network_params
-
-    train_fn_params = dict(general_ppo_params) | dict(amor_algo_params)
-
-    network_factory = functools.partial(
-        factory.make_amor_networks,
-        **network_params
-    )
-
-    train_fn = functools.partial(
-        amor.train, **dict(train_fn_params),
-        network_factory=network_factory,
-    )
-
-    return train_fn, network_factory
-
 
 def create_training_directory(config, warn_github_changes=True):
     output_dir = Path(config['save_dir']) / config['name']
@@ -76,16 +38,11 @@ def create_training_directory(config, warn_github_changes=True):
 
     return output_dir
 
-_ALGO_HANDLERS = {
-    'morlax': setup_morlax,
-    'amor':   setup_amor,
-}
-
-
 def train_policy(
     config,
     env,
     eval_env,
+    normalize_observations=True,
     run=None,
     handle_params=None,
     warn_github_changes=False,
@@ -122,26 +79,18 @@ def train_policy(
         inference function and the trained policy parameters.
     """
     if progress_fn is None:
-        progress_fn = mop.utils.plotting.plot_mo_progress
-    mm.utils.setupGPU.run_setup()
-    config = mm.utils.config.create_config_dict(config)
+        progress_fn = mop.plot_mo_progress
+    mm.run_setup()
+    config = mm.create_config_dict(config)
     output_dir = create_training_directory(config, warn_github_changes=warn_github_changes)
 
     # Load training and network structure
-    if handle_params is None:
-        print('Using default parameter handler')
-        algo = config.algorithm
-        if algo not in _ALGO_HANDLERS:
-            raise ValueError(
-                f"Unknown algorithm '{algo}'. Expected one of {list(_ALGO_HANDLERS)}."
-            )
-        handle_params = _ALGO_HANDLERS[algo]
     train_fn, network_factory = handle_params(config)
 
     network_config = checkpoint.network_config(
         observation_size=eval_env.observation_size,
         action_size=eval_env.action_size,
-        normalize_observations=config.learning_params.base_ppo_params.normalize_observations,
+        normalize_observations=normalize_observations,
         network_factory=network_factory,
     )
     training_data = mop.utils.plotting.MOTrainingPlottingInfo(

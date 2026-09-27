@@ -1,7 +1,7 @@
 name: test
-save_dir: accepted-results/jun/17
+save_dir: results/sep25
 description: ''
-algorithm: so_ppo
+algorithm: morlax
 env: MOCheetah
 backend: np # jnp or np. Always uses jnp for training
 env_config:
@@ -34,7 +34,7 @@ env_config:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
 learning_params:
-  base_ppo_params:
+  ppo_params:
     action_repeat: 1
     batch_size: 64
     clipping_epsilon: 0.1

@@ -8,10 +8,11 @@ from pathlib import Path
 from ral import FINAL_YAMLS, BRUCE_TRADEOFFS
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", type=str, help="Env to train on", default="bruce5D")
+parser.add_argument("--env", type=str, help="Env to train on", default="bruce6D+DR")
 parser.add_argument("--tradeoff", type=str, help="Trade-off to rollout", default="balanced")
 args = parser.parse_args()
 
+FINAL_YAMLS = FINAL_YAMLS['morlax']
 config = mop.utils.read_config(FINAL_YAMLS[args.env])
 KWARGS = {'idealistic': True}
 

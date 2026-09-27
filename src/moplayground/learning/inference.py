@@ -12,13 +12,14 @@ from moplayground.moppo.factory import (
     make_amor_inference_fn,
 )
 import moplayground as mop
-
+from pathlib import Path
 
 def load_mo_policy(
     config,
     tradeoff: np.ndarray,
-    network_factory = None,
+    network_factory,
     deterministic: bool = True,
+    model_path: Path = None
 ):
     """Load a multi-objective policy for the configured algorithm.
 
@@ -33,10 +34,10 @@ def load_mo_policy(
     """
     algo = config['algorithm'] if isinstance(config, dict) else config.algorithm
     if algo == 'morlax':
-        if network_factory is None:
-            network_factory = make_morlax_networks
+        if model_path is None:
+            model_path = mm.get_last_model(config)
         hypernetwork_inference_fn, params = load_hypernetwork_inference_fn(
-            config,
+            model_path,
             network_factory,
         )
         return hypernetwork_inference_fn(
@@ -67,38 +68,37 @@ def load_mo_policy(
 
 
 def load_hypernetworks(
-    config,
-    network_factory = make_morlax_networks,
-    path = None,
+    model_path: Path,
+    network_factory,
     quiet = True
 ) -> tuple[mop.moppo.factory.MORLAXNetworks, dict]:
     """Loads the MOPPO object"""
-    if path is None:
-        path = mm.learning.inference.get_last_model(config)
-    if not quiet: print(f'Loading model at {path.as_posix()}')
-    fullpath = path.resolve()
+    # if path is None:
+    #     path = mm.learning.inference.get_last_model(config)
+    if not quiet: print(f'Loading model at {model_path.as_posix()}')
+    fullpath = model_path.resolve()
 
     fullpath = epath.Path(fullpath)
     params_config = checkpoint.load_config(fullpath)
     hyperparams = checkpoint.load(fullpath)
-    hyperconfig = config['learning_params']['network_params']
+    # hyperconfig = config['learning_params']['network_params']
     network_factory = functools.partial(
         network_factory,
         key            = jax.random.PRNGKey(0),
-        num_objectives = len(config['env_config']['reward']['optimization']['objectives']),
-        **hyperconfig
+        # num_objectives = len(config['env_config']['reward']['optimization']['objectives']),
+        # **hyperconfig
     )
     hypernetworks = get_network(params_config, network_factory)
     return hypernetworks, hyperparams
 
 
 def load_hypernetwork_inference_fn(
-    config,
-    network_factory = make_morlax_networks,
+    model_path,
+    network_factory,
     path = None
 ):
     """Loads policy inference function from PPO checkpoint."""
-    hypernetworks, hyperparams = load_hypernetworks(config, network_factory, path)
+    hypernetworks, hyperparams = load_hypernetworks(model_path, network_factory, path)
     make_inference_fn = make_hypernetwork_inference_fn(hypernetworks)
     return make_inference_fn, hyperparams
 
