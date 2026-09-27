@@ -18,12 +18,17 @@ class MOTrainingPlottingInfo:
     paretos       : list = field(default_factory=list)
     directives    : list = field(default_factory=list)
     labels        : list = field(default_factory=list)
+    hypervolumes  : list = field(default_factory=list)
+    sparsities    : list = field(default_factory=list)
     
     def save(self, save_dir, create_time=True):
+        pad = [np.nan] if create_time else []
         pd.DataFrame(
             {
                 'times': [self.start_time] + self.times if create_time else self.times,
-                'iters': [0] + self.iterations if create_time else self.iterations
+                'iters': [0] + self.iterations if create_time else self.iterations,
+                'hypervolume': pad + self.hypervolumes,
+                'sparsity': pad + self.sparsities,
             }
         ).to_csv(save_dir)
 
@@ -44,31 +49,30 @@ def plot_mo_progress(
     training_data.paretos.append(metrics['reward'])
     training_data.directives.append(metrics['directive'])
     training_data.times.append(time.time())
-    training_data.save(save_dir / 'progress.csv')
 
-    if np.array(training_data.directives).shape[2] == 2:
-        # create the plot
+    # pareto statistics of the current front, logged natively as scalars
+    hv, sp = get_pareto_statistics(np.asarray(metrics['reward']))
+    training_data.hypervolumes.append(float(hv))
+    training_data.sparsities.append(float(sp))
+    training_data.save(save_dir / 'progress.csv')
+    log = {"pareto/hypervolume": float(hv), "pareto/sparsity": float(sp)}
+
+    # 2 objectives: the frontier itself is still worth a picture
+    if np.asarray(metrics['directive']).shape[-1] == 2:
         fig, axs = plot_sequential_paretos(
             ax_titles   = training_data.iterations,
             paretos     = training_data.paretos,
             directives  = training_data.directives,
             objectives  = training_data.labels
         )
-    else:
-        fig, axs = plot_sequential_hypervolume(
-            iterations    = training_data.iterations,
-            paretos       = training_data.paretos
-        )
-    
-    # save and upload to wandb
-    fig.savefig(save_dir / 'progress.svg')
+        fig.savefig(save_dir / 'progress.svg')
+        plt.close(fig)
+        if run:
+            with open(save_dir / 'progress.svg', "r") as f:
+                log["reward_plot"] = wandb.Html(f.read())
+
     if run:
-        with open(save_dir / 'progress.svg', "r") as f:
-            svg = f.read()
-        run.log(
-            {"reward_plot": wandb.Html(svg)},
-            step=num_steps,
-        )
+        run.log(log, step=num_steps)
 
 def default_coloring(tradeoff):
     # Map a tradeoff (or batch of tradeoffs) to an RGB color
