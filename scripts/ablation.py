@@ -63,6 +63,7 @@ def run_one(cfg):
         name    = name.replace('/', ''),
         entity  = 'njanwani-gatech',
         project = 'PrefMORL',
+        config  = cfg.to_dict(),
     )
     try:
         mop.train_policy(cfg, env, eval_env, run, warn_github_changes=False)

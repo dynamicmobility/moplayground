@@ -30,6 +30,6 @@ run = mm.utils.logging.initialize_wandb(
     name    = name.replace('/', ''),
     entity  = 'njanwani-gatech',
     project = 'MO-Playground-2',
-    config  = dict(train_config)
+    config  = train_config.to_dict()
 )
 mop.train_policy(train_config, env, eval_env, run)
