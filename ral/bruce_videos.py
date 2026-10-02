@@ -66,10 +66,10 @@ KWARGS['manual_speed'] = manual_speed
 KWARGS['track_yaw'] = track_yaw
 env, env_params = mop.envs.create_environment(config, **KWARGS)
 
-frames, _, _, _ = mop.eval.rollout_policy(
+frames, _, _, _ = mop.rollout_policy(
     env       = env,
     config    = config,
-    directive = np.array(BRUCE_TRADEOFFS[args.tradeoff.lower()]),
+    tradeoff  = np.array(BRUCE_TRADEOFFS[args.tradeoff.lower()]),
     T         = T,
     camera    = camera,
     width     = WIDTH,

@@ -57,9 +57,6 @@ _EXPORTS = {
     'MIN_SWING_PHASE': 'moplayground.envs.locomotion.control.gait',
 
     # --- eval ------------------------------------------------------------
-    # NOTE: ``learning.inference`` also defines a ``rollout_policy``; the eval
-    # one wins here, matching what ``moplayground.eval`` already exported.
-    'rollout_policy': 'moplayground.eval.rollout',
     'get_pareto_rollout': 'moplayground.eval.pareto',
     'compute_fronts': 'moplayground.eval.pareto',
     'get_morlax_fronts': 'moplayground.eval.pareto',
@@ -71,6 +68,7 @@ _EXPORTS = {
     'setup_amor': 'moplayground.learning.training',
     'create_training_directory': 'moplayground.learning.training',
     'mo_wrapper': 'moplayground.learning.training',
+    'rollout_policy': 'moplayground.learning.inference',
     'load_mo_policy': 'moplayground.learning.inference',
     'load_hypernetworks': 'moplayground.learning.inference',
     'load_hypernetwork_inference_fn': 'moplayground.learning.inference',
@@ -202,7 +200,6 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         get_morlax_fronts as get_morlax_fronts,
         get_pareto_rollout as get_pareto_rollout,
     )
-    from .eval.rollout import rollout_policy as rollout_policy
     from .learning.inference import (
         get_num_objectives as get_num_objectives,
         load_amor_networks as load_amor_networks,
@@ -210,6 +207,7 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         load_hypernetworks as load_hypernetworks,
         load_make_amor_inference_fn as load_make_amor_inference_fn,
         load_mo_policy as load_mo_policy,
+        rollout_policy as rollout_policy,
     )
     from .learning.training import (
         create_training_directory as create_training_directory,

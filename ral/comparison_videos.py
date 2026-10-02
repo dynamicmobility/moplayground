@@ -3,7 +3,7 @@ import argparse
 os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
 import numpy as np
-from moplayground.eval.rollout import rollout_policy
+from moplayground.learning.inference import rollout_policy
 from moplayground.envs.create import create_environment
 from minimal_mjx.learning.startup import read_config
 from minimal_mjx.utils.plotting import save_video
@@ -73,7 +73,7 @@ for key in directives:
     frames, _, _, _ = rollout_policy(
         env         = env,
         config      = config,
-        directive   = directives[key],
+        tradeoff    = directives[key],
         T           = T,
         camera      = camera,
         width       = WIDTH,
