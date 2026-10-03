@@ -24,7 +24,6 @@ from mujoco_playground._src import mjx_env
 import minimal_mjx as mm
 
 def setup_morlax(config):
-    # was `ppo_params` (stale key from before configs renamed it to base_ppo_params in 5b5b1ca; setup_amor was updated but this wasn't)
     general_ppo_params = config.learning_params.base_ppo_params
     morlax_algo_params = config.learning_params.morlax_params
     network_params = config.learning_params.network_params

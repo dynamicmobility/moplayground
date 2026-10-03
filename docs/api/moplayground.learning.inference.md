@@ -17,7 +17,7 @@ grand_parent: API Reference
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L12"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `load_mo_policy`
 
@@ -25,28 +25,31 @@ grand_parent: API Reference
 load_mo_policy(
     config,
     tradeoff: numpy.ndarray,
-    network_factory=<function make_moppo_networks at 0x797cd2801b20>,
+    network_factory=None,
     deterministic: bool = True
 )
 ```
 
+Load a multi-objective policy for the configured algorithm. 
 
+Dispatches on ``config.algorithm``. Returns a 2-arg callable ``policy(obs, key) -> (action, extras)`` with ``tradeoff`` baked in, so it is compatible with ``mm.eval.rollout_policy`` and other consumers. 
 
-
+For AMOR specifically, the underlying inference function natively accepts a directive at call time (so the tradeoff can change per step). To get that 3-arg form, call :func:`load_amor_inference_fn` directly instead of this function. 
 
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L29"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L69"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `load_moppo_network`
+## <kbd>function</kbd> `load_hypernetworks`
 
 ```python
-load_moppo_network(
+load_hypernetworks(
     config,
-    network_factory=<function make_moppo_networks at 0x797cd2801b20>,
-    path=None
-) → tuple[moplayground.moppo.factory.MOPPONetworks, dict]
+    network_factory=<function make_morlax_networks at 0x7ffa3c976340>,
+    path=None,
+    quiet=True
+) → tuple[moplayground.moppo.factory.MORLAXNetworks, dict]
 ```
 
 Loads the MOPPO object 
@@ -54,14 +57,14 @@ Loads the MOPPO object
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L53"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L95"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `load_hypernetwork`
+## <kbd>function</kbd> `load_hypernetwork_inference_fn`
 
 ```python
-load_hypernetwork(
+load_hypernetwork_inference_fn(
     config,
-    network_factory=<function make_moppo_networks at 0x797cd2801b20>,
+    network_factory=<function make_morlax_networks at 0x7ffa3c976340>,
     path=None
 )
 ```
@@ -71,30 +74,44 @@ Loads policy inference function from PPO checkpoint.
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L106"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `rollout_policy`
+## <kbd>function</kbd> `load_amor_networks`
 
 ```python
-rollout_policy(
-    env,
+load_amor_networks(
     config,
-    tradeoff=None,
-    T=10.0,
-    camera='track',
-    width=1080,
-    height=720
-)
+    network_factory=<function make_amor_networks at 0x7ffa3c976f20>,
+    path=None,
+    quiet=True
+) → tuple
 ```
 
-
-
-
+Load AMOR networks + saved (normalizer, policy, value) params. 
 
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L96"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L130"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `load_make_amor_inference_fn`
+
+```python
+load_make_amor_inference_fn(
+    config,
+    network_factory=<function make_amor_networks at 0x7ffa3c976f20>,
+    path=None
+)
+```
+
+Load the (call-time-directive) AMOR inference function from a checkpoint. 
+
+Returns ``(amor_inference_fn, saved_params)`` where ``amor_inference_fn`` has signature ``(params, deterministic) -> policy(obs, directive, key)`` and ``saved_params`` is the ``(normalizer, policy, value)`` 3-tuple from the checkpoint. 
+
+
+---
+
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/inference.py#L146"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_num_objectives`
 

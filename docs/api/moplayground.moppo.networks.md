@@ -32,7 +32,7 @@ flatten_model(target_params)
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L410"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L413"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `count_params`
 
@@ -48,7 +48,7 @@ Count the total number of parameters in a Flax model.
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L16"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MLP`
-MLP(obs_dim: int, hidden_sizes: Sequence[int], action_dim: int, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x797df2f46930>, name: Optional[str] = None) 
+MLP(obs_dim: int, hidden_sizes: Sequence[int], action_dim: int, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x7fff36246540>, name: Optional[str] = None) 
 
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/__init__"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -59,7 +59,7 @@ __init__(
     obs_dim: int,
     hidden_sizes: Sequence[int],
     action_dim: int,
-    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x797df2f46930>,
+    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x7fff36246540>,
     name: Optional[str] = None
 ) → None
 ```
@@ -100,7 +100,7 @@ Returns the variables in this module.
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L61"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Hypernet`
-Hypernet(target_model_dict: flax.linen.module.Module, num_objs: int, obs_dim: int, hypersize: tuple, num_features: int = 8, W_variance: float = 0.0, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x797df2f46930>, name: Optional[str] = None) 
+Hypernet(target_model_dict: flax.linen.module.Module, num_objs: int, obs_dim: int, hypersize: tuple, num_features: int = 8, W_variance: float = 0.0, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x7fff36246540>, name: Optional[str] = None) 
 
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/__init__"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -114,7 +114,7 @@ __init__(
     hypersize: tuple,
     num_features: int = 8,
     W_variance: float = 0.0,
-    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x797df2f46930>,
+    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x7fff36246540>,
     name: Optional[str] = None
 ) → None
 ```
@@ -169,7 +169,7 @@ setup()
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L128"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `HypernetMLP`
-HypernetMLP(target_model_dict: dict, num_objs: int, obs_dim: int, hypersize: tuple, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x797df2f46930>, name: Optional[str] = None) 
+HypernetMLP(target_model_dict: dict, num_objs: int, obs_dim: int, hypersize: tuple, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x7fff36246540>, name: Optional[str] = None) 
 
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/__init__"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -181,7 +181,7 @@ __init__(
     num_objs: int,
     obs_dim: int,
     hypersize: tuple,
-    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x797df2f46930>,
+    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x7fff36246540>,
     name: Optional[str] = None
 ) → None
 ```
@@ -236,7 +236,7 @@ setup()
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L173"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `FakeHypernet`
-FakeHypernet(target_model_dict: dict, num_objs: int, obs_dim: int, hypersize: tuple, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x797df2f46930>, name: Optional[str] = None) 
+FakeHypernet(target_model_dict: dict, num_objs: int, obs_dim: int, hypersize: tuple, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x7fff36246540>, name: Optional[str] = None) 
 
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/__init__"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -248,7 +248,7 @@ __init__(
     num_objs: int,
     obs_dim: int,
     hypersize: tuple,
-    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x797df2f46930>,
+    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x7fff36246540>,
     name: Optional[str] = None
 ) → None
 ```
@@ -303,7 +303,7 @@ setup()
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L222"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ActorCriticHypernet`
-ActorCriticHypernet(target_policy_dict: dict, target_value_dict: dict, num_objs: int, obs_dim: int, hypersize: tuple = (128, 128), num_features: int = 8, W_variance: float = 0.0, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x797df2f46930>, name: Optional[str] = None) 
+ActorCriticHypernet(target_policy_dict: dict, target_value_dict: dict, num_objs: int, obs_dim: int, hypersize: tuple = (128, 128), num_features: int = 8, W_variance: float = 0.0, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x7fff36246540>, name: Optional[str] = None) 
 
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/__init__"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -318,7 +318,7 @@ __init__(
     hypersize: tuple = (128, 128),
     num_features: int = 8,
     W_variance: float = 0.0,
-    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x797df2f46930>,
+    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x7fff36246540>,
     name: Optional[str] = None
 ) → None
 ```
@@ -384,10 +384,10 @@ unflatten_params(flat_params, target_network, single)
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L307"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/networks.py#L310"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `DualA2CHypernet`
-DualA2CHypernet(target_policy_dict: dict, target_value_dict: dict, num_objs: int, obs_dim: int, hypersize: tuple = (128, 128), num_features: int = 8, W_variance: float = 0.0, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x797df2f46930>, name: Optional[str] = None) 
+DualA2CHypernet(target_policy_dict: dict, target_value_dict: dict, num_objs: int, obs_dim: int, hypersize: tuple = (128, 128), num_features: int = 8, W_variance: float = 0.0, parent: Union[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel, NoneType] = <flax.linen.module._Sentinel object at 0x7fff36246540>, name: Optional[str] = None) 
 
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/__init__"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -402,7 +402,7 @@ __init__(
     hypersize: tuple = (128, 128),
     num_features: int = 8,
     W_variance: float = 0.0,
-    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x797df2f46930>,
+    parent: Optional[flax.linen.module.Module, flax.core.scope.Scope, flax.linen.module._Sentinel] = <flax.linen.module._Sentinel object at 0x7fff36246540>,
     name: Optional[str] = None
 ) → None
 ```
@@ -439,7 +439,7 @@ Returns the variables in this module.
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/setup#L316"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/setup#L319"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `DualA2CHypernet.setup`
 
@@ -453,7 +453,7 @@ setup()
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/unflatten_params#L371"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/moplayground/moppo/networks/unflatten_params#L374"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `DualA2CHypernet.unflatten_params`
 

@@ -68,7 +68,6 @@ _EXPORTS = {
     'setup_amor': 'moplayground.learning.training',
     'create_training_directory': 'moplayground.learning.training',
     'mo_wrapper': 'moplayground.learning.training',
-    'rollout_policy': 'moplayground.learning.inference',
     'load_mo_policy': 'moplayground.learning.inference',
     'load_hypernetworks': 'moplayground.learning.inference',
     'load_hypernetwork_inference_fn': 'moplayground.learning.inference',
@@ -207,7 +206,6 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         load_hypernetworks as load_hypernetworks,
         load_make_amor_inference_fn as load_make_amor_inference_fn,
         load_mo_policy as load_mo_policy,
-        rollout_policy as rollout_policy,
     )
     from .learning.training import (
         create_training_directory as create_training_directory,

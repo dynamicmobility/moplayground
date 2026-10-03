@@ -2,8 +2,10 @@ import os
 import argparse
 os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
+import jax
 import numpy as np
 import moplayground as mop
+import minimal_mjx as mm
 from pathlib import Path
 from ral import FINAL_YAMLS, BRUCE_TRADEOFFS
 
@@ -66,10 +68,16 @@ KWARGS['manual_speed'] = manual_speed
 KWARGS['track_yaw'] = track_yaw
 env, env_params = mop.envs.create_environment(config, **KWARGS)
 
-frames, _, _, _ = mop.rollout_policy(
+inference_fn = mop.load_mo_policy(
+    config        = config,
+    tradeoff      = np.array(BRUCE_TRADEOFFS[args.tradeoff.lower()]),
+    deterministic = True
+)
+inference_fn = jax.jit(inference_fn)
+
+frames, _, _, _ = mm.eval.rollout_policy(
+    inference_fn = inference_fn,
     env       = env,
-    config    = config,
-    tradeoff  = np.array(BRUCE_TRADEOFFS[args.tradeoff.lower()]),
     T         = T,
     camera    = camera,
     width     = WIDTH,

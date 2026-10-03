@@ -27,7 +27,7 @@ create_environment(config, for_training=False, **env_kwargs)
 
 Instantiate a MO-Playground environment from a config. 
 
-Dispatches on ``config['env']`` to construct one of the registered multi-objective environments (``MOCheetah``, ``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``). 
+Uses ``config['env']`` to construct one of the registered multi-objective environments (``MOCheetah``, ``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``). 
 
 
 

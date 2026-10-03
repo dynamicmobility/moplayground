@@ -18,9 +18,6 @@ has_children: true
 ---------------
 - **wrappers**
 - **inference**
-- **startup**: # Internal imports
-
-- **training**: # Basic imports
-
+- **training**
 
 

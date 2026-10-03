@@ -1,6 +1,7 @@
 import os
 os.environ["MUJOCO_GL"] = "egl" # (comment out if not on Ubuntu SSH)
 os.environ['JAX_PLATFORMS']='cpu'
+import jax
 import numpy as np
 import moplayground as mop
 import minimal_mjx as mm
@@ -31,11 +32,12 @@ inference_fn = mop.load_mo_policy(
     deterministic   = True
 )
 
+inference_fn = jax.jit(inference_fn)
+
 # Rollout the policy
-frames, reward_plotter, _, _ = mop.rollout_policy(
-    env          = env,
-    config       = config,
+frames, reward_plotter, _, _ = mm.eval.rollout_policy(
     inference_fn = inference_fn,
+    env          = env,
     T            = 6.0,
     camera      = camera,
     width       = 2560,

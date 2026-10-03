@@ -17,7 +17,7 @@ See: https://arxiv.org/pdf/1707.06347.pdf
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/losses.py#L26"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/losses.py#L36"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `compute_mo_gae`
 
@@ -57,17 +57,17 @@ Calculates the Generalized Advantage Estimation (GAE) in the multi-objective set
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/losses.py#L93"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/losses.py#L103"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `compute_mo_ppo_loss`
+## <kbd>function</kbd> `compute_morlax_loss`
 
 ```python
-compute_mo_ppo_loss(
-    params: moplayground.moppo.losses.MOPPONetworkParams,
+compute_morlax_loss(
+    params: moplayground.moppo.losses.MORLAXNetworkParams,
     normalizer_params: Any,
     data: moplayground.moppo.acting.MultiObjectiveTransition,
     rng: jax.Array,
-    moppo_network: moplayground.moppo.factory.MOPPONetworks,
+    morlax_networks: moplayground.moppo.factory.MORLAXNetworks,
     entropy_cost: float = 0.0001,
     discounting: float = 0.9,
     reward_scaling: float = 1.0,
@@ -103,17 +103,69 @@ Computes PPO loss.
 
 ---
 
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/losses.py#L212"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `compute_amor_loss`
+
+```python
+compute_amor_loss(
+    params: moplayground.moppo.losses.AMORNetworkParams,
+    normalizer_params: Any,
+    data: moplayground.moppo.acting.MultiObjectiveTransition,
+    rng: jax.Array,
+    amor_networks: moplayground.moppo.factory.AMORNetworks,
+    entropy_cost: float = 0.0001,
+    discounting: float = 0.9,
+    reward_scaling: float = 1.0,
+    gae_lambda: float = 0.95,
+    clipping_epsilon: float = 0.3,
+    normalize_advantage: bool = True
+) → Tuple[jax.Array, Mapping[str, jax.Array]]
+```
+
+Multi-objective PPO loss for AMOR. 
+
+Identical to ``compute_morlax_loss`` except the policy and value networks are flat (no hypernetwork): they consume ``(obs, directive)`` directly. 
+
+
+---
+
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/losses.py#L20"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>class</kbd> `MOPPONetworkParams`
+## <kbd>class</kbd> `MORLAXNetworkParams`
 Contains training state for the learner. 
 
 <a href="https://github.com/dynamicmobility/moplayground/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### <kbd>method</kbd> `MOPPONetworkParams.__init__`
+### <kbd>method</kbd> `MORLAXNetworkParams.__init__`
 
 ```python
 __init__(hypernetwork: Any) → None
+```
+
+
+
+
+
+
+
+
+
+---
+
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/losses.py#L26"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>class</kbd> `AMORNetworkParams`
+Contains training state for the AMOR learner. 
+
+AMOR has no hypernetwork; the policy and value networks are flat MLPs that take ``concat(obs, directive)`` as input. 
+
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `AMORNetworkParams.__init__`
+
+```python
+__init__(policy: Any, value: Any) → None
 ```
 
 

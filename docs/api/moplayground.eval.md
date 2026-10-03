@@ -17,6 +17,5 @@ has_children: true
 **Global Variables**
 ---------------
 - **pareto**
-- **rollout**
 
 

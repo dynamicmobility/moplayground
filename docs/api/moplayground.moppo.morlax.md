@@ -1,15 +1,15 @@
 ---
 layout: default
-title: "moplayground.moppo.moppo"
+title: "moplayground.moppo.morlax"
 parent: "moplayground.moppo"
 grand_parent: API Reference
 ---
 
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/moppo.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/morlax.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `moplayground.moppo.moppo`
+# <kbd>module</kbd> `moplayground.moppo.morlax`
 Proximal policy optimization training. 
 
 See: https://arxiv.org/pdf/1707.06347.pdf 
@@ -17,7 +17,7 @@ See: https://arxiv.org/pdf/1707.06347.pdf
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/moppo.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/morlax.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sample_preferences`
 
@@ -42,7 +42,7 @@ sample_preferences(
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/moppo.py#L213"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/morlax.py#L213"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train`
 
@@ -77,7 +77,7 @@ train(
     warmup_frac: float = 0.0,
     sampling: str = 'dense',
     k: int = 4,
-    network_factory: brax.training.types.NetworkFactory[moplayground.moppo.factory.MOPPONetworks] = <function make_moppo_networks at 0x797cd2801b20>,
+    network_factory: brax.training.types.NetworkFactory[moplayground.moppo.factory.MORLAXNetworks] = <function make_morlax_networks at 0x7ffa3c976340>,
     init_policy_params: dict = None,
     init_normalizer_params: dict = None,
     init_value_params: dict = None,
@@ -89,8 +89,8 @@ train(
     deterministic_eval: bool = False,
     log_training_metrics: bool = False,
     training_metrics_steps: Optional[int] = None,
-    progress_fn: Callable[[int, Mapping[str, jax.Array]], NoneType] = <function <lambda> at 0x797cd2803420>,
-    policy_params_fn: Callable[..., NoneType] = <function <lambda> at 0x797cd28034c0>,
+    progress_fn: Callable[[int, Mapping[str, jax.Array]], NoneType] = <function <lambda> at 0x7ffa3c995120>,
+    policy_params_fn: Callable[..., NoneType] = <function <lambda> at 0x7ffa3c9951c0>,
     save_checkpoint_path: Optional[str] = None,
     restore_checkpoint_path: Optional[str] = None,
     restore_params: Optional[Any] = None,
@@ -106,7 +106,7 @@ train(
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/moppo.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/moppo/morlax.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MOTrainingState`
 Contains training state for the learner. 
@@ -118,7 +118,7 @@ Contains training state for the learner.
 ```python
 __init__(
     optimizer_state: Union[jax.Array, numpy.ndarray, numpy.bool, numpy.number, Iterable[ForwardRef('ArrayTree')], Mapping[Any, ForwardRef('ArrayTree')]],
-    params: moplayground.moppo.losses.MOPPONetworkParams,
+    params: moplayground.moppo.losses.MORLAXNetworkParams,
     normalizer_params: brax.training.acme.running_statistics.RunningStatisticsState,
     env_steps: brax.training.types.UInt64
 ) → None

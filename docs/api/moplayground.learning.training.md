@@ -17,18 +17,12 @@ grand_parent: API Reference
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L48"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L26"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `plot_mo_progress`
+## <kbd>function</kbd> `setup_morlax`
 
 ```python
-plot_mo_progress(
-    num_steps: int,
-    metrics: dict,
-    training_data: moplayground.learning.training.MOTrainingInfo,
-    save_dir: pathlib.Path,
-    run: wandb.sdk.wandb_run.Run = None
-)
+setup_morlax(config)
 ```
 
 
@@ -38,7 +32,77 @@ plot_mo_progress(
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L92"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L45"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `setup_amor`
+
+```python
+setup_amor(config)
+```
+
+
+
+
+
+
+---
+
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `create_training_directory`
+
+```python
+create_training_directory(config, warn_github_changes=True)
+```
+
+
+
+
+
+
+---
+
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L85"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `train_policy`
+
+```python
+train_policy(
+    config,
+    env,
+    eval_env,
+    run=None,
+    handle_params=None,
+    warn_github_changes=False,
+    progress_fn=None
+)
+```
+
+Train a policy on the given environment. 
+
+Sets up the GPU, builds MOPPO network parameters from ``config``, saves the resolved config alongside the run, and dispatches to either the standard single-objective trainer (when ``config.mo2so.enabled`` is True — wrapping ``env``/``eval_env`` with ``Multi2SingleObjective``) or the multi-objective ``mo_train`` loop. 
+
+
+
+**Args:**
+ 
+ - <b>`config`</b>:  Training config (ConfigDict). Must include ``save_dir``,  ``name``, ``mo2so`` (with ``enabled`` and, if enabled,  ``weighting``), and ``learning_params``. 
+ - <b>`env`</b>:  Training environment. 
+ - <b>`eval_env`</b>:  Evaluation environment used for periodic rollouts. 
+ - <b>`run`</b>:  (optional) Experiment-tracking handle (e.g. a wandb run) forwarded to the  multi-objective trainer; ignored on the single-objective path. 
+ - <b>`handle_params`</b>:  (optional) Callable ``config -> (train_fn, network_factory)``.  Defaults to the handler registered for ``config.algorithm`` in  ``_ALGO_HANDLERS``. 
+ - <b>`warn_github_changes`</b>:  (optional) If True, warn about uncommitted git  changes when creating the training directory. Defaults to False. 
+ - <b>`progress_fn`</b>:  (optional) Callback invoked each eval step as  ``progress_fn(run, num_steps, metrics, save_dir, training_data)``  to log/plot training progress. Defaults to  ``mop.utils.plotting.plot_mo_progress``. 
+
+
+
+**Returns:**
+ Tuple ``(make_inference_fn, params)`` — a factory that builds an inference function and the trained policy parameters. 
+
+
+---
+
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L184"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `mo_wrapper`
 
@@ -52,73 +116,5 @@ mo_wrapper(
 ```
 
 Multi-Objective Wrapper 
-
-
----
-
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `mo_train`
-
-```python
-mo_train(
-    config_yaml: dict,
-    output_dir: pathlib.Path,
-    env: moplayground.envs.generic.mobase.MultiObjectiveBase,
-    eval_env: moplayground.envs.generic.mobase.MultiObjectiveBase,
-    moppo_params,
-    network_params,
-    policy_init_params,
-    run: wandb.sdk.wandb_run.Run
-)
-```
-
-
-
-
-
-
----
-
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L31"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>class</kbd> `MOTrainingInfo`
-MOTrainingInfo(start_time: float, times: list = <factory>, iterations: list = <factory>, paretos: list = <factory>, directives: list = <factory>, labels: list = <factory>) 
-
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/<string>"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-### <kbd>method</kbd> `MOTrainingInfo.__init__`
-
-```python
-__init__(
-    start_time: float,
-    times: list = <factory>,
-    iterations: list = <factory>,
-    paretos: list = <factory>,
-    directives: list = <factory>,
-    labels: list = <factory>
-) → None
-```
-
-
-
-
-
-
-
-
----
-
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L40"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-### <kbd>method</kbd> `MOTrainingInfo.save`
-
-```python
-save(save_dir, create_time=True)
-```
-
-
-
-
 
 

@@ -28,7 +28,7 @@ Note that you can supply a desired save directory via `--save_dir`, where the de
 Finally, you can run this policy and save a video of the rollout via:
 
 ```bash
-python3 -m scripts.rollout_policy config_path
+python3 -m scripts.rollout config_path
 ```
 
 ## Writing your own evaluation scripts
@@ -39,6 +39,7 @@ Evaluation (not used for training) scripts usually take the following form. Savi
 import os
 os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
+import jax
 import numpy as np
 import moplayground as mop
 import minimal_mjx as mm
@@ -55,10 +56,16 @@ env, env_params = mop.envs.create_environment(
 camera = 'track'
 directive = np.array([1.0, 0.0])
 
-frames, reward_plotter, _, _ = mop.eval.rollout_policy(
+inference_fn = mop.load_mo_policy(
+    config        = config,
+    tradeoff      = directive,
+    deterministic = True
+)
+inference_fn = jax.jit(inference_fn)
+
+frames, reward_plotter, _, _ = mm.eval.rollout_policy(
+    inference_fn = inference_fn,
     env         = env,
-    config      = config,
-    directive   = directive,
     T           = 6.0,
     camera      = camera,
     width       = 2560,

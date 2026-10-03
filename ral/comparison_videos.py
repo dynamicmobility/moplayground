@@ -2,8 +2,10 @@ import os
 import argparse
 os.environ["MUJOCO_GL"] = "egl"
 os.environ['JAX_PLATFORMS']='cpu'
+import jax
 import numpy as np
-from moplayground.learning.inference import rollout_policy
+from moplayground.learning.inference import load_mo_policy
+from minimal_mjx.eval import rollout_policy
 from moplayground.envs.create import create_environment
 from minimal_mjx.learning.startup import read_config
 from minimal_mjx.utils.plotting import save_video
@@ -70,10 +72,15 @@ env, env_params   = create_environment(
 for key in directives:
     camera = 'track'
     T = 10.0
+    inference_fn = load_mo_policy(
+        config        = config,
+        tradeoff      = directives[key],
+        deterministic = True
+    )
+    inference_fn = jax.jit(inference_fn)
     frames, _, _, _ = rollout_policy(
+        inference_fn = inference_fn,
         env         = env,
-        config      = config,
-        tradeoff    = directives[key],
         T           = T,
         camera      = camera,
         width       = WIDTH,
