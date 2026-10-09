@@ -5,9 +5,13 @@ package layout::
 
     import moplayground as mop
 
-    env, params = mop.create_environment(config)
+    cfg         = mop.config.load('config/mocheetah.yaml')
+    env, params = mop.create_environment(mop.config.env_name(cfg), mop.config.env_params(cfg))
     networks    = mop.make_morlax_networks(...)
     mop.plot_pareto(front)
+
+``mop.config`` is the only module that reads YAML config files; every other
+function takes plain values.
 
 The subpackages (``mop.envs``, ``mop.moppo``, ...) remain importable if you
 want the fully-qualified path.
@@ -23,9 +27,9 @@ from typing import TYPE_CHECKING
 # Imported eagerly (as before): these define the import order the package
 # relies on -- ``moppo.acting`` imports ``learning.wrappers``, so ``learning``
 # has to be in place first.
-from . import envs, eval, learning, moppo, utils
+from . import config, envs, eval, learning, moppo, utils
 
-_SUBPACKAGES = ('envs', 'eval', 'learning', 'moppo', 'utils')
+_SUBPACKAGES = ('config', 'envs', 'eval', 'learning', 'moppo', 'utils')
 
 # Public name -> module it lives in (or ``(module, original_name)`` when the
 # surfaced name is an alias). Order mirrors the package layout.
@@ -66,14 +70,14 @@ _EXPORTS = {
     'train_policy': 'moplayground.learning.training',
     'setup_morlax': 'moplayground.learning.training',
     'setup_amor': 'moplayground.learning.training',
-    'create_training_directory': 'moplayground.learning.training',
     'mo_wrapper': 'moplayground.learning.training',
     'load_mo_policy': 'moplayground.learning.inference',
     'load_hypernetworks': 'moplayground.learning.inference',
     'load_hypernetwork_inference_fn': 'moplayground.learning.inference',
     'load_amor_networks': 'moplayground.learning.inference',
     'load_make_amor_inference_fn': 'moplayground.learning.inference',
-    'get_num_objectives': 'moplayground.learning.inference',
+    'get_all_models': 'moplayground.learning.inference',
+    'get_last_model': 'moplayground.learning.inference',
     'MultiObjectiveEpisodeWrapper': 'moplayground.learning.wrappers',
     'MultiObjectiveEvalWrapper': 'moplayground.learning.wrappers',
 
@@ -172,7 +176,7 @@ if TYPE_CHECKING:  # static analysers / IDE completion
     from minimal_mjx.utils.config import read_config as read_config
     from minimal_mjx.utils.plotting import save_metrics as save_metrics, save_video as save_video
 
-    from . import envs as envs, eval as eval, learning as learning, moppo as moppo, utils as utils
+    from . import config as config, envs as envs, eval as eval, learning as learning, moppo as moppo, utils as utils
     from .envs.create import create_environment as create_environment
     from .envs.dmcontrol.ant import MOAnt as MOAnt
     from .envs.dmcontrol.cheetah import MOCheetah as MOCheetah
@@ -200,7 +204,8 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         get_pareto_rollout as get_pareto_rollout,
     )
     from .learning.inference import (
-        get_num_objectives as get_num_objectives,
+        get_all_models as get_all_models,
+        get_last_model as get_last_model,
         load_amor_networks as load_amor_networks,
         load_hypernetwork_inference_fn as load_hypernetwork_inference_fn,
         load_hypernetworks as load_hypernetworks,
@@ -208,7 +213,6 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         load_mo_policy as load_mo_policy,
     )
     from .learning.training import (
-        create_training_directory as create_training_directory,
         mo_wrapper as mo_wrapper,
         setup_amor as setup_amor,
         setup_morlax as setup_morlax,

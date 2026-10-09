@@ -40,7 +40,7 @@ env_config:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
 learning_params:
-  base_ppo_params:
+  ppo_params:
     action_repeat: 1
     batch_size: 32
     clipping_epsilon: 0.2
@@ -48,7 +48,7 @@ learning_params:
     discounting: 0.99
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.000001
+    learning_rate: 1.0e-06
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024
@@ -58,27 +58,20 @@ learning_params:
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30
+  sampling_params:
+    alpha: 1.0
+    k: 8
+    sampling: sparse-heavytail
+    warmup_frac: 0.0
   morlax_params:
-    train_fn_params:
-      alpha: 1.0
-      k: 8
-      sampling: sparse-heavytail
-      warmup_frac: 0.0
-    network_params:
-      hypertype: dual
-      hypersize: [128, 128]
-      num_features: 16
-      policy_hidden_layer_sizes: [64, 64]
-      value_hidden_layer_sizes:  [64, 64]
-    warmup_params:
-      enabled: false
-      policy: results/MOHopper-as-so/warm-start/test/config.yaml
+    hypertype: dual
+    hypersize: [128, 128]
+    num_features: 16
+    policy_hidden_layer_sizes: [64, 64]
+    value_hidden_layer_sizes: [64, 64]
   amor_params:
-    train_fn_params:
-      alpha: 1.0
-      k: 8
-      sampling: sparse-heavytail
-      warmup_frac: 0.0
-    network_params:
-      policy_hidden_layer_sizes: [256, 256, 256]
-      value_hidden_layer_sizes:  [256, 256, 256]
+    policy_hidden_layer_sizes: [256, 256, 256]
+    value_hidden_layer_sizes: [256, 256, 256]
+  morlax_warmup_params:
+    enabled: false
+    policy: results/MOHopper-as-so/warm-start/test/config.yaml

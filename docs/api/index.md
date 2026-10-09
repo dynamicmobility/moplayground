@@ -11,6 +11,9 @@ has_toc: false
 Auto-generated from the docstrings of the `moplayground` package.
 Regenerate with `python scripts/build_api_docs.py` after editing docstrings in `src/moplayground/`.
 
+## [moplayground.config]({% link api/moplayground.config.md %})
+
+
 ## [moplayground.envs]({% link api/moplayground.envs.md %})
 
 - [moplayground.envs.create]({% link api/moplayground.envs.create.md %})

@@ -1,7 +1,5 @@
 from pathlib import Path
 import time
-import yaml
-import os
 import datetime
 import pandas as pd
 from datetime import datetime
@@ -23,12 +21,11 @@ from mujoco_playground import wrapper
 from mujoco_playground._src import mjx_env
 import minimal_mjx as mm
 
-def setup_morlax(config):
-    general_ppo_params = config.learning_params.base_ppo_params
-    morlax_algo_params = config.learning_params.morlax_params
-    network_params = config.learning_params.network_params
-    
-    train_fn_params = dict(general_ppo_params) | dict(morlax_algo_params)
+# TODO: support privileged value observations. Envs already return a 'privileged_state'
+# obs, but both factories default policy_obs_key and value_obs_key to 'state'. Add a
+# config key + getter in config.py and pass value_obs_key='privileged_state' here.
+def setup_morlax(ppo_params, sampling_params, network_params):
+    train_fn_params = dict(ppo_params) | dict(sampling_params)
     
     network_factory = functools.partial(
         factory.make_morlax_networks,
@@ -42,12 +39,8 @@ def setup_morlax(config):
         
     return train_fn, network_factory
 
-def setup_amor(config):
-    general_ppo_params = config.learning_params.base_ppo_params
-    amor_algo_params   = config.learning_params.amor_params.train_fn_params
-    network_params     = config.learning_params.amor_params.network_params
-
-    train_fn_params = dict(general_ppo_params) | dict(amor_algo_params)
+def setup_amor(ppo_params, sampling_params, network_params):
+    train_fn_params = dict(ppo_params) | dict(sampling_params)
 
     network_factory = functools.partial(
         factory.make_amor_networks,
@@ -62,20 +55,6 @@ def setup_amor(config):
     return train_fn, network_factory
 
 
-def create_training_directory(config, warn_github_changes=True):
-    output_dir = Path(config['save_dir']) / config['name']
-    os.makedirs(output_dir, exist_ok=config['name'] == 'test')
-    
-    # Save configuration
-    config_save_path = Path(output_dir) / 'config.yaml'
-    if config.name != 'test':
-        git_hash = mm.utils.config.get_commit_hash(warn=warn_github_changes)
-        config.git_hash = git_hash
-    with open(config_save_path, 'w') as f:
-        yaml.dump(config.to_dict(), f)
-
-    return output_dir
-
 _ALGO_HANDLERS = {
     'morlax': setup_morlax,
     'amor':   setup_amor,
@@ -83,35 +62,40 @@ _ALGO_HANDLERS = {
 
 
 def train_policy(
-    config,
+    algorithm,
+    ppo_params,
+    sampling_params,
+    network_params,
+    run_dir,
     env,
     eval_env,
     run=None,
     handle_params=None,
-    warn_github_changes=False,
     progress_fn=None,
 ):
-    """Train a policy on the given environment.
+    """Train a multi-objective policy on the given environment.
 
-    Sets up the GPU, builds MOPPO network parameters from ``config``, saves
-    the resolved config alongside the run, and dispatches to either the
-    standard single-objective trainer (when ``config.mo2so.enabled`` is
-    True — wrapping ``env``/``eval_env`` with ``Multi2SingleObjective``)
-    or the multi-objective ``mo_train`` loop.
+    Sets up the GPU, builds the train function and network factory for
+    ``algorithm``, and runs training. Progress plots and checkpoints are
+    written to ``run_dir``. The caller creates ``run_dir`` and writes the
+    run's ``config.yaml`` before calling this function (see
+    ``moplayground.config.save``).
 
     Args:
-        config: Training config (ConfigDict). Must include ``save_dir``,
-            ``name``, ``mo2so`` (with ``enabled`` and, if enabled,
-            ``weighting``), and ``learning_params``.
+        algorithm: ``'morlax'`` or ``'amor'``.
+        ppo_params: PPO keyword arguments shared by both algorithms.
+        sampling_params: Preference-sampling keyword arguments
+            (``alpha``, ``k``, ``sampling``, ``warmup_frac``).
+        network_params: Keyword arguments for the algorithm's network factory.
+        run_dir: Existing run directory for checkpoints and progress plots.
         env: Training environment.
         eval_env: Evaluation environment used for periodic rollouts.
-        run: (optional) Experiment-tracking handle (e.g. a wandb run) forwarded to the
-            multi-objective trainer; ignored on the single-objective path.
-        handle_params: (optional) Callable ``config -> (train_fn, network_factory)``.
-            Defaults to the handler registered for ``config.algorithm`` in
+        run: (optional) Experiment-tracking handle (e.g. a wandb run) used to
+            log progress and checkpoints.
+        handle_params: (optional) Callable
+            ``(ppo_params, sampling_params, network_params) -> (train_fn, network_factory)``.
+            Defaults to the handler registered for ``algorithm`` in
             ``_ALGO_HANDLERS``.
-        warn_github_changes: (optional) If True, warn about uncommitted git
-            changes when creating the training directory. Defaults to False.
         progress_fn: (optional) Callback invoked each eval step as
             ``progress_fn(run, num_steps, metrics, save_dir, training_data)``
             to log/plot training progress. Defaults to
@@ -124,24 +108,22 @@ def train_policy(
     if progress_fn is None:
         progress_fn = mop.utils.plotting.plot_mo_progress
     mm.utils.setupGPU.run_setup()
-    config = mm.utils.config.create_config_dict(config)
-    output_dir = create_training_directory(config, warn_github_changes=warn_github_changes)
+    output_dir = Path(run_dir)
 
     # Load training and network structure
     if handle_params is None:
         print('Using default parameter handler')
-        algo = config.algorithm
-        if algo not in _ALGO_HANDLERS:
+        if algorithm not in _ALGO_HANDLERS:
             raise ValueError(
-                f"Unknown algorithm '{algo}'. Expected one of {list(_ALGO_HANDLERS)}."
+                f"Unknown algorithm '{algorithm}'. Expected one of {list(_ALGO_HANDLERS)}."
             )
-        handle_params = _ALGO_HANDLERS[algo]
-    train_fn, network_factory = handle_params(config)
+        handle_params = _ALGO_HANDLERS[algorithm]
+    train_fn, network_factory = handle_params(ppo_params, sampling_params, network_params)
 
     network_config = checkpoint.network_config(
         observation_size=eval_env.observation_size,
         action_size=eval_env.action_size,
-        normalize_observations=config.learning_params.base_ppo_params.normalize_observations,
+        normalize_observations=ppo_params['normalize_observations'],
         network_factory=network_factory,
     )
     training_data = mop.utils.plotting.MOTrainingPlottingInfo(
@@ -167,8 +149,6 @@ def train_policy(
     )
     
     # Start training
-    if run:
-        run.log_artifact(str(output_dir / 'config.yaml'), name='config')
     print(
         'Started training at', 
         datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d %H:%M:%S %Z")

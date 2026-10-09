@@ -12,7 +12,7 @@ has_children: true
 # <kbd>module</kbd> `moplayground.envs`
 Multi-objective JAX/MuJoCo environments. 
 
-Provides the registered MO-Playground environments (``MOCheetah``, ``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``) and the base classes (``MultiObjectiveBase``, ``Multi2SingleObjective``) they share. Use ``create_environment(config)`` to construct one from a config file. 
+Provides the registered MO-Playground environments (``MOCheetah``, ``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``) and the base classes (``MultiObjectiveBase``, ``Multi2SingleObjective``) they share. Use ``create_environment(env_name, env_params, ...)`` to construct one. 
 
 **Global Variables**
 ---------------

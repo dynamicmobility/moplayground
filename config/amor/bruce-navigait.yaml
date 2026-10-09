@@ -1,7 +1,7 @@
 name: longer-more-aggressive
 save_dir: bruce-results/6D/dr-first-try
 description: ""
-algorithm: ppo
+algorithm: morlax
 env: NaviGait
 robot: BRUCE
 backend: jnp 
@@ -117,7 +117,7 @@ learning_params:
     discounting: 0.96
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.000007
+    learning_rate: 7.0e-06
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 2048
@@ -127,18 +127,17 @@ learning_params:
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 25
-  hypermorl_params:
+  sampling_params:
     alpha: 1.0
     k: 16
     sampling: sparse-heavytail
     warmup_frac: 0.0
-  warmup_params:
-    enabled: false
-    policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
-  network_params:
-    policy_hidden_layer_sizes: [256, 256]
-    value_hidden_layer_sizes:  [256, 256]
-  hypernetwork_params:
+  morlax_params:
     hypertype: dual
     hypersize: [512, 512]
     num_features: 64
+    policy_hidden_layer_sizes: [256, 256]
+    value_hidden_layer_sizes: [256, 256]
+  morlax_warmup_params:
+    enabled: false
+    policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml

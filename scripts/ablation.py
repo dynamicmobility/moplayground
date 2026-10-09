@@ -23,6 +23,7 @@ import traceback
 import wandb
 
 import moplayground as mop
+from moplayground import config
 import minimal_mjx as mm
 
 
@@ -45,28 +46,44 @@ def build_combos(hypertypes, samplings, ks):
 
 def apply_overrides(base_config, hypertype, sampling, k):
     cfg = copy.deepcopy(base_config)
-    # network_params and morlax_params are siblings under learning_params (not nested), per setup_morlax
-    cfg.learning_params.network_params.hypertype = hypertype
-    cfg.learning_params.morlax_params.sampling = sampling
-    cfg.learning_params.morlax_params.k = k
+    config.set_hypertype(cfg, hypertype)
+    config.set_sampling(cfg, sampling)
+    config.set_k(cfg, k)
 
-    base_name = cfg.name
-    cfg.name = f"{base_name}-h={hypertype}-s={sampling}-k={k}"
+    base_name = config.run_name(cfg)
+    config.set_name(cfg, f"{base_name}-h={hypertype}-s={sampling}-k={k}")
     return cfg
 
 
 def run_one(cfg):
-    env, _      = mop.create_environment(cfg, for_training=True)
-    eval_env, _ = mop.create_environment(cfg, for_training=True)
-    name = cfg.save_dir + '/' + cfg.name
+    env_kwargs = dict(
+        env_name     = config.env_name(cfg),
+        backend      = config.backend(cfg, for_training=True),
+        gaitlib_path = config.gaitlib_path(cfg),
+    )
+    env, _      = mop.create_environment(env_params=config.env_params(cfg), **env_kwargs)
+    eval_env, _ = mop.create_environment(env_params=config.env_params(cfg), **env_kwargs)
+
+    run_dir = config.run_dir(cfg)
+    config_path = config.save(cfg, run_dir, warn_github_changes=False)
     run = mm.utils.logging.initialize_wandb(
-        name    = name.replace('/', ''),
+        name    = str(run_dir).replace('/', ''),
         entity  = 'njanwani-gatech',
         project = 'PrefMORL',
         config  = cfg.to_dict(),
     )
     try:
-        mop.train_policy(cfg, env, eval_env, run, warn_github_changes=False)
+        run.log_artifact(str(config_path), name='config')
+        mop.train_policy(
+            algorithm       = config.algorithm(cfg),
+            ppo_params      = config.ppo_params(cfg),
+            sampling_params = config.sampling_params(cfg),
+            network_params  = config.network_params(cfg),
+            run_dir         = run_dir,
+            env             = env,
+            eval_env        = eval_env,
+            run             = run,
+        )
     finally:
         try:
             wandb.finish()
@@ -85,7 +102,7 @@ def main():
                         help='Skip combo if save_dir/name already exists.')
     args = parser.parse_args()
 
-    base_config = mop.read_config(args.base)
+    base_config = config.load(args.base)
     hypertypes  = parse_csv(args.hypertypes)
     samplings   = parse_csv(args.samplings)
     ks          = parse_csv(args.ks, cast=int)
@@ -98,20 +115,21 @@ def main():
     results = []
     for hypertype, sampling, k in combos:
         cfg = apply_overrides(base_config, hypertype, sampling, k)
-        run_path = os.path.join(cfg.save_dir, cfg.name)
+        name = config.run_name(cfg)
+        run_path = config.run_dir(cfg)
         if args.skip_existing and os.path.isdir(run_path) and os.listdir(run_path):
-            print(f'[skip] {cfg.name} (exists at {run_path})')
-            results.append((cfg.name, 'skipped'))
+            print(f'[skip] {name} (exists at {run_path})')
+            results.append((name, 'skipped'))
             continue
 
-        print(f'\n===== Running {cfg.name} =====')
+        print(f'\n===== Running {name} =====')
         try:
             run_one(cfg)
-            results.append((cfg.name, 'ok'))
+            results.append((name, 'ok'))
         except Exception as e:
-            print(f'[FAIL] {cfg.name}: {e}')
+            print(f'[FAIL] {name}: {e}')
             traceback.print_exc()
-            results.append((cfg.name, f'fail: {e}'))
+            results.append((name, f'fail: {e}'))
 
     print('\n===== Sweep summary =====')
     for name, status in results:

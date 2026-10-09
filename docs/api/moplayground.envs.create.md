@@ -17,35 +17,43 @@ grand_parent: API Reference
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/envs/create.py#L3"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/envs/create.py#L1"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `create_environment`
 
 ```python
-create_environment(config, for_training=False, **env_kwargs)
+create_environment(
+    env_name,
+    env_params,
+    backend='jnp',
+    gaitlib_path=None,
+    **env_kwargs
+)
 ```
 
-Instantiate a MO-Playground environment from a config. 
+Instantiate a MO-Playground environment. 
 
-Uses ``config['env']`` to construct one of the registered multi-objective environments (``MOCheetah``, ``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``). 
+Constructs one of the registered multi-objective environments (``MOCheetah``, ``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``). 
 
 
 
 **Args:**
  
- - <b>`config`</b>:  Config dict (typically loaded from a YAML file in ``config/``)  with at least ``env`` (str) and ``env_config`` (dict) entries.  ``backend`` is read when ``for_training`` is False. 
- - <b>`for_training`</b>:  If True, force the JAX (``'jnp'``) backend regardless of  ``config['backend']``. Set this when building the environment for  GPU training; leave False for evaluation/rollout. 
+ - <b>`env_name`</b>:  Registered environment name, e.g. ``'MOCheetah'``. 
+ - <b>`env_params`</b>:  ``ConfigDict`` of environment parameters (the  ``env_config`` section of a run config). 
+ - <b>`backend`</b>:  ``'jnp'`` (JAX, for training) or ``'np'`` (NumPy, for  evaluation/rollout). 
+ - <b>`gaitlib_path`</b>:  Gait library path. Required for ``NaviGait``. 
  - <b>`**env_kwargs`</b>:  Extra keyword arguments forwarded to the environment  constructor. Currently only consumed by ``NaviGait`` (Bruce). 
 
 
 
 **Returns:**
- Tuple ``(env, env_params)`` where ``env`` is the constructed environment instance and ``env_params`` is the resolved ``ConfigDict`` of environment parameters. 
+ Tuple ``(env, env_params)`` where ``env`` is the constructed environment instance and ``env_params`` is the ``ConfigDict`` of environment parameters passed in. 
 
 
 
 **Raises:**
  
- - <b>`Exception`</b>:  If ``config['env']`` does not match a registered  environment name. 
+ - <b>`Exception`</b>:  If ``env_name`` does not match a registered environment. 
 
 

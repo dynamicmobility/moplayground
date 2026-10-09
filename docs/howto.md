@@ -70,9 +70,14 @@ from pathlib import Path
 from ral import BRUCE_TRADEOFFS
 
 
-config = mm.utils.read_config()
-env, env_params = mop.envs.create_environment(
-    config,
+from moplayground import config
+
+cfg = config.load('path/to/config.yaml')
+env, env_params = mop.create_environment(
+    env_name     = config.env_name(cfg),
+    env_params   = config.env_params(cfg),
+    backend      = config.backend(cfg),
+    gaitlib_path = config.gaitlib_path(cfg),
     # add any env-specific kwargs here
 )
 
@@ -80,9 +85,12 @@ camera = 'track'
 directive = np.array([1.0, 0.0])
 
 inference_fn = mop.load_mo_policy(
-    config        = config,
-    tradeoff      = directive,
-    deterministic = True
+    algorithm      = config.algorithm(cfg),
+    network_params = config.network_params(cfg),
+    num_objectives = config.num_objectives(cfg),
+    run_dir        = config.run_dir(cfg),
+    tradeoff       = directive,
+    deterministic  = True
 )
 inference_fn = jax.jit(inference_fn)
 

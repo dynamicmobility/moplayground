@@ -178,6 +178,10 @@ pyrightconfig.json
 output/
 results/
 bruce-results/
+maako_optimization/
+maako_optimization_network_size/
+MOHumanoidResults/
+slurm/
 wandb/
 src/moplayground.egg-info
 ral/pareto_logs

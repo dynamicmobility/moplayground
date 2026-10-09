@@ -3,8 +3,8 @@
 Provides the registered MO-Playground environments (``MOCheetah``,
 ``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``) and
 the base classes (``MultiObjectiveBase``, ``Multi2SingleObjective``)
-they share. Use ``create_environment(config)`` to construct one from a
-config file.
+they share. Use ``create_environment(env_name, env_params, ...)`` to
+construct one.
 """
 from . import dmcontrol, generic, locomotion
 from .create import create_environment

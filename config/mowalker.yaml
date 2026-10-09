@@ -1,6 +1,7 @@
 name: lower-lr-shorter
 save_dir: results/MOWalker
 description: N/A
+algorithm: morlax
 env: MOWalker
 backend: np # jnp or np. Always uses jnp for training
 env_config:
@@ -40,7 +41,7 @@ learning_params:
     discounting: 0.995
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.000006
+    learning_rate: 6.0e-06
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 1024
@@ -50,18 +51,17 @@ learning_params:
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 30
-  hypermorl_params:
+  sampling_params:
     alpha: 1.0
     k: 6
     sampling: sparse-heavytail
     warmup_frac: 0.0
-  warmup_params:
-    enabled: false
-    policy: ppo-hypernet/SO-MOHopper/longer-length-002-lr/config.yaml
-  network_params:
-    policy_hidden_layer_sizes: [64, 64]
-    value_hidden_layer_sizes:  [64, 64]
-  hypernetwork_params:
+  morlax_params:
     hypertype: dual
     hypersize: [128, 128]
     num_features: 16
+    policy_hidden_layer_sizes: [64, 64]
+    value_hidden_layer_sizes: [64, 64]
+  morlax_warmup_params:
+    enabled: false
+    policy: ppo-hypernet/SO-MOHopper/longer-length-002-lr/config.yaml

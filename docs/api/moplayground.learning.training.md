@@ -17,12 +17,12 @@ grand_parent: API Reference
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L26"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L24"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `setup_morlax`
 
 ```python
-setup_morlax(config)
+setup_morlax(ppo_params, sampling_params, network_params)
 ```
 
 
@@ -32,12 +32,12 @@ setup_morlax(config)
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L45"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L39"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `setup_amor`
 
 ```python
-setup_amor(config)
+setup_amor(ppo_params, sampling_params, network_params)
 ```
 
 
@@ -47,51 +47,42 @@ setup_amor(config)
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `create_training_directory`
-
-```python
-create_training_directory(config, warn_github_changes=True)
-```
-
-
-
-
-
-
----
-
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L85"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L61"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `train_policy`
 
 ```python
 train_policy(
-    config,
+    algorithm,
+    ppo_params,
+    sampling_params,
+    network_params,
+    run_dir,
     env,
     eval_env,
     run=None,
     handle_params=None,
-    warn_github_changes=False,
     progress_fn=None
 )
 ```
 
-Train a policy on the given environment. 
+Train a multi-objective policy on the given environment. 
 
-Sets up the GPU, builds MOPPO network parameters from ``config``, saves the resolved config alongside the run, and dispatches to either the standard single-objective trainer (when ``config.mo2so.enabled`` is True — wrapping ``env``/``eval_env`` with ``Multi2SingleObjective``) or the multi-objective ``mo_train`` loop. 
+Sets up the GPU, builds the train function and network factory for ``algorithm``, and runs training. Progress plots and checkpoints are written to ``run_dir``. The caller creates ``run_dir`` and writes the run's ``config.yaml`` before calling this function (see ``moplayground.config.save``). 
 
 
 
 **Args:**
  
- - <b>`config`</b>:  Training config (ConfigDict). Must include ``save_dir``,  ``name``, ``mo2so`` (with ``enabled`` and, if enabled,  ``weighting``), and ``learning_params``. 
+ - <b>`algorithm`</b>:  ``'morlax'`` or ``'amor'``. 
+ - <b>`ppo_params`</b>:  PPO keyword arguments shared by both algorithms. 
+ - <b>`sampling_params`</b>:  Preference-sampling keyword arguments  (``alpha``, ``k``, ``sampling``, ``warmup_frac``). 
+ - <b>`network_params`</b>:  Keyword arguments for the algorithm's network factory. 
+ - <b>`run_dir`</b>:  Existing run directory for checkpoints and progress plots. 
  - <b>`env`</b>:  Training environment. 
  - <b>`eval_env`</b>:  Evaluation environment used for periodic rollouts. 
- - <b>`run`</b>:  (optional) Experiment-tracking handle (e.g. a wandb run) forwarded to the  multi-objective trainer; ignored on the single-objective path. 
- - <b>`handle_params`</b>:  (optional) Callable ``config -> (train_fn, network_factory)``.  Defaults to the handler registered for ``config.algorithm`` in  ``_ALGO_HANDLERS``. 
- - <b>`warn_github_changes`</b>:  (optional) If True, warn about uncommitted git  changes when creating the training directory. Defaults to False. 
+ - <b>`run`</b>:  (optional) Experiment-tracking handle (e.g. a wandb run) used to  log progress and checkpoints. 
+ - <b>`handle_params`</b>:  (optional) Callable  ``(ppo_params, sampling_params, network_params) -> (train_fn, network_factory)``.  Defaults to the handler registered for ``algorithm`` in  ``_ALGO_HANDLERS``. 
  - <b>`progress_fn`</b>:  (optional) Callback invoked each eval step as  ``progress_fn(run, num_steps, metrics, save_dir, training_data)``  to log/plot training progress. Defaults to  ``mop.utils.plotting.plot_mo_progress``. 
 
 
@@ -102,7 +93,7 @@ Sets up the GPU, builds MOPPO network parameters from ``config``, saves the reso
 
 ---
 
-<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L184"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/dynamicmobility/moplayground/blob/main/src/moplayground/learning/training.py#L161"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `mo_wrapper`
 

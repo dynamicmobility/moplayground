@@ -1,5 +1,5 @@
 name: test
-save_dir: maako_optimization
+save_dir: maako_optimization_network_size
 description: ''
 algorithm: morlax
 env: MOCheetah
@@ -34,7 +34,7 @@ env_config:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
 learning_params:
-  base_ppo_params:
+  ppo_params:
     action_repeat: 1
     batch_size: 64
     clipping_epsilon: 0.1
@@ -42,7 +42,7 @@ learning_params:
     discounting: 0.98
     entropy_cost: 0.01
     episode_length: 500
-    learning_rate: 0.0005
+    learning_rate: 0.0001305632705197148
     max_grad_norm: 1.0
     normalize_observations: true
     num_envs: 128
@@ -52,26 +52,20 @@ learning_params:
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 20
-  morlax_params:
-    alpha: 1.0
-    k: 8
+  sampling_params:
+    alpha: 2.385868017680052
+    k: 32
     sampling: sparse-heavytail
     warmup_frac: 0.0
-  network_params:
+  morlax_params:
     hypertype: dual
     hypersize: [128, 128]
-    num_features: 16
+    num_features: 32
     policy_hidden_layer_sizes: [64, 64]
-    value_hidden_layer_sizes:  [64, 64]
+    value_hidden_layer_sizes: [64, 64]
+  amor_params:
+    policy_hidden_layer_sizes: [256, 256, 256]
+    value_hidden_layer_sizes: [256, 256, 256]
   morlax_warmup_params:
     enabled: false
     policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
-  amor_params:
-    train_fn_params:
-      alpha: 1.0
-      k: 8
-      sampling: sparse-heavytail
-      warmup_frac: 0.0
-    network_params:
-      policy_hidden_layer_sizes: [256, 256, 256]
-      value_hidden_layer_sizes:  [256, 256, 256]
