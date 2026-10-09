@@ -57,21 +57,24 @@ match args.tradeoff.lower():
         camera = 'up_close'
         WIDTH  = 2560
         HEIGHT = 2560
-        manual_speed = [0.12, 0.0, 0.0]
+        manual_speed = [0.0, 0.0, 0.0]
         track_yaw = False # max smoothness discourages taking steps
         T = 10.0
     case _:
         raise Exception('Unknown trade-off', args.tradeoff)
-
+camera = 'track'
+WIDTH = 720
+HEIGHT = 720
+T = 10.0
 KWARGS['manual_speed'] = manual_speed
 KWARGS['track_yaw'] = track_yaw
 env, env_params = mop.envs.create_environment(config, **KWARGS)
 
-frames, _, _, _ = mop.eval.rollout_policy(
+frames, *_ = mop.eval.rollout_policy(
     env       = env,
     config    = config,
-    directive = np.array(BRUCE_TRADEOFFS[args.tradeoff.lower()]),
-    T         = T,
+    tradeoff  = np.array(BRUCE_TRADEOFFS[args.tradeoff.lower()]),
+    n_steps   = int(round(T / env.dt)),
     camera    = camera,
     width     = WIDTH,
     height    = HEIGHT,

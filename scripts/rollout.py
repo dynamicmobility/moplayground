@@ -38,7 +38,9 @@ def main(config_path, tradeoff, T, height, width):
     #     height      = 1440
     # )
     inference_fn = mop.load_mo_policy(
-        config          = config,
+        # config          = config,
+        algo            = config['algorithm'],
+        model_path      = mm.get_last_model(config),
         tradeoff        = tradeoff,
         deterministic   = True,
         network_factory = functools.partial(

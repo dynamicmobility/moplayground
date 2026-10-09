@@ -170,7 +170,7 @@ def make_hypernetwork(
     num_objectives     : int,
     target_policy_dict : dict,
     hypersize          : tuple,
-    hypertype          : str = 'MLP',
+    hypertype          : str = 'dual',
     policy_obs_key     : str = 'state',
     num_features       : int = 8,
     target_value_dict  : dict = None,

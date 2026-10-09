@@ -15,11 +15,12 @@ import moplayground as mop
 from pathlib import Path
 
 def load_mo_policy(
-    config,
+    # config,
+    algo: str,
+    model_path: Path,
     tradeoff: np.ndarray,
-    network_factory,
+    network_factory = None,
     deterministic: bool = True,
-    model_path: Path = None
 ):
     """Load a multi-objective policy for the configured algorithm.
 
@@ -32,10 +33,14 @@ def load_mo_policy(
     that 3-arg form, call :func:`load_amor_inference_fn` directly instead of
     this function.
     """
-    algo = config['algorithm'] if isinstance(config, dict) else config.algorithm
     if algo == 'morlax':
-        if model_path is None:
-            model_path = mm.get_last_model(config)
+        if network_factory is None:
+            # All other network kwargs are restored from the checkpoint config.
+            network_factory = make_morlax_networks
+            # network_factory = functools.partial(
+            #     make_morlax_networks,
+            #     num_objectives = get_num_objectives(config),
+            # )
         hypernetwork_inference_fn, params = load_hypernetwork_inference_fn(
             model_path,
             network_factory,
