@@ -5,12 +5,13 @@ package layout::
 
     import moplayground as mop
 
-    cfg         = mop.config.load('config/mocheetah.yaml')
-    env, params = mop.create_environment(mop.config.env_name(cfg), mop.config.env_params(cfg))
+    cfg         = mop.config.MOConfig('config/mocheetah.yaml')
+    env, params = mop.create_environment(cfg.env_name, cfg.env_params)
     networks    = mop.make_morlax_networks(...)
     mop.plot_pareto(front)
 
-``mop.config`` is the only module that reads YAML config files; every other
+``mop.config`` (``mop.config.Config`` / ``mop.config.MOConfig``) is the only
+module that reads YAML config files; every other
 function takes plain values.
 
 The subpackages (``mop.envs``, ``mop.moppo``, ...) remain importable if you

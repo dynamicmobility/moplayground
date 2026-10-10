@@ -42,133 +42,135 @@ _AMOR_NET_KEYS   = ('policy_hidden_layer_sizes', 'value_hidden_layer_sizes')
 # ---------------------------------------------------------------------------
 # Load / save
 # ---------------------------------------------------------------------------
+import yaml
+import sys
+from ml_collections import config_dict
+import copy
 
-def load(path) -> config_dict.ConfigDict:
-    """Read a YAML config, convert it to the canonical layout, and validate it.
+class FlowSeqDumper(yaml.Dumper):
+    def represent_sequence(self, tag, sequence, flow_style=None):
+        # Force all sequences (lists) to use flow style
+        return super().represent_sequence(tag, sequence, flow_style=True)
 
-    Args:
-        path: Path to a YAML config file. Either a file in ``config/`` or a
-            ``config.yaml`` saved in a run directory.
+def read_yaml(yaml_file):
+    try:
+        with open(yaml_file, 'r') as file:
+            data = yaml.safe_load(file)
+    except Exception as e:
+        print(f"Error reading {yaml_file}: {e}")
+        sys.exit(1) 
+    return data
 
-    Returns:
-        ``ConfigDict`` in the canonical layout.
+def read_config(path=None):
+    """Reads the YAML config file"""
+    if len(sys.argv) != 2 and path is None:
+        print("Usage: python script.py <yaml_file>")
+        sys.exit(1)
+    
+    yaml_file = sys.argv[1] if path is None else path
+    data = read_yaml(yaml_file)
+    
+    return config_dict.ConfigDict(data)
 
-    Raises:
-        ValueError: If the config fails validation. The message lists every
-            problem found.
-    """
-    with open(path, 'r') as f:
-        raw = yaml.safe_load(f)
-    cfg = config_dict.ConfigDict(_migrate(raw))
-    _validate(cfg, path)
-    return cfg
+class Config:
+    
+    def __init__(self, config: Path):
+        self.cfg = read_config(config)
+        
+    def load(self, config):
+        self.cfg = read_config(config)
+        return self.cfg
+    
+    def save(self, path: Path, make_dir=True, rewrite_test=True, warn_github_changes=True):
+        if make_dir:
+            run_dir = Path(run_dir)
+            os.makedirs(run_dir, exist_ok=self.cfg.name == 'test')
+        
+        if self.cfg.name != 'test' and rewrite_test:
+            self.cfg.git_hash = mm.utils.config.get_commit_hash(warn=warn_github_changes)
+    
+        with open(path, 'w') as f:
+            yaml.dump(self.cfg.to_dict(), f)
+    
+    @property
+    def algorithm(self) -> str:
+        """Learning algorithm, like ``MORLAX``"""
+        return self.cfg.algorithm
 
+    @property
+    def env_name(self) -> str:
+        """Environment class name, e.g. ``'MOCheetah'``."""
+        return self.cfg.env
 
-def save(cfg, run_dir, warn_github_changes=True) -> Path:
-    """Create ``run_dir`` and write ``config.yaml`` into it.
+    @property
+    def backend(self) -> str:
+        """``'jnp'`` when building an env for training, else the configured backend."""
+        return self.cfg.backend
 
-    A run named ``test`` may reuse an existing ``run_dir`` and does not record
-    a git hash. Any other name raises if ``run_dir`` already exists, and
-    records the current git hash as ``cfg.git_hash``.
+    @property
+    def env_params(self) -> config_dict.ConfigDict:
+        """The ``env_config`` section, given to env classes as ``env_params``."""
+        return mm.create_config_dict(self.cfg.env_config.to_dict())
 
-    Args:
-        cfg: Config returned by :func:`load`. Modified in place (``git_hash``).
-        run_dir: Run directory, normally :func:`run_dir` of ``cfg``.
-        warn_github_changes: Forwarded to the git-hash lookup.
+    @property
+    def ppo_params(self) -> dict:
+        """PPO settings shared by both algorithms."""
+        return self.cfg.learning_params.ppo_params.to_dict()
 
-    Returns:
-        Path to the written ``config.yaml``.
-    """
-    run_dir = Path(run_dir)
-    os.makedirs(run_dir, exist_ok=cfg.name == 'test')
+    @property
+    def network_params(self) -> dict:
+        """Network settings for the configured algorithm."""
+        return self.cfg.learning_params.network_params.to_dict()
 
-    if cfg.name != 'test':
-        cfg.git_hash = mm.utils.config.get_commit_hash(warn=warn_github_changes)
+    @property
+    def normalize_observations(self) -> bool:
+        """Whether training keeps a running observation normalizer."""
+        return self.cfg.learning_params.ppo_params.normalize_observations
 
-    config_path = run_dir / 'config.yaml'
-    with open(config_path, 'w') as f:
-        yaml.dump(cfg.to_dict(), f)
-    return config_path
+    @property
+    def name(self) -> str:
+        """Run name."""
+        return self.cfg.name
 
+    @property
+    def save_dir(self) -> Path:
+        """Parent directory of all runs for this config."""
+        return Path(self.cfg.save_dir)
 
-# ---------------------------------------------------------------------------
-# Getters
-# ---------------------------------------------------------------------------
+    @property
+    def run_dir(self) -> Path:
+        """Run directory: ``save_dir / name``."""
+        return self.save_dir / self.name
+        
 
-def algorithm(cfg) -> str:
-    """``'morlax'`` or ``'amor'``."""
-    return cfg.algorithm
+class MOConfig(Config):
 
+    @property
+    def sampling_params(self) -> dict:
+        """Sampling settings: ``alpha``, ``k``, ``sampling``, ``warmup_frac``."""
+        return self.cfg.learning_params.sampling_params.to_dict()
+    
+    @property
+    def network_params(self) -> dict:
+        """Network settings for the configured algorithm."""
+        return self.cfg.learning_params[f'{self.algorithm}_params'].to_dict()
+    
+    @property
+    def objectives(self) -> list:
+        """Reward keys per objective, one list per reward dimension."""
+        return list(self.cfg.env_config.reward.optimization.objectives)
 
-def env_name(cfg) -> str:
-    """Environment class name, e.g. ``'MOCheetah'``."""
-    return cfg.env
+    @property
+    def num_objectives(self) -> int:
+        """Number of objectives (length of the reward vector)."""
+        return len(self.cfg.env_config.reward.optimization.objectives)
 
+    @property
+    def objective_labels(self):
+        """Display names for the objectives, or ``None`` if not set."""
+        labels = self.cfg.env_config.reward.optimization.get('labels')
+        return None if labels is None else list(labels)
 
-def backend(cfg, for_training=False) -> str:
-    """``'jnp'`` when building an env for training, else the configured backend."""
-    return 'jnp' if for_training else cfg.backend
-
-
-def env_params(cfg) -> config_dict.ConfigDict:
-    """The ``env_config`` section, given to env classes as ``env_params``."""
-    return mm.utils.config.create_config_dict(cfg.env_config.to_dict())
-
-
-def gaitlib_path(cfg):
-    """Gait library path (NaviGait only), or ``None``."""
-    return cfg.get('gaitlib_path')
-
-
-def ppo_params(cfg) -> dict:
-    """PPO settings shared by both algorithms."""
-    return cfg.learning_params.ppo_params.to_dict()
-
-
-def sampling_params(cfg) -> dict:
-    """Preference-sampling settings: ``alpha``, ``k``, ``sampling``, ``warmup_frac``."""
-    return cfg.learning_params.sampling_params.to_dict()
-
-
-def network_params(cfg) -> dict:
-    """Network settings for the configured algorithm."""
-    return cfg.learning_params[f'{cfg.algorithm}_params'].to_dict()
-
-
-def normalize_observations(cfg) -> bool:
-    """Whether training keeps a running observation normalizer."""
-    return cfg.learning_params.ppo_params.normalize_observations
-
-
-def objectives(cfg) -> list:
-    """Reward keys per objective, one list per reward dimension."""
-    return list(cfg.env_config.reward.optimization.objectives)
-
-
-def num_objectives(cfg) -> int:
-    """Number of objectives (length of the reward vector)."""
-    return len(cfg.env_config.reward.optimization.objectives)
-
-
-def objective_labels(cfg):
-    """Display names for the objectives, or ``None`` if not set."""
-    labels = cfg.env_config.reward.optimization.get('labels')
-    return None if labels is None else list(labels)
-
-
-def run_name(cfg) -> str:
-    """Run name."""
-    return cfg.name
-
-
-def save_dir(cfg) -> Path:
-    """Parent directory of all runs for this config."""
-    return Path(cfg.save_dir)
-
-
-def run_dir(cfg) -> Path:
-    """Run directory: ``save_dir / name``."""
-    return save_dir(cfg) / cfg.name
 
 
 def check_same_env(cfgs):
