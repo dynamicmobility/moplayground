@@ -48,13 +48,13 @@ inference_fn = mop.load_mo_policy(
 inference_fn = jax.jit(inference_fn)
 
 # Rollout the policy
-frames, reward_plotter, _, _ = mm.eval.rollout_policy(
+frames, traj, reward_plotter, _, _ = mm.eval.rollout_policy(
     inference_fn = inference_fn,
     env          = env,
     T            = 6.0,
-    camera      = camera,
-    width       = 2560,
-    height      = 1440
+    camera       = camera,
+    width        = 640,
+    height       = 480
 )
 
 # Save video and metrics
