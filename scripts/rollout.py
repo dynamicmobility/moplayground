@@ -47,22 +47,22 @@ inference_fn = mop.load_mo_policy(
 inference_fn = jax.jit(inference_fn)
 
 # Rollout the policy
-frames, traj, reward_plotter, _, _ = mm.eval.rollout_policy(
+frames, traj, reward_plotter, _, _ = mm.rollout_policy(
     inference_fn = inference_fn,
     env          = env,
-    T            = 6.0,
+    n_steps      = int(5.0 / env.dt),
     camera       = camera,
     width        = 640,
     height       = 480
 )
 
 # Save video and metrics
-mm.utils.plotting.save_video(
+mm.save_video(
     frames,
     env.dt,
     Path(f'output/videos/{cfg.env_name}-rollout.mp4')
 )
-mm.utils.plotting.save_metrics(
+mm.save_metrics(
     reward_plotter,
     Path(f'output/videos/{cfg.env_name}-reward.pdf')
 )
