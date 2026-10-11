@@ -144,7 +144,7 @@ def get_morlax_fronts(run_dirs, network_params, num_objectives, rng, env, N_STEP
     run_dirs : run directory, or list of run directories. Every run must deploy
         the same environment and network architecture; the rollout JIT is
         built once and reused across all of them. Check this before calling
-        (see ``moplayground.config.check_same_env``).
+        (see ``moplayground.utils.config.check_same_env``).
     network_params : dict, network-factory keyword arguments shared by all runs.
     num_objectives : int, number of objectives.
     rng : PRNGKey used both to sample the (fixed) batch of directives and to
@@ -200,7 +200,7 @@ def get_amor_fronts(run_dirs, network_params, num_objectives, rng, env, N_STEPS,
     run_dirs : run directory, or list of run directories. Every run must deploy
         the same environment and network architecture; the rollout JIT is
         built once and reused across all of them. Check this before calling
-        (see ``moplayground.config.check_same_env``).
+        (see ``moplayground.utils.config.check_same_env``).
     network_params : dict, network-factory keyword arguments shared by all runs.
     num_objectives : int, number of objectives.
     rng : PRNGKey used both to sample the (fixed) batch of directives and to

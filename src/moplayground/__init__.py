@@ -5,14 +5,13 @@ package layout::
 
     import moplayground as mop
 
-    cfg         = mop.config.MOConfig('config/mocheetah.yaml')
+    cfg         = mop.MOConfig('config/mocheetah.yaml')
     env, params = mop.create_environment(cfg.env_name, cfg.env_params)
     networks    = mop.make_morlax_networks(...)
     mop.plot_pareto(front)
 
-``mop.config`` (``mop.config.Config`` / ``mop.config.MOConfig``) is the only
-module that reads YAML config files; every other
-function takes plain values.
+``mop.MOConfig`` (defined in ``mop.utils.config``) is the only class that
+reads YAML config files; every other function takes plain values.
 
 The subpackages (``mop.envs``, ``mop.moppo``, ...) remain importable if you
 want the fully-qualified path.
@@ -28,9 +27,9 @@ from typing import TYPE_CHECKING
 # Imported eagerly (as before): these define the import order the package
 # relies on -- ``moppo.acting`` imports ``learning.wrappers``, so ``learning``
 # has to be in place first.
-from . import config, envs, eval, learning, moppo, utils
+from . import envs, eval, learning, moppo, utils
 
-_SUBPACKAGES = ('config', 'envs', 'eval', 'learning', 'moppo', 'utils')
+_SUBPACKAGES = ('envs', 'eval', 'learning', 'moppo', 'utils')
 
 # Public name -> module it lives in (or ``(module, original_name)`` when the
 # surfaced name is an alias). Order mirrors the package layout.
@@ -119,6 +118,8 @@ _EXPORTS = {
     'count_params': 'moplayground.moppo.networks',
 
     # --- utils -----------------------------------------------------------
+    'MOConfig': 'moplayground.utils.config',
+    'check_same_env': 'moplayground.utils.config',
     'get_nondominated': 'moplayground.utils.pareto',
     'project_to_simplex': 'moplayground.utils.pareto',
     'closest_points': 'moplayground.utils.pareto',
@@ -177,7 +178,7 @@ if TYPE_CHECKING:  # static analysers / IDE completion
     from minimal_mjx.utils.config import read_config as read_config
     from minimal_mjx.utils.plotting import save_metrics as save_metrics, save_video as save_video
 
-    from . import config as config, envs as envs, eval as eval, learning as learning, moppo as moppo, utils as utils
+    from . import envs as envs, eval as eval, learning as learning, moppo as moppo, utils as utils
     from .envs.create import create_environment as create_environment
     from .envs.dmcontrol.ant import MOAnt as MOAnt
     from .envs.dmcontrol.cheetah import MOCheetah as MOCheetah
@@ -262,6 +263,7 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         count_params as count_params,
         flatten_model as flatten_model,
     )
+    from .utils.config import MOConfig as MOConfig, check_same_env as check_same_env
     from .utils.geometry import (
         FREE3D_POS as FREE3D_POS,
         FREE3D_VEL as FREE3D_VEL,

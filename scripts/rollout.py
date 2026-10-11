@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 # Read the config file and create the environment
 # cfg      = config.load(args.config_path)
-cfg      = mop.config.MOConfig(args.config_path)
+cfg      = mop.MOConfig(args.config_path)
 kwargs = {} if cfg.env_name != 'NaviGait' else {
     'manual_speed'    : [0.12, 0.0, 0.0],
     'track_yaw'       : False,
