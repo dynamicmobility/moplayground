@@ -67,7 +67,6 @@ _EXPORTS = {
     'get_amor_fronts': 'moplayground.eval.pareto',
 
     # --- learning --------------------------------------------------------
-    'train_policy': 'moplayground.learning.training',
     'setup_morlax': 'moplayground.learning.training',
     'setup_amor': 'moplayground.learning.training',
     'mo_wrapper': 'moplayground.learning.training',
@@ -128,7 +127,7 @@ _EXPORTS = {
     'hypervolume_from_nondominated': 'moplayground.utils.pareto',
     'sparsity_from_normalized_nondominated': 'moplayground.utils.pareto',
     'MOTrainingPlottingInfo': 'moplayground.utils.plotting',
-    'plot_mo_progress': 'moplayground.utils.plotting',
+    'MOProgress': 'moplayground.utils.plotting',
     'plot_pareto': 'moplayground.utils.plotting',
     'plot_sequential_paretos': 'moplayground.utils.plotting',
     'plot_sequential_hypervolume': 'moplayground.utils.plotting',
@@ -218,7 +217,6 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         mo_wrapper as mo_wrapper,
         setup_amor as setup_amor,
         setup_morlax as setup_morlax,
-        train_policy as train_policy,
     )
     from .learning.wrappers import (
         MultiObjectiveEpisodeWrapper as MultiObjectiveEpisodeWrapper,
@@ -295,9 +293,9 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         sparsity_from_normalized_nondominated as sparsity_from_normalized_nondominated,
     )
     from .utils.plotting import (
+        MOProgress as MOProgress,
         MOTrainingPlottingInfo as MOTrainingPlottingInfo,
         default_coloring as default_coloring,
-        plot_mo_progress as plot_mo_progress,
         plot_pareto as plot_pareto,
         plot_sequential_hypervolume as plot_sequential_hypervolume,
         plot_sequential_paretos as plot_sequential_paretos,

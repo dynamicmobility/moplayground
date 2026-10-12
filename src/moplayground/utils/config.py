@@ -1,9 +1,15 @@
 """Single access point between YAML config files and the ``moplayground`` package.
 """
 import minimal_mjx as mm
+import numpy as np
 
 
 class MOConfig(mm.Config):
+    
+    @property
+    def default_scalarization(self) -> dict:
+        """Sampling settings: ``alpha``, ``k``, ``sampling``, ``warmup_frac``."""
+        return np.array(self.cfg.env_config.reward.optimization.default_scalarization)
 
     @property
     def sampling_params(self) -> dict:
@@ -11,9 +17,19 @@ class MOConfig(mm.Config):
         return self.cfg.learning_params.sampling_params.to_dict()
     
     @property
-    def network_params(self) -> dict:
+    def ppo_network_params(self) -> dict:
+        """Network settings for PPO."""
+        return self.cfg.learning_params['ppo_network_params'].to_dict()
+    
+    @property
+    def morlax_network_params(self) -> dict:
         """Network settings for the configured algorithm."""
-        return self.cfg.learning_params[f'{self.algorithm}_params'].to_dict()
+        return self.cfg.learning_params[f'morlax_network_params'].to_dict()
+    
+    @property
+    def amor_network_params(self) -> dict:
+        """Network settings for the configured algorithm."""
+        return self.cfg.learning_params[f'amor_network_params'].to_dict()
     
     @property
     def objectives(self) -> list:

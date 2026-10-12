@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time
-from minimal_mjx.utils.plotting import get_subplot_grid
+import minimal_mjx as mm
 from moplayground.utils.pareto import get_pareto_statistics, get_nondominated
 import wandb
 from pathlib import Path
@@ -32,47 +32,68 @@ class MOTrainingPlottingInfo:
             }
         ).to_csv(save_dir)
 
-def plot_mo_progress(
-    num_steps       : int,
-    metrics         : dict,
-    training_data   : MOTrainingPlottingInfo,
-    save_dir        : Path,
-    run             : wandb.Run = None
-):
-    # print current itme
-    tz = ZoneInfo("America/New_York")
-    now = datetime.now(tz)
-    print(now.strftime("%Y-%m-%d %H:%M:%S %Z"))
-    
-    # save data from iteration
-    training_data.iterations.append(num_steps)
-    training_data.paretos.append(metrics['reward'])
-    training_data.directives.append(metrics['directive'])
-    training_data.times.append(time.time())
+class MOProgress(mm.Progress):
+    """Multi-objective progress callback for ``mm.train(progress_cls=...)``.
 
-    # pareto statistics of the current front, logged natively as scalars
-    hv, sp = get_pareto_statistics(np.asarray(metrics['reward']))
-    training_data.hypervolumes.append(float(hv))
-    training_data.sparsities.append(float(sp))
-    training_data.save(save_dir / 'progress.csv')
-    log = {"pareto/hypervolume": float(hv), "pareto/sparsity": float(sp)}
+    Records the eval Pareto front each epoch, writes hypervolume/sparsity to
+    ``save_dir/progress.csv``, and plots the fronts when there are 2 objectives.
+    ``labels`` names the objectives on the plot axes; pass it with
+    ``functools.partial(MOProgress, labels=...)`` since ``mm.train`` builds the
+    callback itself.
+    """
 
-    # 2 objectives: the frontier itself is still worth a picture
-    if np.asarray(metrics['directive']).shape[-1] == 2:
-        fig, axs = plot_sequential_paretos(
-            ax_titles   = training_data.iterations,
-            paretos     = training_data.paretos,
-            directives  = training_data.directives,
-            objectives  = training_data.labels
+    def __init__(self, save_dir, total_timesteps=None, run=None, labels=None):
+        super().__init__(save_dir, total_timesteps, run)
+        self.training_data = MOTrainingPlottingInfo(
+            start_time = time.time(),
+            labels     = list(labels) if labels is not None else [],
         )
-        fig.savefig(save_dir / 'progress.svg')
-        plt.close(fig)
-        if run:
-            with open(save_dir / 'progress.svg', "r") as f:
-                log["reward_plot"] = wandb.Html(f.read())
+        # mm.train reads ``self.times`` for its jit/train timings
+        self.times = self.training_data.times
 
-    if run:
-        run.log(log, step=num_steps)
+    def load(self, before=None):
+        # progress.csv holds hypervolume/sparsity, not the fronts the plots need
+        raise NotImplementedError('MOProgress cannot resume a run yet')
+
+    def plot_progress(
+        self,
+        num_steps       : int,
+        metrics         : dict,
+    ):
+        # print current itme
+        tz = ZoneInfo("America/New_York")
+        now = datetime.now(tz)
+        print(now.strftime("%Y-%m-%d %H:%M:%S %Z"))
+        
+        # save data from iteration
+        self.training_data.iterations.append(num_steps)
+        self.training_data.paretos.append(metrics['reward'])
+        self.training_data.directives.append(metrics['directive'])
+        self.training_data.times.append(time.time())
+
+        # pareto statistics of the current front, logged natively as scalars
+        hv, sp = get_pareto_statistics(np.asarray(metrics['reward']))
+        self.training_data.hypervolumes.append(float(hv))
+        self.training_data.sparsities.append(float(sp))
+        self.training_data.save(self.save_dir / 'progress.csv')
+        log = {"pareto/hypervolume": float(hv), "pareto/sparsity": float(sp)}
+
+        # 2 objectives: the frontier itself is still worth a picture
+        if np.asarray(metrics['directive']).shape[-1] == 2:
+            fig, axs = plot_sequential_paretos(
+                ax_titles   = self.training_data.iterations,
+                paretos     = self.training_data.paretos,
+                directives  = self.training_data.directives,
+                objectives  = self.training_data.labels or None
+            )
+            fig.savefig(self.save_dir / 'progress.svg')
+            plt.close(fig)
+            if self.run:
+                with open(self.save_dir / 'progress.svg', "r") as f:
+                    log["reward_plot"] = wandb.Html(f.read())
+
+        if self.run:
+            self.run.log(log, step=num_steps)
 
 def default_coloring(tradeoff):
     # Map a tradeoff (or batch of tradeoffs) to an RGB color
@@ -209,7 +230,7 @@ def plot_sequential_paretos(
     if directives is None: directives = np.zeros_like(paretos)
     if objectives is None: objectives = [''] * paretos[0].shape[1]
     
-    nrows, ncols = get_subplot_grid(len(ax_titles))
+    nrows, ncols = mm.get_subplot_grid(len(ax_titles))
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols)
     if type(axs) == np.ndarray: axs = axs.flatten()
     else: axs = [axs]
