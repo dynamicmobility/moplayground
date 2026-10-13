@@ -35,6 +35,7 @@ env_config:
       objectives:        [['run'], ['energy']]
       shared_objectives: ['alive']
       labels:            ['Speed', 'Energy Efficiency']
+      default_scalarization: [1, 1]
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
@@ -62,15 +63,18 @@ learning_params:
     k: 8
     sampling: dense
     warmup_frac: 0.0
-  morlax_params:
+  morlax_network_params:
     hypertype: dual
     hypersize: [512, 512]
     num_features: 32
     policy_hidden_layer_sizes: [128, 128]
     value_hidden_layer_sizes: [128, 128]
-  amor_params:
+  amor_network_params:
     policy_hidden_layer_sizes: [512, 512, 512]
     value_hidden_layer_sizes: [512, 512, 512]
+  ppo_network_params:
+    policy_hidden_layer_sizes: [64, 64]
+    value_hidden_layer_sizes: [64, 64]
   morlax_warmup_params:
     enabled: false
     policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml

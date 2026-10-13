@@ -71,6 +71,7 @@ env_config:
       # objectives:        [['gait_tracking', 'base_xyz_tracking', 'base_quat_tracking'], ['res_jt_rate', 'joint_rate']]
       shared_objectives: ['vel_residual_size', 'vel_residual_rate']
       labels:            ['Joint Accuracy', 'Base Accuracy', 'Swing Arms', 'Rigid Arms', 'Smoothness', 'Efficiency']
+      default_scalarization: [1, 1, 1, 1, 1, 1]
     weights:
       gait_tracking:       1.00  # Tracking the reference gait
       base_xyz_tracking:   1.00  # Tracking the desired base position
@@ -129,12 +130,15 @@ learning_params:
     k: 16
     sampling: sparse-heavytail
     warmup_frac: 0.0
-  morlax_params:
+  morlax_network_params:
     hypertype: dual
     hypersize: [512, 512]
     num_features: 64
     policy_hidden_layer_sizes: [256, 256]
     value_hidden_layer_sizes: [256, 256]
+  ppo_network_params:
+    policy_hidden_layer_sizes: [64, 64]
+    value_hidden_layer_sizes: [64, 64]
   morlax_warmup_params:
     enabled: false
     policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
