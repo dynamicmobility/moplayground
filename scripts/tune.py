@@ -8,7 +8,7 @@ trial writes its sampled values into a fresh copy of the base config and
 trains in-process. The run is named `{base_name}-{wandb run id}`.
 
 Usage:
-    python -m scripts.tune config/sweeps/morlax-bayes.yaml
+    python -m scripts.tune config/sweeps/mocheetah-morlax-bayes.yaml
 """
 
 import matplotlib
