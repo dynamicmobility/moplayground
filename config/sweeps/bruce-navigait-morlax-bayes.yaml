@@ -1,0 +1,29 @@
+# Example sweep for scripts/tune.py. `base_config` and `num_trials` are read by
+# the script; everything else is a wandb sweep config. `parameters` are nested
+# to match the training config layout.
+base_config: config/bruce-navigait.yaml
+num_trials: 20
+
+method: bayes
+metric:
+  name: pareto/hypervolume.max
+  goal: maximize
+parameters:
+  algorithm:
+    value: morlax
+  learning_params:
+    parameters:
+      ppo_params:
+        parameters:
+          learning_rate:
+            distribution: log_uniform_values
+            min: 0.00003
+            max: 0.001
+      sampling_params:
+        parameters:
+          alpha:
+            distribution: uniform
+            min: 0.5
+            max: 4.0
+          sampling:
+            values: [sparse, sparse-heavytail, dense]
