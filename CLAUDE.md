@@ -10,7 +10,7 @@ Top-level layout:
 
 - `src/moplayground/` — the installable `moplayground` package (training envs, algorithms, utilities). Installed via `pyproject.toml`.
 - `ral/` — analysis / plotting / video scripts (Pareto fronts, t-SNE, hypervolume, composites, etc.). Run as standalone scripts, not a package.
-- `scripts/` — entry points: `train.py`, `rollout.py`, `ablation.py`, `draw_frontier.py`, `download_model.py`, and `build_api_docs.py` (docs generator). `train.sh` wraps `train.py`.
+- `scripts/` — entry points: `train.py`, `train_ppo.py` (older standalone PPO baseline), `rollout.py`, `draw_frontier.py`, `download_model.py`, and `build_api_docs.py` (docs generator). `train.sh` wraps `train.py`.
 - `config/` — training/experiment configs.
 - `externals/` — vendored or third-party deps.
 - `environment.yml` / `mac_environment.yml` — conda envs (Linux/CUDA vs. macOS).
@@ -34,42 +34,39 @@ python -m scripts.rollout <save_dir>/<name>/config.yaml     # roll out a trained
 python -m scripts.draw_frontier <save_dir>/<name>/config.yaml  # evaluate a trained run's Pareto front
 ```
 
-Run a MORLAX ablation sweep (sequential, in-process, one wandb run per combo):
-```bash
-python -m scripts.ablation --base config/mocheetah.yaml \
-    --hypertypes single,dual \
-    --samplings dense,sparse-heavytail \
-    --ks 4,8,16
-```
-- `--hypertypes`: `single` (one shared feature MLP → both policy and value heads, via `ActorCriticHypernet`) and/or `dual` (separate feature MLPs per head, via `DualA2CHypernet`). These are the only valid `hypertype` values.
-- `--samplings`: any of `dense`, `sparse`, `sparse-heavytail`, `single-avg` (see `morlax.sample_preferences`). `dense` ignores `--ks`, so the driver dedupes it across k values.
-- `--ks`: comma-separated ints (number of Dirichlet samples for sparse / sparse-heavytail).
-- `--skip-existing`: skip combos whose `save_dir/name` directory is non-empty (lets you resume after a crash).
-- Each combo overrides `learning_params.morlax_params.hypertype`, `learning_params.sampling_params.sampling`, `learning_params.sampling_params.k` (via the setters in `moplayground.config`), and renames the run `{base_name}-h={hypertype}-s={sampling}-k={k}`. Failures in one combo don't abort the sweep — a summary table prints at the end.
-
 ## Config files
 
-`src/moplayground/config.py` is the **only** module that knows YAML key names. Scripts call `config.load(path)` (reads, converts old layouts, validates), then getters (`config.ppo_params(cfg)`, `config.run_dir(cfg)`, ...) and pass plain values to package functions. Package functions never receive a config. `config.save(cfg, run_dir)` creates the run folder and writes `config.yaml` (a run named `test` may overwrite its folder and records no git hash). Canonical layout:
+`src/moplayground/utils/config.py` defines `MOConfig` (a subclass of `minimal_mjx.Config`), the **only** place that knows YAML key names. Scripts build `cfg = mop.MOConfig(path)` and read properties (`cfg.algorithm`, `cfg.ppo_params`, `cfg.sampling_params`, `cfg.morlax_network_params`, `cfg.amor_network_params`, `cfg.ppo_network_params`, `cfg.default_scalarization`, `cfg.run_dir`, ...), then pass plain values to package functions. Package functions never receive a config. `cfg.save(cfg.run_dir / 'config.yaml')` writes the run's config (adds a git hash unless the run is named `test`). Canonical layout:
 
 ```yaml
+env_config:
+  reward:
+    optimization:
+      objectives:            [[...], ...]       # reward keys per objective
+      shared_objectives:     [...]              # added to every objective
+      labels:                [...]              # display names
+      default_scalarization: [1, 1, 1]          # weights used when algorithm: ppo
 learning_params:
-  ppo_params:           {...}                                   # both algorithms
-  sampling_params:      {alpha, k, sampling, warmup_frac}       # both algorithms
-  morlax_params:        {hypertype, hypersize, num_features, policy_hidden_layer_sizes, value_hidden_layer_sizes}
-  amor_params:          {policy_hidden_layer_sizes, value_hidden_layer_sizes}
-  morlax_warmup_params: {enabled, policy}                       # unused (TODO)
+  ppo_params:            {...}                                   # all algorithms
+  sampling_params:       {alpha, k, sampling, warmup_frac}       # morlax / amor
+  morlax_network_params: {hypertype, hypersize, num_features, policy_hidden_layer_sizes, value_hidden_layer_sizes}
+  amor_network_params:   {policy_hidden_layer_sizes, value_hidden_layer_sizes}
+  ppo_network_params:    {policy_hidden_layer_sizes, value_hidden_layer_sizes}
+  morlax_warmup_params:  {enabled, policy}                       # unused (TODO)
 ```
 
-When adding a config key, add a getter in `config.py`, update `_validate` (and `_migrate` if renaming), and never index the config elsewhere.
+When adding a config key, add a property on `MOConfig` and never index the config elsewhere.
 
 ## MORL algorithms
 
-`moplayground` ships two multi-objective RL algorithms, both PPO-based, both using directive (tradeoff) scalarization of per-objective rewards. Selected via `algorithm:` in the YAML config.
+`moplayground` ships two multi-objective RL algorithms, both PPO-based, both using directive (tradeoff) scalarization of per-objective rewards. Selected via `algorithm:` in the YAML config (`morlax`, `amor`, or `ppo`).
 
-- **MORLAX** (`src/moplayground/moppo/morlax.py`) — *hypernetwork* approach. A hypernet maps directive → policy/value MLP weights. The base policy/value MLPs are not trained directly; only the hypernet is. Network shape (`hypertype`, `hypersize`, `num_features`, plus target `policy_hidden_layer_sizes` / `value_hidden_layer_sizes`) is configured under `learning_params.morlax_params`. `hypertype` is `single` (shared feature MLP, separate W/b heads → `ActorCriticHypernet`) or `dual` (separate feature MLPs per head → `DualA2CHypernet`).
-- **AMOR** (`src/moplayground/moppo/amor.py`) — *tradeoff-conditioned policy* baseline. The directive is concatenated to the (normalized) obs and fed into flat policy/value MLPs. No hypernetwork. Network shape is configured under `learning_params.amor_params` (`policy_hidden_layer_sizes`, `value_hidden_layer_sizes`).
+- **MORLAX** (`src/moplayground/moppo/morlax.py`) — *hypernetwork* approach. A hypernet maps directive → policy/value MLP weights. The base policy/value MLPs are not trained directly; only the hypernet is. Network shape (`hypertype`, `hypersize`, `num_features`, plus target `policy_hidden_layer_sizes` / `value_hidden_layer_sizes`) is configured under `learning_params.morlax_network_params`. `hypertype` is `single` (shared feature MLP, separate W/b heads → `ActorCriticHypernet`) or `dual` (separate feature MLPs per head → `DualA2CHypernet`).
+- **AMOR** (`src/moplayground/moppo/amor.py`) — *tradeoff-conditioned policy* baseline. The directive is concatenated to the (normalized) obs and fed into flat policy/value MLPs. No hypernetwork. Network shape is configured under `learning_params.amor_network_params` (`policy_hidden_layer_sizes`, `value_hidden_layer_sizes`).
 
-Both algorithms share `learning_params.ppo_params` (PPO settings) and `learning_params.sampling_params` (`alpha`, `k`, `sampling`, `warmup_frac`).
+- **PPO** (`algorithm: ppo`) — single-objective baseline. `scripts/train.py` wraps the envs in `Multi2SingleObjective` (`envs/generic/mobase.py`) to dot the reward vector with `default_scalarization`, then trains with `mm.setup_ppo`. Network shape is under `learning_params.ppo_network_params`.
+
+MORLAX and AMOR share `learning_params.ppo_params` (PPO settings) and `learning_params.sampling_params` (`alpha`, `k`, `sampling`, `warmup_frac`).
 
 Shared infrastructure lives in `src/moplayground/moppo/`:
 - `factory.py` — `make_morlax_networks`, `make_amor_networks`, and their inference-fn factories (`make_hypernetwork_inference_fn`, `make_amor_inference_fn`).
@@ -77,7 +74,7 @@ Shared infrastructure lives in `src/moplayground/moppo/`:
 - `acting.py` — shared `MultiObjectiveTransition`, `actor_step`, `generate_unroll`, `Evaluator`.
 - `networks.py` — hypernet variants (`Hypernet`, `HypernetMLP`, `DualA2CHypernet`, etc.).
 
-Dispatch happens in `learning/training.py::train_policy` and `learning/inference.py::load_mo_policy` based on their `algorithm` argument. AMOR's inference fn natively takes the directive at call time (`policy(obs, directive, key)`); `load_mo_policy` returns a 2-arg `policy(obs, key)` with the tradeoff baked in for compatibility with `mm.eval.rollout_policy`. To switch the directive at runtime, use `make_amor_inference_fn` directly.
+Training goes through `mm.train` (minimal_mjx). `scripts/train.py::get_handle_params` picks the setup function (`mm.setup_ppo`, `mop.setup_morlax`, `mop.setup_amor` from `learning/training.py`) plus its train-fn and network-factory params, and `get_progress` picks the progress callback class (`mm.Progress` for PPO, `mop.MOProgress` from `utils/plotting.py` otherwise). Setup functions have the signature `setup_x(train_fn_params, network_factory_params, resumed) -> (train_fn, network_factory)`; the MO ones pass `wrap_env_fn=mo_wrapper`. Inference dispatch is in `learning/inference.py::load_mo_policy` (`morlax` / `amor` only). AMOR's inference fn natively takes the directive at call time (`policy(obs, directive, key)`); `load_mo_policy` returns a 2-arg `policy(obs, key)` with the tradeoff baked in for compatibility with `mm.eval.rollout_policy`. To switch the directive at runtime, use `make_amor_inference_fn` directly.
 
 Checkpoint formats differ:
 - MORLAX: `(normalizer, hypernet)` 2-tuple.
