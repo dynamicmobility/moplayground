@@ -1,7 +1,7 @@
 name: test
 save_dir: maako_optimization_network_size
 description: ''
-algorithm: amor
+algorithm: morlax
 env: MOCheetah
 backend: np # jnp or np. Always uses jnp for training
 env_config:

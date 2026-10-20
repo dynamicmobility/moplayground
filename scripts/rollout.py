@@ -31,13 +31,14 @@ env, env_params = mop.create_environment(
 # Choose a tradeoff
 camera    = 'track'
 n_objs    = cfg.num_objectives
-tradeoff  = np.random.dirichlet(alpha=np.ones(n_objs))
+# tradeoff  = np.random.dirichlet(alpha=np.ones(n_objs))
+tradeoff = np.array([1, 0, 1])
 print(f'Chosen tradeoff {tradeoff} with {n_objs} objectives')
 
 # Build the policy manually
 inference_fn = mop.load_mo_policy(
     algorithm       = cfg.algorithm,
-    network_params  = cfg.network_params,
+    network_params  = cfg.ppo_network_params,
     num_objectives  = n_objs,
     run_dir         = cfg.run_dir,
     tradeoff        = tradeoff,
