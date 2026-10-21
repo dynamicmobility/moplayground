@@ -1,0 +1,104 @@
+site_name: MO-Playground
+site_description: Massively parallelized multi-objective reinforcement learning for robotics.
+site_url: https://dynamicmobility.github.io/moplayground/
+repo_url: https://github.com/dynamicmobility/moplayground
+repo_name: dynamicmobility/moplayground
+edit_uri: edit/main/docs/
+
+# docs/ also holds the project landing page (index.html, static/), which MkDocs
+# copies through untouched. The documentation itself lives under documentation/.
+exclude_docs: |
+  README.md
+
+nav:
+  - Home: documentation/index.md
+  - Examples:
+      - documentation/examples/index.md
+      - Training a policy: documentation/examples/training.md
+      - Rolling out a policy: documentation/examples/rollout.md
+  - Guides:
+      - The config file: documentation/guides/configuration.md
+      - Writing an environment: documentation/guides/environment.md
+      - Writing an algorithm: documentation/guides/algorithm.md
+  - API reference:
+      - documentation/api/index.md
+      - moplayground.envs: documentation/api/envs.md
+      - moplayground.learning: documentation/api/learning.md
+      - moplayground.moppo: documentation/api/moppo.md
+      - moplayground.eval: documentation/api/eval.md
+      - moplayground.utils: documentation/api/utils.md
+  - Developer guide: documentation/developer.md
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: auto
+            docstring_options:
+              default: google
+              per_style_options:
+                google: {warn_missing_types: false, returns_multiple_items: false}
+                numpy: {warn_missing_types: false}
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: true
+            show_if_no_docstring: true
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            filters: ["!^_"]
+            heading_level: 2
+            summary: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true

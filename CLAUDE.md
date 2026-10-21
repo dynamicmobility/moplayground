@@ -10,13 +10,13 @@ Top-level layout:
 
 - `src/moplayground/` — the installable `moplayground` package (training envs, algorithms, utilities). Installed via `pyproject.toml`.
 - `ral/` — analysis / plotting / video scripts (Pareto fronts, t-SNE, hypervolume, composites, etc.). Run as standalone scripts, not a package.
-- `scripts/` — entry points: `train.py`, `tune.py` (wandb sweeps), `rollout.py`, `draw_frontier.py`, `download_model.py`, and `build_api_docs.py` (docs generator). `train.sh` wraps `train.py`.
+- `scripts/` — entry points: `train.py`, `tune.py` (wandb sweeps), `rollout.py`, `draw_frontier.py`, `download_model.py`. `train.sh` wraps `train.py`.
 - `config/` — training/experiment configs.
 - `externals/` — vendored or third-party deps.
 - `environment.yml` / `mac_environment.yml` — conda envs (Linux/CUDA vs. macOS).
 - `pyproject.toml` — Python package metadata for `moplayground`.
 - `output/`, `results/`, `wandb/`, `dist/` — generated artifacts; do not hand-edit.
-- `docs/` — the project's static website (academic landing page + Jekyll docs site). See `docs/` for its own conventions.
+- `docs/` — the project's website: the academic landing page (`index.html`, `static/`) plus the MkDocs documentation (`docs/documentation/`). Built by `mkdocs.yml` at the repo root.
 
 ## Common commands
 
@@ -31,6 +31,7 @@ Train / roll out:
 ```bash
 python -m scripts.train config/mocheetah.yaml               # or: bash scripts/train.sh config/mocheetah.yaml
 python -m scripts.rollout <save_dir>/<name>/config.yaml     # roll out a trained run (use the run's saved config)
+python -m scripts.rollout config/mocheetah.yaml --inference_fn zero   # dummy zero/random controller, no checkpoint
 python -m scripts.draw_frontier <save_dir>/<name>/config.yaml  # evaluate a trained run's Pareto front
 ```
 
@@ -88,21 +89,16 @@ Checkpoint formats differ:
 - MORLAX: `(normalizer, hypernet)` 2-tuple.
 - AMOR: `(normalizer, policy, value)` 3-tuple — matches the standard brax layout.
 
-Regenerate API docs (writes Markdown into `docs/api/` from `moplayground` docstrings via `lazydocs`):
+Build / preview the docs site (MkDocs Material + mkdocstrings; the API reference is generated from docstrings at build time):
 ```bash
-python scripts/build_api_docs.py
-```
-
-Preview the docs site:
-```bash
-cd docs
-bundle install                               # first time only
-bundle exec jekyll serve                     # add --port 4001 if 4000 is taken
+pip install -e ".[docs]"
+mkdocs serve                                 # http://127.0.0.1:8000/moplayground/
+mkdocs build --strict                        # what CI (.github/workflows/docs.yml) runs
 ```
 
 ## Editing notes
 
-- `docs/api/` is **auto-generated** — do not hand-edit. Edit docstrings in `src/moplayground/`, rerun `scripts/build_api_docs.py`, and commit the regenerated Markdown.
+- `docs/documentation/api/*.md` only hold `::: moplayground.<module>` directives; the reference itself comes from Google-style docstrings in `src/moplayground/`. A new module needs a `:::` line on its subpackage's page. `docs/documentation/examples/` quotes excerpts of `scripts/train.py` and `scripts/rollout.py`; update them when those scripts change.
 - `ral/` scripts are run-as-script utilities; expect `if __name__ == "__main__":` entry points and CLI args, not importable APIs.
-- The docs site uses the `just-the-docs` Jekyll remote theme; the academic landing page (`docs/index.html`) is a Bulma-based template that bypasses the Jekyll layout (`layout: null`, `nav_exclude: true`).
+- The academic landing page (`docs/index.html`) is a Bulma-based template that MkDocs copies through untouched; its "Documentation" button links to `documentation/`.
 - When commands or APIs documented in `docs/` drift from the actual code in `src/moplayground/` or `scripts/`, the code is authoritative — update the docs to match.

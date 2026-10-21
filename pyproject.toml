@@ -29,7 +29,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "black"]
-docs = ["lazydocs"]
+docs = ["mkdocs-material", "mkdocstrings[python]"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
