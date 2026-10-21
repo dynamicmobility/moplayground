@@ -4,12 +4,6 @@ description: N/A
 algorithm: amor #morlax
 env: MOHumanoid
 backend: np # jnp or np. Always uses jnp for training
-mo2so:
-  enabled: false
-  weighting: [0.0, 0.5]
-  network_params:
-      policy_hidden_layer_sizes: [128, 128]
-      value_hidden_layer_sizes:  [128, 128]
 env_config:
   ctrl_dt: 0.01
   sim_dt: 0.005

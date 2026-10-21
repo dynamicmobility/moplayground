@@ -35,17 +35,11 @@ class MOHopper(MultiObjectiveBase):
             time         = 0.0,
             xfrc_applied = self._np.zeros((self._mj_model.nbody, 6)),
         )
-        parent_state = super().reset(
-            rng            = rng,
-            data           = data,
-            history_length = self.params.history_length
-        )
         info = {}
         info['posbefore'] = 0.0
         info['posafter']  = 0.01
         info['height']    = 0.0
         info['ang']       = 0.0
-        info = parent_state.info | info
 
         done = self._np.array(0.0).astype(self._np.float32)
         rewards = self.reward_function(
@@ -56,7 +50,7 @@ class MOHopper(MultiObjectiveBase):
         )
         reward, metrics = self.get_reward_and_metrics(rewards, {})
         
-        obs = self._get_obs(data, parent_state.info)
+        obs = self._get_obs(data, info)
         return self._state_init_fn(data, obs, reward, done, metrics, info)
 
     def step(self, state: mjx_env.State, action: jax.Array) -> mjx_env.State:

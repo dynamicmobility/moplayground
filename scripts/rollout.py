@@ -24,15 +24,15 @@ env, env_params = mop.create_environment(
     env_name     = cfg.env_name,
     env_params   = cfg.env_params,
     backend      = cfg.backend,
-    # gaitlib_path = cfg.gaitlib_path,
+    gaitlib_path = cfg.gaitlib_path,
     **kwargs
 )
 
 # Choose a tradeoff
 camera    = 'track'
 n_objs    = cfg.num_objectives
-# tradeoff  = np.random.dirichlet(alpha=np.ones(n_objs))
-tradeoff = np.array([1, 0, 1])
+tradeoff  = np.random.dirichlet(alpha=np.ones(n_objs))
+# tradeoff = np.array([1, 0, 1])
 print(f'Chosen tradeoff {tradeoff} with {n_objs} objectives')
 
 # Build the policy manually
