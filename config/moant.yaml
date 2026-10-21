@@ -3,7 +3,6 @@ save_dir: accepted-results/may/4/
 description: ""
 algorithm: morlax
 env: "MOAnt"
-robot: "DMHopper"
 backend: np # jnp or np. Always uses jnp for training
 env_config:
   ctrl_dt: 0.01

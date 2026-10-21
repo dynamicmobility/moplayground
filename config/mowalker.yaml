@@ -54,7 +54,7 @@ learning_params:
     unroll_length: 30
   sampling_params:
     alpha: 1.0
-    k: 6
+    k: 8
     sampling: sparse-heavytail
     warmup_frac: 0.0
   morlax_network_params:

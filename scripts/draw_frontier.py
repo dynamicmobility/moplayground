@@ -1,6 +1,6 @@
 import argparse
 import moplayground as mop
-from moplayground import config
+from moplayground.utils.config import MOConfig
 from matplotlib import pyplot as plt
 import jax
 
@@ -8,23 +8,23 @@ parser = argparse.ArgumentParser()
 parser.add_argument("config_path", type=str, help="YAML config of the run to evaluate")
 args = parser.parse_args()
 
-cfg = config.load(args.config_path)
+cfg = mop.MOConfig(args.config_path)
 env, env_config = mop.create_environment(
-    env_name     = config.env_name(cfg),
-    env_params   = config.env_params(cfg),
-    backend      = config.backend(cfg, for_training=True),
-    gaitlib_path = config.gaitlib_path(cfg),
-    manual_speed = True,
-    idealistic   = True
+    env_name     = cfg.env_name,
+    env_params   = cfg.env_params,
+    backend      = 'jnp',
+    # gaitlib_path = cfg.gaitlib_path,
+    # manual_speed = True,
+    # idealistic   = True
 )
 get_fronts = {
     'morlax': mop.get_morlax_fronts,
     'amor':   mop.get_amor_fronts,
-}[config.algorithm(cfg)]
-num_objectives = config.num_objectives(cfg)
+}[cfg.algorithm(cfg)]
+num_objectives = cfg.num_objectives
 rewards_over_iters, directives = get_fronts(
-    run_dirs        = config.run_dir(cfg),
-    network_params  = config.network_params(cfg),
+    run_dirs        = cfg.run_dir,
+    network_params  = cfg.network_params,
     num_objectives  = num_objectives,
     rng             = jax.random.PRNGKey(95),
     env             = env,
@@ -48,7 +48,7 @@ ax = mop.plot_pareto(
     ax          = ax,
     pareto      = rewards_over_iters[-1],
     colors      = mop.default_coloring(directives[-1]),
-    objective   = config.objective_labels(cfg),
+    objective   = cfg.objective_labels,
 )
 
 plt.show()

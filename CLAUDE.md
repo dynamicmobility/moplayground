@@ -10,7 +10,7 @@ Top-level layout:
 
 - `src/moplayground/` — the installable `moplayground` package (training envs, algorithms, utilities). Installed via `pyproject.toml`.
 - `ral/` — analysis / plotting / video scripts (Pareto fronts, t-SNE, hypervolume, composites, etc.). Run as standalone scripts, not a package.
-- `scripts/` — entry points: `train.py`, `train_ppo.py` (older standalone PPO baseline), `rollout.py`, `draw_frontier.py`, `download_model.py`, and `build_api_docs.py` (docs generator). `train.sh` wraps `train.py`.
+- `scripts/` — entry points: `train.py`, `tune.py` (wandb sweeps), `rollout.py`, `draw_frontier.py`, `download_model.py`, and `build_api_docs.py` (docs generator). `train.sh` wraps `train.py`.
 - `config/` — training/experiment configs.
 - `externals/` — vendored or third-party deps.
 - `environment.yml` / `mac_environment.yml` — conda envs (Linux/CUDA vs. macOS).
@@ -33,6 +33,14 @@ python -m scripts.train config/mocheetah.yaml               # or: bash scripts/t
 python -m scripts.rollout <save_dir>/<name>/config.yaml     # roll out a trained run (use the run's saved config)
 python -m scripts.draw_frontier <save_dir>/<name>/config.yaml  # evaluate a trained run's Pareto front
 ```
+
+Tests (`pip install -e .[dev]`; layout in `tests/`):
+```bash
+pytest                                       # fast tier: CPU-only unit tests (~40s), also run in CI
+pytest -m gpu                                # GPU tier: trains tiny morlax/amor/ppo runs end to end (~4 min)
+pytest tests/unit/test_configs_dir.py --config-dir path/to/configs   # check another config directory
+```
+Known bugs are pinned as `xfail(strict=True)` with the reason; fixing one makes its test XPASS (fail), so remove the marker in the same change.
 
 ## Config files
 

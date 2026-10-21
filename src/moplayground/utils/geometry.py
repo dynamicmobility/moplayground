@@ -2,7 +2,11 @@ FREE3D_POS = 7 # number of dims a free joint takes (position x,y,z) (quat x,y,z,
 FREE3D_VEL = 6 # number of dims a free joint takes (position x,y,z) (quat x,y,z,w)
 
 def euler2quat(_np, euler_angles):
-    """Convert euler angles to quaternion representation"""
+    """Convert euler angles (roll, pitch, yaw) to a quaternion (w, x, y, z).
+
+    Intrinsic x-y-z convention: the rotation is ``Rx(roll) @ Ry(pitch) @ Rz(yaw)``,
+    matching ``rotmat`` and inverted by ``quat2euler``.
+    """
     roll = euler_angles[0]
     pitch = euler_angles[1]
     yaw = euler_angles[2]
@@ -23,17 +27,20 @@ def euler2quat(_np, euler_angles):
     return q
     
 def quat2euler(_np, q):
-    """Convert quaternion to euler angles"""
+    """Convert a quaternion (w, x, y, z) to euler angles (roll, pitch, yaw).
+
+    Inverse of ``euler2quat`` (intrinsic x-y-z, ``Rx @ Ry @ Rz``).
+    """
     w, x, y, z = q
-    t0 = +2.0 * (w * x + y * z)
+    t0 = +2.0 * (w * x - y * z)
     t1 = +1.0 - 2.0 * (x * x + y * y)
     X = _np.arctan2(t0, t1)
-    
-    t2 = +2.0 * (w * y - z * x)
+
+    t2 = +2.0 * (w * y + x * z)
     t2 = _np.clip(t2, -1.0, 1.0)
     Y =  _np.arcsin(t2)
-    
-    t3 = +2.0 * (w * z + x * y)
+
+    t3 = +2.0 * (w * z - x * y)
     t4 = +1.0 - 2.0 * (y * y + z * z)
     Z =  _np.arctan2(t3, t4)
 
@@ -65,8 +72,8 @@ def rotz(_np, theta):
         
 
 def rotmat(_np, angles):
-    """Rotation matrix from euler angles"""
-    return rotz(_np, angles[2]) @ roty(_np, angles[1]) @ rotx(_np, angles[0])
+    """Rotation matrix from euler angles (roll, pitch, yaw), same convention as ``euler2quat``."""
+    return rotx(_np, angles[0]) @ roty(_np, angles[1]) @ rotz(_np, angles[2])
 
 def quat_mul(_np, u, v):
     """Multiplies two quaternions.

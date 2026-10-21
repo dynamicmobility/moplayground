@@ -3,7 +3,6 @@ save_dir: bruce-results/6D/dr-first-try
 description: ""
 algorithm: morlax
 env: NaviGait
-robot: BRUCE
 backend: jnp 
 # gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10
 gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10_witharms

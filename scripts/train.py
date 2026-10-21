@@ -39,7 +39,7 @@ def main(config_path):
     env_kwargs = dict(
         env_name     = cfg.env_name,
         backend      = 'jnp',
-        # gaitlib_path = cfg.gaitlib_path(cfg),
+        gaitlib_path = cfg.gaitlib_path,
     )
     env, env_cfg = mop.create_environment(env_params=cfg.env_params, **env_kwargs, **TRAIN_KWARGS)
     eval_env, _  = mop.create_environment(env_params=cfg.env_params, **env_kwargs, **EVAL_KWARGS)

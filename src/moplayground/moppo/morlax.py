@@ -130,13 +130,14 @@ def sample_preferences(key, it, sampling, K, warmup_frac, alpha, num_evals, num_
                 shape=(1, num_envs)
             )
         elif sampling == 'sparse':
+            k = K
             _, w_key = jax.random.split(key)
             w = jax.random.dirichlet(
                 key=w_key,
                 alpha=jnp.ones(num_objs) * alpha,
                 shape=k
             )
-            w = jnp.repeat(w, num_envs // (k + 2), axis=0)[jnp.newaxis, :]
+            w = jnp.repeat(w, num_envs // k, axis=0)[jnp.newaxis, :]
         elif sampling == 'sparse-heavytail':
             k = K - num_objs
             _, w_key = jax.random.split(key)
@@ -151,7 +152,7 @@ def sample_preferences(key, it, sampling, K, warmup_frac, alpha, num_evals, num_
             )
             w = jnp.repeat(w, num_envs // (k + num_objs), axis=0)[jnp.newaxis, :]
         elif sampling == 'single-avg':
-            w = jnp.ones(1, num_envs, num_objs) / num_objs
+            w = jnp.ones((1, num_envs, num_objs)) / num_objs
         else:
             raise Exception(f'Sampling type {sampling} not implemented')
         return w
