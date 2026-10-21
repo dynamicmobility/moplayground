@@ -51,7 +51,8 @@ class BipedalBase(MultiObjectiveBase):
         configuration and the current state of the environment. 
         
         Args:
-            state: MJX state for the robot/environment
+            data: MJX data for the robot/environment
+            info: State info dict; holds the push RNG and timers
             body_id: the body to apply the push to
         """
         # Get random keys
