@@ -1,126 +1,166 @@
-<p align="center">
-  <h1 align="center"><u>MO</u>-Playground: Massively Parallelized <u>M</u>ulti-<u>O</u>bjective Reinforcement Learning for Robotics
-  </h1>
-  <p align="center">
-    <strong>Neil Janwani, Ellen Novoseller, Vernon Lawhern, Maegan Tucker,</strong>
-</Cheetah p>
-<p align="center">
-	https://arxiv.org/abs/2603.09237v1
-</Cheetah p>
+# MO-Playground
 
-MO-Playground is a collection of multi-objective environments built in [JAX](https://github.com/jax-ml/jax) for GPU-Accelerated multi-objective RL. 
+**Massively Parallelized Multi-Objective Reinforcement Learning for Robotics**
 
-**Note that due to double-blind requirements, moplayground's documentation page and pip-installable package is not yet available.**
+Neil Janwani, Ellen Novoseller, Vernon J. Lawhern, Maegan Tucker
 
-## Prerequisites
-The code was tested with:
-- Ubuntu 22.04
-- Python 3.12.12
-- CUDA 13.0 (if you want to train policies. Evaluation can happen without a GPU).
+Published in *IEEE Robotics and Automation Letters* (RA-L), 2026.
 
-# Installation
-Using the provided ymls, create a new conda environment.
-If you want to enable GPU based training, run
+[Paper](https://doi.org/10.1109/LRA.2026.3700381) ·
+[arXiv](https://arxiv.org/abs/2603.09237v1) ·
+[Project page](https://dynamicmobility.github.io/moplayground/) ·
+[Documentation](https://dynamicmobility.github.io/moplayground/documentation/)
+
+## Environments
+
+Learned Pareto fronts, and policies at the two extreme tradeoffs.
+
+| Pareto front | Objective 1 | Objective 2 |
+| --- | --- | --- |
+| ![Ant Pareto front](docs/static/paretos_fronts/ant_pareto.svg) | ![Ant, max x velocity](docs/static/videos/gifs/ant-vx.gif) | ![Ant, max y velocity](docs/static/videos/gifs/ant-vy.gif) |
+| ![Cheetah Pareto front](docs/static/paretos_fronts/cheetah_pareto.svg) | ![Cheetah, max energy efficiency](docs/static/videos/gifs/cheetah-energy.gif) | ![Cheetah, max running speed](docs/static/videos/gifs/cheetah-run.gif) |
+| ![Hopper Pareto front](docs/static/paretos_fronts/hopper_pareto.svg) | ![Hopper, max height](docs/static/videos/gifs/hopper-height.gif) | ![Hopper, max running speed](docs/static/videos/gifs/hopper-run.gif) |
+| ![Humanoid Pareto front](docs/static/paretos_fronts/humanoid_pareto.svg) | ![Humanoid, max energy efficiency](docs/static/videos/gifs/humanoid-energy.gif) | ![Humanoid, max running speed](docs/static/videos/gifs/humanoid-run.gif) |
+| ![Walker Pareto front](docs/static/paretos_fronts/walker_pareto.svg) | ![Walker, max energy efficiency](docs/static/videos/gifs/walker-energy.gif) | ![Walker, max running speed](docs/static/videos/gifs/walker-run.gif) |
+
+### BRUCE humanoid
+
+Policies for the [BRUCE](https://www.westwoodrobotics.io/bruce/) humanoid, trained
+across six objectives: joint tracking, base tracking, arm swinging, rigid arms,
+smoothness and energy efficiency.
+
+| Balanced | Max imitation | Max arm swinging | Max smoothness |
+| --- | --- | --- | --- |
+| ![Balanced](docs/static/videos/gifs/bruce-balanced.gif) | ![Max imitation](docs/static/videos/gifs/bruce-imitation.gif) | ![Max arm swinging](docs/static/videos/gifs/bruce-arm-swing.gif) | ![Max smoothness](docs/static/videos/gifs/bruce-smooth.gif) |
+
+## Overview
+
+MO-Playground provides GPU-accelerated multi-objective environments and trainers
+built on [MuJoCo Playground](https://github.com/google-deepmind/mujoco_playground),
+[Brax](https://github.com/google/brax) PPO and
+[minimal_mjx](https://github.com/dynamicmobility/minimal-mjx). A single training run
+learns policies for a whole Pareto front of objective tradeoffs:
+
+- **Vector rewards.** Environments return named reward terms. The config groups them
+  into objectives, so one environment can be trained on different objective sets
+  without code changes.
+- **Three algorithms**, selected by `algorithm:` in the config:
+  **MORLAX** (a hypernetwork maps the tradeoff to policy and value weights),
+  **AMOR** (the tradeoff is an input to the policy and value networks), and
+  single-objective **PPO** on a fixed scalarization.
+- **Swappable backend.** Environments run on JAX/MJX (`jnp`) for parallel training,
+  or on NumPy/C MuJoCo (`np`) for fast, debuggable rollouts.
+- **Config-agnostic library.** Library functions take plain arguments.
+  `mop.MOConfig` is the only code that knows the YAML layout.
+
+## Install
+
 ```bash
-conda env create -f environment.yml
+pip install moplayground            # from PyPI
+```
+
+To train on a GPU, or to work on the code, install from source:
+
+```bash
+conda env create -f environment.yml          # Linux / CUDA (mac_environment.yml on macOS)
 conda activate moplayground
+pip install -e ".[dev]"                      # with pytest
 ```
-if you just want to evaluate policies and explore the code (i.e. running on a Mac)
+
+Training was tested on Ubuntu 22.04 with Python 3.12 and CUDA 13. Rollouts and
+evaluation run on the CPU.
+
+## Repository layout
+
+```
+src/moplayground/
+  envs/generic/mobase.py  MultiObjectiveBase: groups named reward terms into a reward vector
+  envs/dmcontrol/         MOCheetah, MOHopper, MOWalker, MOAnt, MOHumanoid
+  envs/locomotion/        NaviGait and the BRUCE humanoid
+  envs/create.py          create_environment(): maps a config's env name to a class
+  moppo/morlax.py         MORLAX trainer (hypernetwork)
+  moppo/amor.py           AMOR trainer (tradeoff-conditioned networks)
+  moppo/                  shared losses, network factories, unrolls and evaluation
+  learning/training.py    setup_morlax(), setup_amor(): plug the trainers into mm.train
+  learning/inference.py   load_mo_policy(): load a checkpoint at a chosen tradeoff
+  eval/pareto.py          batched rollouts over many tradeoffs to compute Pareto fronts
+  utils/config.py         MOConfig (the only YAML-aware code)
+  utils/pareto.py         non-dominated sorting, hypervolume, sparsity
+scripts/                  train, rollout, tune (W&B sweeps), download_model, draw_frontier
+config/                   one config per environment (AMOR variants in config/amor/)
+tests/                    pytest suite
+```
+
+## Quick start
+
+Run each script from the repository root and pass a config as its argument:
+
 ```bash
-conda env create -f mac_environment.yml
-conda activate moplayground
+python -m scripts.train   config/mocheetah.yaml                         # checkpoints in <save_dir>/<name>/
+python -m scripts.rollout <save_dir>/<name>/config.yaml --tradeoff 1 0 0  # roll out at a chosen tradeoff
+python -m scripts.rollout config/mocheetah.yaml --inference_fn zero     # dummy controller, no checkpoint
 ```
-Finally, go to the project root and run
-```
-pip3 install -e .
-```
-to install the moplayground package.
 
-## Evaluation
-Create an account at [Weights and Biases](https://wandb.ai/site).
-Note that the process should be free and you'll be required to paste your API key to get things to work.
-Educational accounts receive some amount of free storage by the way, which can be useful if you're a student!
+To try a pre-trained policy, download it from Weights & Biases and roll it out:
 
-Finally, pick an environment from the below list 
-- `cheetah`
-- `hopper`
-- `walker`
-- `ant`
-- `humanoid`
-- `bruce`
-
-and download your desired policy.
 ```bash
-python3 -m scripts.download_model --env cheetah  
+python -m scripts.download_model --env cheetah                          # saves to results/wandb-downloads/cheetah/
+python -m scripts.rollout results/wandb-downloads/cheetah/config.yaml
 ```
-note that you can supply a desired save directory via `--save_dir`. 
-The default directory is simply `results/wandb-downloads`.
-Finally, you can run the policy via
+
+Rollouts use the config's `backend` (`np` is fastest for one environment); training
+always uses `jnp`. To roll out an older run, pass the `config.yaml` saved in its run
+directory. Its `git_hash` records the commit the run was trained at.
+
+## Writing your own environment
+
+Subclass `mop.MultiObjectiveBase` and implement `reset`, `step`, `reward_function`,
+`_get_obs` and `action_size`, using the backend handles (`self._np`, `self._step_fn`,
+`self._data_init_fn`, ...) instead of `np`/`jnp` directly. `reward_function` returns a
+dict `{name: value}`; the config's `reward.optimization.objectives` decides which terms
+form each objective. Register the class in `envs/create.py`. See
+[Writing an environment](https://dynamicmobility.github.io/moplayground/documentation/guides/environment/).
+
+## Using the API directly
+
+```python
+import jax
+import numpy as np
+import minimal_mjx as mm
+import moplayground as mop
+
+cfg = mop.MOConfig('config/mocheetah.yaml')    # cfg.env_name, cfg.env_params, cfg.run_dir, ...
+env, _ = mop.create_environment(cfg.env_name, cfg.env_params, backend='np')
+
+policy = mop.load_mo_policy(
+    algorithm      = cfg.algorithm,
+    network_params = cfg.morlax_network_params,
+    num_objectives = cfg.num_objectives,
+    run_dir        = cfg.run_dir,
+    tradeoff       = np.array([0.5, 0.3, 0.2]),
+)
+frames, traj, rewards, data, info = mm.rollout_policy(jax.jit(policy), env, n_steps=500)
+mm.save_video(frames, env.dt, 'videos/rollout.mp4')
+```
+
+## Tests
+
 ```bash
-python3 -m scripts.rollout config_path
+pytest              # fast tier: CPU-only unit tests (~40 s)
+pytest -m gpu       # GPU tier: trains tiny MORLAX, AMOR and PPO runs end to end (~4 min)
 ```
-where `config_path` is the `config.yaml` file where your model was saved. 
-It will be at `save_dir/env_name/config.yaml`, where `save_dir` and `env_name` are defined above.
 
-## Training
-To train a pre-existing environment, check out the configuration files in `config/`. 
-These files specify everything from model architecture and MORLAX parameters to reward and environment constants.
-Choose the config file you want, edit the parameters to your liking, and run 
-```bash
-python3 -m scripts.train config_path
-```
-where `config_path` is the path to the config of your choice.
-If you downloaded a policy in the past, you can also use those configs to run an identical training run on your system.
+## Citation
 
-## Creating your own environment
-To create a custom environment, check out how the `cheetah` environment works at `src/moplayground/envs/dmcontrol/cheetah.py`.
-You should need to make your child class a member of the `MultiObjectiveBase` class. You will also need to make a `config.yaml`
-file for your environment to specify the training parameters.
-
-Note that support for custom dynamics (i.e. non-mujoco) is coming soon.
-
-## Classic Environments
-| Environment | Reward 1 | Reward 2 |
-|------|----------|----------|
-| ![](docs/static/paretos_fronts/ant_pareto.svg) | ![Max Vx](docs/static/videos/gifs/ant-vx.gif) | ![Max Vy](docs/static/videos/gifs/ant-vy.gif) |
-| ![](docs/static/paretos_fronts/cheetah_pareto.svg) | ![Max Energy](docs/static/videos/gifs/cheetah-energy.gif) | ![Max Run](docs/static/videos/gifs/cheetah-run.gif) |
-| ![](docs/static/paretos_fronts/hopper_pareto.svg) | ![Max Height](docs/static/videos/gifs/hopper-height.gif) | ![Max Run](docs/static/videos/gifs/hopper-run.gif) |
-| ![](docs/static/paretos_fronts/humanoid_pareto.svg) | ![Max Energy](docs/static/videos/gifs/humanoid-energy.gif) | ![Max Run](docs/static/videos/gifs/humanoid-run.gif) |
-| ![](docs/static/paretos_fronts/walker_pareto.svg) | ![Max Energy](docs/static/videos/gifs/walker-energy.gif) | ![Max Run](docs/static/videos/gifs/walker-run.gif) |
-## BRUCE Robotics Example
-
-MO-Playground is demonstrated for the BRUCE humanoid robot, developed by [Westwood Robotics](https://www.westwoodrobotics.io/bruce/). 
-
-The application features seven possible reward functions. Note that we combine `base_xyz_tracking` and `base_quat_tracking` to explore a 6-dimensional objective space.
-
-| Reward Name | Description |
-|--------|-----------|
-| `gait_tracking` | Track the reference joint-level trajectory |
-| `base_xyz_tracking` | Track the base position associated with the reference trajectory |
-| `base_quat_tracking` | Track the base orientation associated with the reference trajectory |
-| `arm_swinging` | Maximize the amount of arm-swing |
-| `arm_static` | Minimize the amount of arm-swing |
-| `minimize_energy` | Minimize energy consumption |
-
-### Examples of Multi-Objective Policies
-
-| Policy | Result |
-|--------|--------|
-| Balanced Reward | ![Balanced Reward](docs/static/videos/gifs/bruce-balanced.gif) |
-| Max Imitation | ![Max Imitation](docs/static/videos/gifs/bruce-imitation.gif) |
-| Max Arm Swinging | ![Arm Swinging](docs/static/videos/gifs/bruce-arm-swing.gif) |
-| Max Smoothness | ![Max Smoothness](docs/static/videos/gifs/bruce-smooth.gif) |
-
-
-<!-- ## Create New Environments -->
-<!-- New environments can be easily created using -->
-
-# Citation
 ```bibtex
-@article{janwani2026mo,
+@ARTICLE{moplayground,
+  author={Janwani, Neil and Novoseller, Ellen and Lawhern, Vernon J. and Tucker, Maegan},
+  journal={IEEE Robotics and Automation Letters},
   title={MO-Playground: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics},
-  author={Janwani, Neil and Novoseller, Ellen and Lawhern, Vernon J and Tucker, Maegan},
-  journal={arXiv preprint arXiv:2603.09237},
-  year={2026}
-}
+  year={2026},
+  volume={11},
+  number={8},
+  pages={9431-9438},
+  keywords={Algorithms;International trade;Learning (artificial intelligence);Optimization;Training;Graphics processing units;Reinforcement learning;Timing;Conferences;Vectors;Reinforcement learning;machine learning for robot control;humanoid and bipedal locomotion},
+  doi={10.1109/LRA.2026.3700381}}
 ```
