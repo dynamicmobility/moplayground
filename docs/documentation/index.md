@@ -102,8 +102,22 @@ python -m scripts.rollout <save_dir>/<name>/config.yaml --tradeoff 1 0 0
 
 </div>
 
-## Paper
+## Citation
 
 Janwani, Novoseller, Lawhern and Tucker. *MO-Playground: Massively Parallelized
-Multi-Objective Reinforcement Learning for Robotics.*
+Multi-Objective Reinforcement Learning for Robotics.* IEEE Robotics and Automation
+Letters, 2026. [doi:10.1109/LRA.2026.3700381](https://doi.org/10.1109/LRA.2026.3700381),
 [arXiv:2603.09237](https://arxiv.org/abs/2603.09237v1).
+
+```bibtex
+@ARTICLE{moplayground,
+  author={Janwani, Neil and Novoseller, Ellen and Lawhern, Vernon J. and Tucker, Maegan},
+  journal={IEEE Robotics and Automation Letters},
+  title={MO-Playground: Massively Parallelized Multi-Objective Reinforcement Learning for Robotics},
+  year={2026},
+  volume={11},
+  number={8},
+  pages={9431-9438},
+  keywords={Algorithms;International trade;Learning (artificial intelligence);Optimization;Training;Graphics processing units;Reinforcement learning;Timing;Conferences;Vectors;Reinforcement learning;machine learning for robot control;humanoid and bipedal locomotion},
+  doi={10.1109/LRA.2026.3700381}}
+```
