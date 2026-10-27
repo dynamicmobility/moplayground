@@ -12,13 +12,13 @@ save_path = Path(config['save_dir']) / config['name']
 if (save_path / 'the-obj.txt').exists():
     # Load existing results instead of running experiments
     paretos = np.array(pd.read_csv(save_path / f'the-obj.txt').iloc[:, 1:].values)
-    directives = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
+    tradeoffs = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
 else:
     raise Exception('Run 2D first')
 # Spectral Embedding dimensionality reduction to 2D
 D = 3
 less_paretos = paretos[::D]
-less_directives = directives[::D]
+less_tradeoffs = tradeoffs[::D]
 paretos_2d = TSNE(n_components=2, random_state=95, perplexity=50).fit_transform(less_paretos)
 
 # Save Spectral Embedding results to file
@@ -33,10 +33,10 @@ high_y = np.argmax(paretos_2d[:,1])
 
 less_frontier = paretos_2d[mop.utils.pareto.get_nondominated(less_paretos)]
 
-print(f"Lowest X: Index {repr(less_directives[low_x])}")
-print(f"Lowest Y: Index {repr(less_directives[low_y])}")
-print(f"Highest X: Index {repr(less_directives[high_x])}")
-print(f"Highest Y: Index {repr(less_directives[high_y])}")
+print(f"Lowest X: Index {repr(less_tradeoffs[low_x])}")
+print(f"Lowest Y: Index {repr(less_tradeoffs[low_y])}")
+print(f"Highest X: Index {repr(less_tradeoffs[high_x])}")
+print(f"Highest Y: Index {repr(less_tradeoffs[high_y])}")
 
 plt.figure(figsize=(8, 6))
 plt.scatter(paretos_2d[:, 0], paretos_2d[:, 1], c='blue', alpha=0.2, s=1)

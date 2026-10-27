@@ -8,7 +8,7 @@ import moplayground as mop
 
 
 def get_pareto_rollout(env, N_STEPS, make_policy):
-    """Build a jit/vmapped rollout fn that sweeps a batch of (key, directive, params).
+    """Build a jit/vmapped rollout fn that sweeps a batch of (key, tradeoff, params).
 
     The same scaffold works for any algorithm — algorithm-specific details live
     inside ``make_policy``.
@@ -18,12 +18,12 @@ def get_pareto_rollout(env, N_STEPS, make_policy):
     env : the brax/mjx environment to roll out in.
     N_STEPS : int, number of env steps per rollout.
     make_policy : callable with signature
-        ``(params, deterministic, directive) -> policy(obs, key) -> (action, extras)``.
+        ``(params, deterministic, tradeoff) -> policy(obs, key) -> (action, extras)``.
 
     Returns
     -------
-    run_rollouts : jit-compiled fn ``(keys, directives, params) -> ((final_state, returns), None)``
-        vmapped over the leading axis of ``keys`` and ``directives``. ``returns`` is
+    run_rollouts : jit-compiled fn ``(keys, tradeoffs, params) -> ((final_state, returns), None)``
+        vmapped over the leading axis of ``keys`` and ``tradeoffs``. ``returns`` is
         the per-objective episodic return, shape ``(NUM_ENVS, num_objs)``.
     """
     policy_rng = jax.random.PRNGKey(0)
@@ -35,11 +35,11 @@ def get_pareto_rollout(env, N_STEPS, make_policy):
         # accumulate per-objective reward, masking out steps after termination
         return (new_state, old_reward + new_state.reward * (1 - new_state.done)), None
 
-    def rollout(key, directive, params):
+    def rollout(key, tradeoff, params):
         policy = make_policy(
             params        = params,
             deterministic = True,
-            directive     = directive,
+            tradeoff     = tradeoff,
         )
         scan_step_fn = functools.partial(step_fn, policy=policy)
         state = env.reset(key)
@@ -69,7 +69,7 @@ def compute_fronts(
     save_results,
 ):
     """Run rollouts for every checkpoint in every run over a fixed batch of
-    randomly sampled directives, and return the resulting Pareto fronts.
+    randomly sampled tradeoffs, and return the resulting Pareto fronts.
 
     Algorithm-agnostic: callers supply ``make_policy`` and ``load_params_fn`` to
     plug in MORLAX, AMOR, or anything else with the right shapes. The rollout
@@ -82,14 +82,14 @@ def compute_fronts(
     run_dirs : list of run directories, all sharing the same environment.
         ``save_results`` writes into each file's owning run directory.
     num_objectives : int, number of objectives.
-    rng : PRNGKey used both to sample the (fixed) batch of directives and to
+    rng : PRNGKey used both to sample the (fixed) batch of tradeoffs and to
         seed the per-rollout env reset keys.
     env : environment to roll out in.
     N_STEPS : int, env steps per rollout.
-    NUM_ENVS : int, number of directives sampled (== number of parallel rollouts
+    NUM_ENVS : int, number of tradeoffs sampled (== number of parallel rollouts
         per checkpoint).
     make_policy : callable with signature
-        ``(params, deterministic, directive) -> policy(obs, key) -> (action, extras)``,
+        ``(params, deterministic, tradeoff) -> policy(obs, key) -> (action, extras)``,
         passed through to :func:`get_pareto_rollout`.
     load_params_fn : callable ``file -> params`` mapping a checkpoint path to the
         params pytree expected by ``make_policy``.
@@ -104,10 +104,10 @@ def compute_fronts(
     -------
     rewards_over_iters : ndarray, shape ``(total_checkpoints, NUM_ENVS, num_objs)``,
         per-objective episodic return. Files are concatenated in run order.
-    tradeoffs_over_iters : ndarray, same shape, the directive used for each
+    tradeoffs_over_iters : ndarray, same shape, the tradeoff used for each
         rollout. Fixed across checkpoints (broadcast along axis 0).
     """
-    # one env-reset key per directive; same batch reused across checkpoints
+    # one env-reset key per tradeoff; same batch reused across checkpoints
     keys = jax.random.split(rng, NUM_ENVS)
     tradeoffs = jax.random.dirichlet(rng, alpha=np.ones(num_objectives), shape=(NUM_ENVS,))
 
@@ -147,11 +147,11 @@ def get_morlax_fronts(run_dirs, network_params, num_objectives, rng, env, N_STEP
         (see ``moplayground.utils.config.check_same_env``).
     network_params : dict, network-factory keyword arguments shared by all runs.
     num_objectives : int, number of objectives.
-    rng : PRNGKey used both to sample the (fixed) batch of directives and to
+    rng : PRNGKey used both to sample the (fixed) batch of tradeoffs and to
         seed the per-rollout env reset keys.
     env : environment to roll out in.
     N_STEPS : int, env steps per rollout.
-    NUM_ENVS : int, number of directives sampled (== number of parallel rollouts
+    NUM_ENVS : int, number of tradeoffs sampled (== number of parallel rollouts
         per checkpoint).
     save_results : if True, dump per-checkpoint returns to
         ``{run_dir}/obj{j}.txt`` for each owning run.
@@ -161,7 +161,7 @@ def get_morlax_fronts(run_dirs, network_params, num_objectives, rng, env, N_STEP
     -------
     rewards_over_iters : ndarray, shape ``(total_checkpoints, NUM_ENVS, num_objs)``,
         per-objective episodic return. Files are concatenated in run order.
-    tradeoffs_over_iters : ndarray, same shape, the directive used for each
+    tradeoffs_over_iters : ndarray, same shape, the tradeoff used for each
         rollout. Fixed across checkpoints (broadcast along axis 0).
     """
     run_dirs = _as_list(run_dirs)
@@ -173,7 +173,7 @@ def get_morlax_fronts(run_dirs, network_params, num_objectives, rng, env, N_STEP
             files = [files[-1]]
         model_files_per_run.append(files)
 
-    # MORLAX: params == hypernet params; make_policy directly takes (params, deterministic, directive)
+    # MORLAX: params == hypernet params; make_policy directly takes (params, deterministic, tradeoff)
     first_file = model_files_per_run[0][0]
     make_policy, _ = mop.learning.inference.load_hypernetwork_inference_fn(
         network_params, num_objectives, path=first_file,
@@ -203,11 +203,11 @@ def get_amor_fronts(run_dirs, network_params, num_objectives, rng, env, N_STEPS,
         (see ``moplayground.utils.config.check_same_env``).
     network_params : dict, network-factory keyword arguments shared by all runs.
     num_objectives : int, number of objectives.
-    rng : PRNGKey used both to sample the (fixed) batch of directives and to
+    rng : PRNGKey used both to sample the (fixed) batch of tradeoffs and to
         seed the per-rollout env reset keys.
     env : environment to roll out in.
     N_STEPS : int, env steps per rollout.
-    NUM_ENVS : int, number of directives sampled (== number of parallel rollouts
+    NUM_ENVS : int, number of tradeoffs sampled (== number of parallel rollouts
         per checkpoint).
     save_results : if True, dump per-checkpoint returns to
         ``{run_dir}/obj{j}.txt`` for each owning run.
@@ -217,7 +217,7 @@ def get_amor_fronts(run_dirs, network_params, num_objectives, rng, env, N_STEPS,
     -------
     rewards_over_iters : ndarray, shape ``(total_checkpoints, NUM_ENVS, num_objs)``,
         per-objective episodic return. Files are concatenated in run order.
-    tradeoffs_over_iters : ndarray, same shape, the directive used for each
+    tradeoffs_over_iters : ndarray, same shape, the tradeoff used for each
         rollout. Fixed across checkpoints (broadcast along axis 0).
     """
     run_dirs = _as_list(run_dirs)
@@ -229,22 +229,22 @@ def get_amor_fronts(run_dirs, network_params, num_objectives, rng, env, N_STEPS,
             files = [files[-1]]
         model_files_per_run.append(files)
 
-    # AMOR's native inference fn takes the directive at call time: policy(obs, directive, key).
-    # Wrap it to match the (params, deterministic, directive) -> policy(obs, key) shape used by
+    # AMOR's native inference fn takes the tradeoff at call time: policy(obs, tradeoff, key).
+    # Wrap it to match the (params, deterministic, tradeoff) -> policy(obs, key) shape used by
     # get_pareto_rollout.
     first_file = model_files_per_run[0][0]
     make_amor_inference_fn, _ = mop.learning.inference.load_make_amor_inference_fn(
         network_params, num_objectives, path=first_file,
     )
 
-    def make_policy(params, deterministic, directive):
+    def make_policy(params, deterministic, tradeoff):
         # checkpoint stores (normalizer, policy, value); inference only needs (normalizer, policy)
         normalizer_params, policy_params = params[0], params[1]
         amor_inference_fn = make_amor_inference_fn(
             params        = (normalizer_params, policy_params),
             deterministic = deterministic,
         )
-        tradeoff_jnp = jax.numpy.asarray(directive)
+        tradeoff_jnp = jax.numpy.asarray(tradeoff)
 
         def policy(obs, key):
             return amor_inference_fn(obs, tradeoff_jnp, key)

@@ -30,12 +30,12 @@ def test_mo_gae_matches_brax_per_objective():
 
 def fake_data():
     keys = jax.random.split(jax.random.PRNGKey(0), 6)
-    directive = jax.random.dirichlet(keys[0], jnp.ones(M), (B,))
+    tradeoff = jax.random.dirichlet(keys[0], jnp.ones(M), (B,))
     return mop.MultiObjectiveTransition(
         observation=jax.random.normal(keys[1], (B, T, OBS)),
         action=jnp.zeros((B, T, ACT)),
         reward=jax.random.normal(keys[2], (B, T, M)),
-        directive=jnp.repeat(directive[:, None], T, axis=1),
+        tradeoff=jnp.repeat(tradeoff[:, None], T, axis=1),
         discount=jnp.ones((B, T)),
         next_observation=jax.random.normal(keys[3], (B, T, OBS)),
         extras={

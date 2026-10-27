@@ -28,7 +28,7 @@ class AMORNetworkParams:
     """Contains training state for the AMOR learner.
 
     AMOR has no hypernetwork; the policy and value networks are flat MLPs that
-    take ``concat(obs, directive)`` as input.
+    take ``concat(obs, tradeoff)`` as input.
     """
     policy: Params
     value:  Params
@@ -138,7 +138,7 @@ def compute_morlax_loss(
     value_apply         = jax.vmap(morlax_networks.value_network.apply,  in_axes=(None, 0, 1))
     single_value_apply  = jax.vmap(morlax_networks.value_network.apply,  in_axes=(None, 0, 0))
     policy_params, value_params = morlax_networks.hypernetwork.apply(
-        params.hypernetwork, data.directive[:, 0]
+        params.hypernetwork, data.tradeoff[:, 0]
     )
 
     # Put the time dimension first.
@@ -161,7 +161,7 @@ def compute_morlax_loss(
         normalizer_params, value_params, terminal_obs
     )
     rewards = data.reward * reward_scaling
-    rewards = jnp.sum(data.directive * rewards, axis=2)
+    rewards = jnp.sum(data.tradeoff * rewards, axis=2)
 
     truncation = data.extras['state_extras']['truncation']
     termination = (1 - data.discount) * (1 - truncation)
@@ -225,7 +225,7 @@ def compute_amor_loss(
     """Multi-objective PPO loss for AMOR.
 
     Identical to ``compute_morlax_loss`` except the policy and value networks
-    are flat (no hypernetwork): they consume ``(obs, directive)`` directly.
+    are flat (no hypernetwork): they consume ``(obs, tradeoff)`` directly.
     """
     parametric_action_distribution = amor_networks.parametric_action_distribution
 
@@ -234,8 +234,8 @@ def compute_amor_loss(
     # Now data has leading dims [T, B, ...].
 
     # Policy and value forward passes. Networks are shared across the batch;
-    # only obs (axis 1 in [T, B, ...]) and directive vary across the batch.
-    # Vmap over the B axis: obs/directive in_axes=1, params/normalizer shared.
+    # only obs (axis 1 in [T, B, ...]) and tradeoff vary across the batch.
+    # Vmap over the B axis: obs/tradeoff in_axes=1, params/normalizer shared.
     policy_apply = jax.vmap(
         amor_networks.policy_network.apply,
         in_axes=(None, None, 1, 1),
@@ -248,21 +248,21 @@ def compute_amor_loss(
     )
 
     policy_logits = policy_apply(
-        normalizer_params, params.policy, data.observation, data.directive
+        normalizer_params, params.policy, data.observation, data.tradeoff
     )
     baseline = value_apply(
-        normalizer_params, params.value, data.observation, data.directive
+        normalizer_params, params.value, data.observation, data.tradeoff
     )
 
     # Bootstrap value at the terminal observation (one per env, no time axis).
     terminal_obs = jax.tree_util.tree_map(lambda x: x[-1], data.next_observation)
-    terminal_directive = data.directive[-1]
+    terminal_tradeoff = data.tradeoff[-1]
     single_value_apply = jax.vmap(
         amor_networks.value_network.apply,
         in_axes=(None, None, 0, 0),
     )
     bootstrap_value = single_value_apply(
-        normalizer_params, params.value, terminal_obs, terminal_directive
+        normalizer_params, params.value, terminal_obs, terminal_tradeoff
     )
 
     rewards = data.reward * reward_scaling  # [T, B, M]
@@ -285,8 +285,8 @@ def compute_amor_loss(
         lambda_         = gae_lambda,
         discount        = discounting,
     )
-    # Scalarize advantages with the per-step directive for the policy update.
-    advantages = jnp.sum(data.directive * vec_advantages, axis=-1)  # [T, B]
+    # Scalarize advantages with the per-step tradeoff for the policy update.
+    advantages = jnp.sum(data.tradeoff * vec_advantages, axis=-1)  # [T, B]
     if normalize_advantage:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
     rho_s = jnp.exp(target_action_log_probs - behaviour_action_log_probs)

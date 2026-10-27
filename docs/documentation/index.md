@@ -18,7 +18,7 @@ and on energy efficiency (right).</em></p>
 - **Vector rewards.** Each environment returns one reward per objective. The config
   file groups named reward terms into objectives, so the same environment can be
   trained on different objective sets without code changes.
-- **Tradeoffs.** A tradeoff (also called a *directive*) is a weight vector on the
+- **Tradeoffs.** A tradeoff is a weight vector on the
   probability simplex, one weight per objective. Policies are conditioned on it, and
   the scalarized reward `tradeoff · reward` drives each PPO update.
 - **Algorithms.** The `algorithm:` key of the config selects one of three trainers:

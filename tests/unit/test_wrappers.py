@@ -74,16 +74,16 @@ def test_eval_wrapper_stops_counting_after_done():
     np.testing.assert_array_equal(state.info['eval_metrics'].active_episodes, [0, 1, 1])
 
 
-def test_pareto_rollout_returns_directive_scaled_rewards():
+def test_pareto_rollout_returns_tradeoff_scaled_rewards():
     env = VectorRewardEnv()
 
-    def make_policy(params, deterministic, directive):
-        return lambda obs, key: (directive * params, {})
+    def make_policy(params, deterministic, tradeoff):
+        return lambda obs, key: (tradeoff * params, {})
 
     run = mop.get_pareto_rollout(env, N_STEPS=4, make_policy=make_policy)
-    directives = jnp.array([[0.25, 0.75], [1.0, 0.0], [0.5, 0.5]])
-    (_, returns), _ = run(jax.random.split(jax.random.PRNGKey(0), 3), directives, 2.0)
-    np.testing.assert_allclose(returns, 4 * 2.0 * directives)
+    tradeoffs = jnp.array([[0.25, 0.75], [1.0, 0.0], [0.5, 0.5]])
+    (_, returns), _ = run(jax.random.split(jax.random.PRNGKey(0), 3), tradeoffs, 2.0)
+    np.testing.assert_allclose(returns, 4 * 2.0 * tradeoffs)
 
 
 def test_compute_fronts_shapes_and_saving(tmp_path):
@@ -93,7 +93,7 @@ def test_compute_fronts_shapes_and_saving(tmp_path):
     rewards, tradeoffs = mop.compute_fronts(
         run_dirs=runs, num_objectives=M, rng=jax.random.PRNGKey(0), env=VectorRewardEnv(),
         N_STEPS=2, NUM_ENVS=5,
-        make_policy=lambda params, deterministic, directive: (lambda obs, key: (directive * params, {})),
+        make_policy=lambda params, deterministic, tradeoff: (lambda obs, key: (tradeoff * params, {})),
         load_params_fn=lambda file: float(file),
         model_files_per_run=[['1', '2'], ['3']],
         save_results=True,

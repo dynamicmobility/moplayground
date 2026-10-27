@@ -24,7 +24,7 @@ match args.env.lower():
         camera = 'side_fixed'
         WIDTH  = 2560
         HEIGHT = 1080
-        directives = {
+        tradeoffs = {
             'run':    np.array([1.0, 0.0]),
             'energy': np.array([0.0, 1.0])
         }
@@ -33,7 +33,7 @@ match args.env.lower():
         camera = 'side_fixed'
         WIDTH  = 2560
         HEIGHT = 1080
-        directives = {
+        tradeoffs = {
             'run':    np.array([1.0, 0.0]),
             'height': np.array([0.2, 1.0])
         }
@@ -42,7 +42,7 @@ match args.env.lower():
         camera = 'side_fixed'
         WIDTH  = 2560
         HEIGHT = 1080
-        directives = {
+        tradeoffs = {
             'vx': np.array([1.0, 0.0]),
             'vy': np.array([0.0, 1.0])
         }
@@ -51,7 +51,7 @@ match args.env.lower():
         camera = 'side_fixed'
         WIDTH  = 2560
         HEIGHT = 1080
-        directives = {
+        tradeoffs = {
             'run':    np.array([1.0, 0.0]),
             'energy': np.array([0.0, 1.0])
         }
@@ -60,7 +60,7 @@ match args.env.lower():
         camera = 'side_fixed'
         WIDTH  = 2560
         HEIGHT = 1080
-        directives = {
+        tradeoffs = {
             'run':    np.array([1.0, 0.1]),
             'energy': np.array([0.0, 1.0])
         }
@@ -69,12 +69,12 @@ env, env_params   = create_environment(
     config,
     **KWARGS
 )    
-for key in directives:
+for key in tradeoffs:
     camera = 'track'
     T = 10.0
     inference_fn = load_mo_policy(
         config        = config,
-        tradeoff      = directives[key],
+        tradeoff      = tradeoffs[key],
         deterministic = True
     )
     inference_fn = jax.jit(inference_fn)

@@ -416,7 +416,7 @@ def train(
     ) -> Tuple[Tuple[MOTrainingState, envs.State, PRNGKey], Metrics]:
         training_state, state, key = carry
         key_sgd, key_generate_unroll, key_pref, new_key = jax.random.split(key, 4)
-        directive = sample_preferences(
+        tradeoff = sample_preferences(
             key         = key_pref,
             it          = iteration,
             sampling    = sampling,
@@ -433,7 +433,7 @@ def train(
                 training_state.normalizer_params,
                 training_state.params.hypernetwork,
             ),
-            directive = directive
+            tradeoff = tradeoff
         )
 
         def scan_unroll(carry, unused_t):
@@ -443,7 +443,7 @@ def train(
                 env,
                 current_state,
                 policy,
-                directive,
+                tradeoff,
                 current_key,
                 unroll_length,
                 extra_fields=('truncation', 'episode_metrics', 'episode_done'),

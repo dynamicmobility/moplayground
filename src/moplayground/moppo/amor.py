@@ -14,9 +14,9 @@
 
 """AMOR: tradeoff-conditioned PPO baseline (no hypernetwork).
 
-The policy and value networks consume ``concat(normalized_obs, raw_directive)``.
-Directives are sampled per-env per-iteration (same scheme as MORLAX) and held
-constant within an unroll. Inference exposes a ``policy(obs, directive, key)``
+The policy and value networks consume ``concat(normalized_obs, raw_tradeoff)``.
+Tradeoffs are sampled per-env per-iteration (same scheme as MORLAX) and held
+constant within an unroll. Inference exposes a ``policy(obs, tradeoff, key)``
 closure so callers can change the tradeoff at any step without rebuilding the
 policy.
 """
@@ -162,14 +162,14 @@ def _make_reset_envs(local_devices_to_use, use_pmap_on_reset, env, key_env, num_
 
 
 def _make_baked_inference_fn(amor_inference_fn):
-    """Adapter that turns AMOR's call-time-directive inference fn into the
-    ``(params, directive, deterministic) -> policy(obs, key)`` signature that
+    """Adapter that turns AMOR's call-time-tradeoff inference fn into the
+    ``(params, tradeoff, deterministic) -> policy(obs, key)`` signature that
     ``acting.Evaluator`` and the unroll loop expect.
     """
-    def baked_inference_fn(params, directive, deterministic=False):
+    def baked_inference_fn(params, tradeoff, deterministic=False):
         raw_policy = amor_inference_fn(params, deterministic=deterministic)
         def policy(obs, key):
-            return raw_policy(obs, directive, key)
+            return raw_policy(obs, tradeoff, key)
         return policy
     return baked_inference_fn
 
@@ -205,7 +205,7 @@ def train(
     gae_lambda              : float = 0.95,
     max_grad_norm           : Optional[float] = None,
     normalize_advantage     : bool = True,
-    # directive sampling (shared with MORLAX)
+    # tradeoff sampling (shared with MORLAX)
     alpha                   : float = 1.0,
     warmup_frac             : float = 0.0,
     sampling                : str = 'dense',
@@ -370,7 +370,7 @@ def train(
     ) -> Tuple[Tuple[AMORTrainingState, envs.State, PRNGKey], Metrics]:
         training_state, state, key = carry
         key_sgd, key_generate_unroll, key_pref, new_key = jax.random.split(key, 4)
-        directive = sample_preferences(
+        tradeoff = sample_preferences(
             key         = key_pref,
             it          = iteration,
             sampling    = sampling,
@@ -382,11 +382,11 @@ def train(
             num_objs    = state.reward.shape[1]
         )[0]  # strip leading 1 axis -> (num_envs, num_objs)
 
-        # AMOR's flat policy: directive is concatenated to obs inside the network.
-        # Within an unroll the directive is held constant per-env (matches MORLAX).
+        # AMOR's flat policy: tradeoff is concatenated to obs inside the network.
+        # Within an unroll the tradeoff is held constant per-env (matches MORLAX).
         policy = baked_inference_fn(
             params    = (training_state.normalizer_params, training_state.params.policy),
-            directive = directive,
+            tradeoff = tradeoff,
         )
 
         def scan_unroll(carry, unused_t):
@@ -396,7 +396,7 @@ def train(
                 env,
                 current_state,
                 policy,
-                directive,
+                tradeoff,
                 current_key,
                 unroll_length,
                 extra_fields=('truncation', 'episode_metrics', 'episode_done'),

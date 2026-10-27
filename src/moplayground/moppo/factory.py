@@ -61,13 +61,13 @@ def make_hypernetwork_inference_fn(ppo_networks: MORLAXNetworks):
     """Creates params and inference function for the PPO agent."""
 
     def hypernetwork_inference_fn(
-        params: types.Params, directive: jax.Array, single_policy: bool = False, deterministic: bool = False
+        params: types.Params, tradeoff: jax.Array, single_policy: bool = False, deterministic: bool = False
     ) -> types.Policy:
         normalizer_params, hypernet_params = params
         policy_network = ppo_networks.policy_network
-        policy_params = ppo_networks.hypernetwork.apply(hypernet_params, directive)[0]
+        policy_params = ppo_networks.hypernetwork.apply(hypernet_params, tradeoff)[0]
 
-        if len(directive.shape) == 1:
+        if len(tradeoff.shape) == 1:
             policy_apply = policy_network.apply
         else:
             policy_apply = jax.vmap(policy_network.apply, in_axes=(None, 0, 0))
@@ -249,7 +249,7 @@ class AMORNetworks:
 
 
 def _amor_normalize_and_concat(
-    obs, directive, processor_params, preprocess_observations_fn, obs_key
+    obs, tradeoff, processor_params, preprocess_observations_fn, obs_key
 ):
     if isinstance(obs, Mapping):
         normalized = preprocess_observations_fn(
@@ -257,7 +257,7 @@ def _amor_normalize_and_concat(
         )
     else:
         normalized = preprocess_observations_fn(obs, processor_params)
-    return jnp.concatenate([normalized, directive], axis=-1)
+    return jnp.concatenate([normalized, tradeoff], axis=-1)
 
 
 def make_amor_policy_network(
@@ -275,7 +275,7 @@ def make_amor_policy_network(
     init_noise_std            : float = 1.0,
     state_dependent_std       : bool = False,
 ) -> networks.FeedForwardNetwork:
-    """AMOR policy network: input is concat(normalized_obs, raw_directive)."""
+    """AMOR policy network: input is concat(normalized_obs, raw_tradeoff)."""
     if distribution_type == 'tanh_normal':
         policy_module = networks.MLP(
             layer_sizes = list(hidden_layer_sizes) + [param_size],
@@ -300,9 +300,9 @@ def make_amor_policy_network(
             ' of "normal" or "tanh_normal".'
         )
 
-    def apply(processor_params, policy_params, obs, directive):
+    def apply(processor_params, policy_params, obs, tradeoff):
         x = _amor_normalize_and_concat(
-            obs, directive, processor_params, preprocess_observations_fn, obs_key
+            obs, tradeoff, processor_params, preprocess_observations_fn, obs_key
         )
         return policy_module.apply(policy_params, x)
 
@@ -324,18 +324,18 @@ def make_amor_value_network(
     activation                : networks.ActivationFn = linen.relu,
     obs_key                   : str = 'state',
 ) -> networks.FeedForwardNetwork:
-    """AMOR value network: input is concat(normalized_obs, raw_directive),
+    """AMOR value network: input is concat(normalized_obs, raw_tradeoff),
     output is a vector of length ``num_objectives`` — one expected return per
-    objective. The directive-scalarized advantage is formed in the loss."""
+    objective. The tradeoff-scalarized advantage is formed in the loss."""
     value_module = networks.MLP(
         layer_sizes = list(hidden_layer_sizes) + [num_objectives],
         activation  = activation,
         kernel_init = jax.nn.initializers.lecun_uniform(),
     )
 
-    def apply(processor_params, value_params, obs, directive):
+    def apply(processor_params, value_params, obs, tradeoff):
         x = _amor_normalize_and_concat(
-            obs, directive, processor_params, preprocess_observations_fn, obs_key
+            obs, tradeoff, processor_params, preprocess_observations_fn, obs_key
         )
         return value_module.apply(value_params, x)
 
@@ -365,8 +365,8 @@ def make_amor_networks(
 ) -> AMORNetworks:
     """Make AMOR networks (tradeoff-conditioned policy + multi-objective value).
 
-    Unlike MORLAX (which uses a hypernetwork to output policy weights per directive),
-    AMOR's policy and value networks take the directive as part of their input,
+    Unlike MORLAX (which uses a hypernetwork to output policy weights per tradeoff),
+    AMOR's policy and value networks take the tradeoff as part of their input,
     concatenated to the (normalized) observation.
     """
     if distribution_type == 'normal':
@@ -416,9 +416,9 @@ def make_amor_networks(
 def make_amor_inference_fn(amor_networks: AMORNetworks):
     """Creates an inference function for AMOR.
 
-    Returned closure: ``amor_inference_fn(params, deterministic=False) -> policy(obs, directive, key)``.
-    Unlike MORLAX's ``hypernetwork_inference_fn`` (which bakes the directive into the
-    closure at construction), AMOR's policy takes the directive at call time, so the
+    Returned closure: ``amor_inference_fn(params, deterministic=False) -> policy(obs, tradeoff, key)``.
+    Unlike MORLAX's ``hypernetwork_inference_fn`` (which bakes the tradeoff into the
+    closure at construction), AMOR's policy takes the tradeoff at call time, so the
     tradeoff can be changed at any step without rebuilding the policy.
     """
 
@@ -430,11 +430,11 @@ def make_amor_inference_fn(amor_networks: AMORNetworks):
 
         def policy(
             observations: types.Observation,
-            directive: jax.Array,
+            tradeoff: jax.Array,
             key_sample: jax.Array,
         ) -> Tuple[types.Action, types.Extra]:
             logits = amor_networks.policy_network.apply(
-                normalizer_params, policy_params, observations, directive
+                normalizer_params, policy_params, observations, tradeoff
             )
             if deterministic:
                 return dist.mode(logits), {}

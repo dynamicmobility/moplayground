@@ -41,7 +41,7 @@ class MultiObjectiveTransition(NamedTuple):
     observation: NestedArray
     action: NestedArray
     reward: NestedArray
-    directive: NestedArray
+    tradeoff: NestedArray
     discount: NestedArray
     next_observation: NestedArray
     extras: NestedArray = ()  # pytype: disable=annotation-type-mismatch  # jax-ndarray
@@ -50,7 +50,7 @@ def actor_step(
     env: Env,
     env_state: State,
     policy: Policy,
-    directive,
+    tradeoff,
     key: PRNGKey,
     extra_fields: Sequence[str] = (),
 ) -> Tuple[State, MultiObjectiveTransition]:
@@ -62,7 +62,7 @@ def actor_step(
         observation=env_state.obs,
         action=actions,
         reward=nstate.reward,
-        directive=directive.copy(),
+        tradeoff=tradeoff.copy(),
         discount=1 - nstate.done,
         next_observation=nstate.obs,
         extras={'policy_extras': policy_extras, 'state_extras': state_extras},
@@ -73,7 +73,7 @@ def generate_unroll(
     env: Env,
     env_state: State,
     policy: Policy,
-    directive: jax.Array,
+    tradeoff: jax.Array,
     key: PRNGKey,
     unroll_length: int,
     extra_fields: Sequence[str] = (),
@@ -85,7 +85,7 @@ def generate_unroll(
         state, current_key = carry
         current_key, next_key = jax.random.split(current_key)
         nstate, transition = actor_step(
-            env, state, policy, directive, current_key, extra_fields=extra_fields
+            env, state, policy, tradeoff, current_key, extra_fields=extra_fields
         )
         return (nstate, next_key), transition
 
@@ -115,15 +115,15 @@ class Evaluator:
         eval_env = MultiObjectiveEvalWrapper(eval_env)
 
         def generate_eval_unroll(
-            policy_params, key: PRNGKey, directives
+            policy_params, key: PRNGKey, tradeoffs
         ) -> State:
             reset_keys = jax.random.split(key, num_eval_envs)
             eval_first_state = eval_env.reset(reset_keys)
             return generate_unroll(
                 eval_env,
                 eval_first_state,
-                eval_policy_fn(policy_params, directives),
-                directives,
+                eval_policy_fn(policy_params, tradeoffs),
+                tradeoffs,
                 key,
                 unroll_length=episode_length // action_repeat,
             )[0]
@@ -144,9 +144,9 @@ class Evaluator:
 
         t = time.time()
         _, w_key = jax.random.split(self._key)
-        directives = jax.random.dirichlet(key=w_key, alpha=jnp.ones(self.num_objs), shape=self.num_eval_envs)
-        # directives = jnp.ones((self.num_eval_envs, self.num_objs)) / self.num_objs
-        eval_state = self._generate_eval_unroll(policy_params, unroll_key, directives)
+        tradeoffs = jax.random.dirichlet(key=w_key, alpha=jnp.ones(self.num_objs), shape=self.num_eval_envs)
+        # tradeoffs = jnp.ones((self.num_eval_envs, self.num_objs)) / self.num_objs
+        eval_state = self._generate_eval_unroll(policy_params, unroll_key, tradeoffs)
         eval_metrics = eval_state.info['eval_metrics']
         eval_metrics.active_episodes.block_until_ready()
         epoch_eval_time = time.time() - t
@@ -170,6 +170,6 @@ class Evaluator:
         #     **metrics,
         # }
         metrics = eval_metrics.episode_metrics
-        metrics['directive'] = directives
+        metrics['tradeoff'] = tradeoffs
 
         return metrics  # pytype: disable=bad-return-type  # jax-ndarray

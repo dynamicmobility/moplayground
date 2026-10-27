@@ -17,7 +17,7 @@ def main():
     if (save_path / 'the-obj.txt').exists():
         # Load existing results instead of running experiments
         paretos = np.array([pd.read_csv(save_path / f'the-obj.txt').iloc[:, 1:].values])
-        directives = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
+        tradeoffs = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
     else:
         N_STEPS       = 500
         N_ENVS        = 2**10
@@ -33,27 +33,27 @@ def main():
         pareto_rollout              = mop.eval.pareto.get_pareto_rollout(env, N_STEPS, make_policy)
 
         rewards_over_iters = []
-        directives_over_iters = []
+        tradeoffs_over_iters = []
         for _ in tqdm(range(N_ITERS)):
             _, rng            = jax.random.split(rng)
             keys              = jax.random.split(rng, N_ENVS)
-            directives        = jax.random.dirichlet(
+            tradeoffs        = jax.random.dirichlet(
                 rng, 
                 alpha=np.ones(N_OBJS) * 0.5,
                 shape=(N_ENVS,)
             )
-            (_, rewards), _   = pareto_rollout(keys, directives, hyper_params)
+            (_, rewards), _   = pareto_rollout(keys, tradeoffs, hyper_params)
 
             rewards_over_iters.append(rewards)
-            directives_over_iters.append(directives)
+            tradeoffs_over_iters.append(tradeoffs)
         
         paretos       = np.concat(rewards_over_iters)
-        directives    = np.concat(directives_over_iters)
+        tradeoffs    = np.concat(tradeoffs_over_iters)
         pd.DataFrame.from_dict(
             {f'obj{i}' : objs for i, objs in enumerate(paretos.T)}
         ).to_csv(Path(config['save_dir']) / config['name'] / f'the-obj.txt')
         pd.DataFrame.from_dict(
-            {f'td{i}' : tds for i, tds in enumerate(directives.T)}
+            {f'td{i}' : tds for i, tds in enumerate(tradeoffs.T)}
         ).to_csv(Path(config['save_dir']) / config['name'] / f'the-trade-off.txt')
     quit()
     pairs = list(combinations(range(N_OBJS), 2))
@@ -62,10 +62,10 @@ def main():
     axs = axs.flatten()
     
     failure = np.argmin(np.sum(paretos[-1], axis=1))
-    print(repr(directives[failure]))
+    print(repr(tradeoffs[failure]))
     for ax, pair in tqdm(zip(axs, pairs), total=len(pairs)):
         pareto = paretos[-1, :, pair].T  # Select the last iteration's Pareto front and only the 3 objectives of interest
-        tradeoff = directives[:, pair]
+        tradeoff = tradeoffs[:, pair]
         ax = plot_pareto(
             ax,
             pareto,

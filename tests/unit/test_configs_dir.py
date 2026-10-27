@@ -129,7 +129,7 @@ def check_loadable(cfg: MOConfig, repo_root: Path):
     bad = net_kwargs - _accepted_kwargs(_network_factory(cfg.algorithm))
     assert not bad, f'{cfg.algorithm} network factory does not accept {sorted(bad)}'
     if cfg.algorithm != 'ppo' and cfg.sampling_params['sampling'].startswith('sparse'):
-        # sample_preferences tiles k directives across the envs
+        # sample_preferences tiles k tradeoffs across the envs
         assert cfg.ppo_params['num_envs'] % cfg.sampling_params['k'] == 0, \
             'num_envs must be a multiple of sampling_params.k'
 
