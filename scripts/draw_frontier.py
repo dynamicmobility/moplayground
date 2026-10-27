@@ -20,11 +20,11 @@ env, env_config = mop.create_environment(
 get_fronts = {
     'morlax': mop.get_morlax_fronts,
     'amor':   mop.get_amor_fronts,
-}[cfg.algorithm(cfg)]
+}[cfg.algorithm]
 num_objectives = cfg.num_objectives
 rewards_over_iters, tradeoffs = get_fronts(
     run_dirs        = cfg.run_dir,
-    network_params  = cfg.network_params,
+    network_params  = cfg.morlax_network_params,
     num_objectives  = num_objectives,
     rng             = jax.random.PRNGKey(95),
     env             = env,
@@ -51,5 +51,7 @@ ax = mop.plot_pareto(
     objective   = cfg.objective_labels,
 )
 
-plt.show()
-# fig.savefig(f'output/plots/{config.env_name(cfg)}_frontier.pdf')
+# plt.show()
+save_path = f'output/plots/{cfg.env_name}_frontier.pdf'
+fig.savefig(save_path)
+print(f'Saved to {save_path}')
