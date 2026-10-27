@@ -22,7 +22,7 @@ get_fronts = {
     'amor':   mop.get_amor_fronts,
 }[cfg.algorithm(cfg)]
 num_objectives = cfg.num_objectives
-rewards_over_iters, directives = get_fronts(
+rewards_over_iters, tradeoffs = get_fronts(
     run_dirs        = cfg.run_dir,
     network_params  = cfg.network_params,
     num_objectives  = num_objectives,
@@ -47,7 +47,7 @@ else:
 ax = mop.plot_pareto(
     ax          = ax,
     pareto      = rewards_over_iters[-1],
-    colors      = mop.default_coloring(directives[-1]),
+    colors      = mop.default_coloring(tradeoffs[-1]),
     objective   = cfg.objective_labels,
 )
 

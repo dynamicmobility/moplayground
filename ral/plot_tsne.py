@@ -11,7 +11,7 @@ paretos_2d = np.load(log_path)
 
 config    = mm.utils.read_config(FINAL_YAMLS['bruce6D+DR'])
 save_path = Path(config['save_dir']) / config['name']
-directives = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
+tradeoffs = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
 
 plt.figure(figsize=(8, 6))
 plt.scatter(paretos_2d[:, 0], paretos_2d[:, 1], c='blue', alpha=0.7, s=2)

@@ -50,7 +50,7 @@ def test_actor_critic_hypernets(targets, cls):
     pref = jnp.array([0.3, 0.7])
     params = hyper.init(jax.random.PRNGKey(1), pref)
 
-    # Single directive -> unbatched target params with the target's structure.
+    # Single tradeoff -> unbatched target params with the target's structure.
     (pol, val), (pol_flat, val_flat), _ = hyper.apply(params, pref)
     got, want = by_path(pol), by_path(policy_params)
     assert got.keys() == want.keys()
@@ -60,11 +60,11 @@ def test_actor_critic_hypernets(targets, cls):
     assert value.apply(val, jnp.ones((1, OBS))).shape == (1, 1)
 
     # W starts at zero (W_variance=0), so the initial hypernet reproduces the
-    # target network's initial weights for every directive.
+    # target network's initial weights for every tradeoff.
     for path in want:
         np.testing.assert_allclose(got[path], want[path], atol=1e-6)
 
-    # Batched directives -> leading batch axis on every leaf.
+    # Batched tradeoffs -> leading batch axis on every leaf.
     (pol_b, _), _, _ = hyper.apply(params, jnp.array([[0.3, 0.7], [0.9, 0.1], [0.5, 0.5]]))
     batched = by_path(pol_b)
     for path in want:

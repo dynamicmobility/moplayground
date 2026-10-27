@@ -38,7 +38,7 @@ Inside `train`, the algorithm must call the two callbacks:
 | Callback | When | Arguments |
 | --- | --- | --- |
 | `policy_params_fn` | Once before training and after every epoch | `(current_step, make_inference_fn, params)`. `mm.train` writes `params` as the checkpoint `<run_dir>/<step>/`. |
-| `progress_fn` | After every evaluation | `(current_step, metrics)`. For [`MOProgress`][moplayground.utils.plotting.MOProgress], `metrics` must hold `'reward'`, the per-objective episode returns of shape `(num_eval_envs, num_objectives)`, and `'directive'`, the tradeoffs that produced them. |
+| `progress_fn` | After every evaluation | `(current_step, metrics)`. For [`MOProgress`][moplayground.utils.plotting.MOProgress], `metrics` must hold `'reward'`, the per-objective episode returns of shape `(num_eval_envs, num_objectives)`, and `'tradeoff'`, the tradeoffs that produced them. |
 
 `resumed` is always `None` from `scripts/train.py`, which does not resume
 multi-objective runs.
@@ -61,21 +61,21 @@ per environment according to `sampling_params`, and returns an array of shape
 **Unrolls.** [`generate_unroll`][moplayground.moppo.acting.generate_unroll] steps the
 environment with a policy and a fixed batch of tradeoffs, and returns a
 [`MultiObjectiveTransition`][moplayground.moppo.acting.MultiObjectiveTransition]:
-the Brax transition with a vector `reward` and a `directive` field.
+the Brax transition with a vector `reward` and a `tradeoff` field.
 
 ```python
-directive = sample_preferences(key_pref, it, sampling, k, warmup_frac, alpha,
+tradeoff = sample_preferences(key_pref, it, sampling, k, warmup_frac, alpha,
                                num_evals, num_envs, num_objectives)[0]
-policy = make_policy(params, directive)            # policy(obs, key) -> (action, extras)
+policy = make_policy(params, tradeoff)            # policy(obs, key) -> (action, extras)
 state, data = acting.generate_unroll(
-    env, state, policy, directive, key, unroll_length,
+    env, state, policy, tradeoff, key, unroll_length,
     extra_fields=('truncation', 'episode_metrics', 'episode_done'),
 )
 ```
 
 **Losses.** Two ways to use the vector reward:
 
-- *Scalarize first*: `rewards = jnp.sum(data.directive * data.reward, axis=-1)`, then a
+- *Scalarize first*: `rewards = jnp.sum(data.tradeoff * data.reward, axis=-1)`, then a
   standard scalar critic and GAE. This is what
   [`compute_morlax_loss`][moplayground.moppo.losses.compute_morlax_loss] does.
 - *Vector critic*: predict one value per objective and compute per-objective
@@ -85,13 +85,13 @@ state, data = acting.generate_unroll(
 
 **Evaluation.** [`Evaluator`][moplayground.moppo.acting.Evaluator] rolls out
 `num_eval_envs` episodes at tradeoffs drawn uniformly from the simplex, and returns
-exactly the `'reward'` and `'directive'` metrics `MOProgress` expects:
+exactly the `'reward'` and `'tradeoff'` metrics `MOProgress` expects:
 
 ```python
 evaluator = acting.Evaluator(
     eval_env       = eval_env,
     num_objs       = num_objectives,
-    eval_policy_fn = make_eval_policy,   # (params, directives) -> policy(obs, key)
+    eval_policy_fn = make_eval_policy,   # (params, tradeoffs) -> policy(obs, key)
     num_eval_envs  = num_eval_envs,
     episode_length = episode_length,
     action_repeat  = action_repeat,

@@ -122,7 +122,7 @@ def main():
     if (save_path / 'the-obj.txt').exists():
         # Load existing results instead of running experiments
         paretos = np.array([pd.read_csv(save_path / f'the-obj.txt').iloc[::10, 1:].values])
-        directives = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[::10, 1:].values)
+        tradeoffs = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[::10, 1:].values)
     else:
         raise Exception('Run 2D first')
     print(paretos.shape)
@@ -131,9 +131,9 @@ def main():
     trio = [2, 0, 4]
     # trio = [3, 5, 1]
     pareto = paretos[-1, :, trio].T  # Select the last iteration's Pareto front and only the 3 objectives of interest
-    tradeoff = directives[:, trio]
+    tradeoff = tradeoffs[:, trio]
     chosen_tradeoffs = np.array(list(BRUCE_TRADEOFFS.values()))
-    # plot_tradeoff(ax, paretos[-1], directives, chosen_tradeoffs, trio)
+    # plot_tradeoff(ax, paretos[-1], tradeoffs, chosen_tradeoffs, trio)
 
     if False:
         tradeoff_key = ['smooth', 'swing-arms', 'rigid-arms']
@@ -150,7 +150,7 @@ def main():
         )
         print(len(nidxs))
         for ni in nidxs:
-            print(repr(directives[idxs][ni]))
+            print(repr(tradeoffs[idxs][ni]))
             print(repr(pareto[idxs][ni]))
             print('--')
         

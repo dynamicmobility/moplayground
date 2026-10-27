@@ -49,7 +49,7 @@ def load_mo_policy(
     is compatible with ``mm.eval.rollout_policy`` and other consumers.
 
     For AMOR specifically, the underlying inference function natively accepts
-    a directive at call time (so the tradeoff can change per step). To get
+    a tradeoff at call time (so the tradeoff can change per step). To get
     that 3-arg form, call :func:`load_amor_inference_fn` directly instead of
     this function.
     """
@@ -65,7 +65,7 @@ def load_mo_policy(
         return hypernetwork_inference_fn(
             params        = params,
             deterministic = deterministic,
-            directive     = tradeoff,
+            tradeoff     = tradeoff,
             single_policy = True,
         )
     elif algorithm == 'amor':
@@ -182,10 +182,10 @@ def load_make_amor_inference_fn(
     path = None,
     network_factory = make_amor_networks,
 ):
-    """Load the (call-time-directive) AMOR inference function from a checkpoint.
+    """Load the (call-time-tradeoff) AMOR inference function from a checkpoint.
 
     Returns ``(amor_inference_fn, saved_params)`` where ``amor_inference_fn`` has
-    signature ``(params, deterministic) -> policy(obs, directive, key)`` and
+    signature ``(params, deterministic) -> policy(obs, tradeoff, key)`` and
     ``saved_params`` is the ``(normalizer, policy, value)`` 3-tuple from the
     checkpoint.
     """

@@ -40,7 +40,7 @@ def test_unknown_sampling_raises():
         sample('nope')
 
 
-def test_sparse_tiles_k_directives():
+def test_sparse_tiles_k_tradeoffs():
     w = sample('sparse', M=3, K=8)[0]
     assert w.shape == (NUM_ENVS, 3)
     np.testing.assert_allclose(w.sum(-1), 1.0, atol=1e-5)

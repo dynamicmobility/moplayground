@@ -11,7 +11,7 @@ checkpoints), produce three figures:
 Hypervolume curves and the dense final fronts are derived from `obj*.txt`
 files written by `mop.eval.pareto.compute_fronts(save_results=True)`. By
 default this script regenerates those files via dense rollouts (1024
-random directives × all checkpoints) — pass `--no-regenerate` to plot
+random tradeoffs × all checkpoints) — pass `--no-regenerate` to plot
 from existing files only.
 
 Regeneration groups runs by (algorithm, network architecture) and dispatches
@@ -255,7 +255,7 @@ def main():
     parser.add_argument('--n-steps', type=int, default=N_STEPS_DEFAULT,
                         help='Env steps per rollout when regenerating (default 500).')
     parser.add_argument('--num-envs', type=int, default=NUM_ENVS_DEFAULT,
-                        help='Number of parallel directive samples per checkpoint (default 1024).')
+                        help='Number of parallel tradeoff samples per checkpoint (default 1024).')
     args = parser.parse_args()
 
     folder  = Path(args.folder).resolve()
