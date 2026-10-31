@@ -33,3 +33,7 @@ your own; see [Writing an environment](../guides/environment.md).
 ::: moplayground.envs.locomotion.control.gait
 
 ::: moplayground.envs.locomotion.control.bezier
+
+## Unitree G1 (work in progress)
+
+::: moplayground.envs.locomotion.g1.env

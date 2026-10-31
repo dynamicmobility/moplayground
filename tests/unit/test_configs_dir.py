@@ -16,7 +16,7 @@ import moplayground as mop
 from moplayground.utils.config import MOConfig
 
 ALGORITHMS = ('morlax', 'amor', 'ppo')
-ENVS = ('MOCheetah', 'MOHopper', 'MOAnt', 'MOWalker', 'MOHumanoid', 'NaviGait', "MOGo2")
+ENVS = ('MOCheetah', 'MOHopper', 'MOAnt', 'MOWalker', 'MOHumanoid', 'NaviGait', "MOGo2", "MOG1")
 
 # MOConfig properties every config must resolve, whatever its algorithm.
 # ``network_params`` is inherited from mm.Config but this repo keeps one block

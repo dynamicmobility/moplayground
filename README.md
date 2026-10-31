@@ -76,7 +76,7 @@ evaluation run on the CPU.
 src/moplayground/
   envs/generic/mobase.py  MultiObjectiveBase: groups named reward terms into a reward vector
   envs/dmcontrol/         MOCheetah, MOHopper, MOWalker, MOAnt, MOHumanoid
-  envs/locomotion/        NaviGait and the BRUCE humanoid
+  envs/locomotion/        NaviGait and the BRUCE humanoid, MOG1 (Unitree G1, work in progress)
   envs/create.py          create_environment(): maps a config's env name to a class
   moppo/morlax.py         MORLAX trainer (hypernetwork)
   moppo/amor.py           AMOR trainer (tradeoff-conditioned networks)

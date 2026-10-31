@@ -75,6 +75,7 @@ python -m scripts.rollout <save_dir>/<name>/config.yaml --tradeoff 1 0 0
 | `MOAnt` | [`MOAnt`][moplayground.envs.dmcontrol.ant.MOAnt] | x velocity, y velocity |
 | `MOHumanoid` | [`MOHumanoid`][moplayground.envs.dmcontrol.humanoid.MOHumanoid] | speed, energy efficiency |
 | `NaviGait` | [`Bruce`][moplayground.envs.locomotion.bruce.navigait.Bruce] | joint and base tracking, arm swing, rigid arms, smoothness, efficiency |
+| `MOG1` | [`MOG1`][moplayground.envs.locomotion.g1.env.MOG1] | smoothness, forward velocity (work in progress) |
 
 ## Where to go next
 

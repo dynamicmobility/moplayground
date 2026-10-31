@@ -3,11 +3,10 @@ save_dir: /storage/scratch1/1/mfangajei3/moplayground/mogo2
 description: "?"
 algorithm: morlax
 env: "MOGo2"
-robot: "go2"
 backend: np # jnp or np. Always uses jnp for training
 env_config:
-  ctrl_dt: 0.005
-  sim_dt: 0.02
+  ctrl_dt: 0.02
+  sim_dt: 0.005
   action_scale: 0.5
   history_length: 5
   ideal_base_height: 0.28

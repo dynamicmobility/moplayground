@@ -1,0 +1,39 @@
+# Example sweep for scripts/tune.py. `base_config` and `num_trials` are read by
+# the script; everything else is a wandb sweep config. `parameters` are nested
+# to match the training config layout.
+base_config: config/mowalker.yaml
+num_trials: 20
+
+method: bayes
+metric:
+  name: pareto/hypervolume.max
+  goal: maximize
+parameters:
+  algorithm:
+    value: morlax
+  learning_params:
+    parameters:
+      ppo_params:
+        parameters:
+          learning_rate:
+            distribution: log_uniform_values
+            min: 0.00003
+            max: 0.001
+      sampling_params:
+        parameters:
+          alpha:
+            distribution: uniform
+            min: 0.5
+            max: 4.0
+          k:
+            values: [4, 8, 16, 32]
+          sampling:
+            values: [sparse, sparse-heavytail, dense]
+      morlax_network_params:
+        parameters:
+          num_features:
+            values: [8, 16, 32, 64]
+          policy_hidden_layer_sizes:
+            values: [[16, 16], [32, 32], [64, 64], [128, 128], [256, 256], [512, 512]]
+          value_hidden_layer_sizes:
+            values: [[16, 16], [32, 32], [64, 64], [128, 128], [256, 256], [512, 512]]

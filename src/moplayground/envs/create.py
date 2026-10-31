@@ -3,7 +3,7 @@ def create_environment(env_name, env_params, backend='jnp', gaitlib_path=None, *
 
     Constructs one of the registered multi-objective environments
     (``MOCheetah``, ``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``,
-    ``NaviGait``, ``MOGo2``).
+    ``NaviGait``, ``MOGo2``, ``MOG1``).
 
     Args:
         env_name: Registered environment name, e.g. ``'MOCheetah'``.
@@ -56,6 +56,9 @@ def create_environment(env_name, env_params, backend='jnp', gaitlib_path=None, *
         case 'MOGo2':
             from moplayground.envs.locomotion.go2 import MOGo2
             env = MOGo2(**common_kwargs)
+        case 'MOG1':
+            from moplayground.envs.locomotion.g1 import MOG1
+            env = MOG1(**common_kwargs)
         case _:
             raise Exception(f'Unknown enviornment {env_name}.')
     return env, env_params

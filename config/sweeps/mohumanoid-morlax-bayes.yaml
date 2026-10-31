@@ -2,7 +2,7 @@
 # the script; everything else is a wandb sweep config. `parameters` are nested
 # to match the training config layout.
 base_config: config/mohumanoid.yaml
-num_trials: 20
+num_trials: 30
 
 method: bayes
 metric:
