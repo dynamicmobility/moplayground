@@ -122,6 +122,8 @@ class MOGo2(MultiObjectiveBase):
         # accelerometer/gravity, last action, history?).
         # TODO: privileged obs = policy obs + sim-only sensors (go2.get_base_*,
         # go2.get_foot_pos, go2.get_foot_vel).
+        
+
         raise NotImplementedError('MOGo2._get_obs')
 
     @property
