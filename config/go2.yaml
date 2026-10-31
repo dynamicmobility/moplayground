@@ -1,6 +1,6 @@
-name: morlax-run-ant-envs1024-batch64-discount99
-save_dir: /storage/scratch1/1/mfangajei3/moplayground/accepted-results/may/4/
-description: ""
+name: mogo2
+save_dir: /storage/scratch1/1/mfangajei3/moplayground/mogo2
+description: "?"
 algorithm: morlax
 env: "MOGo2"
 robot: "go2"
@@ -12,9 +12,9 @@ env_config:
   history_length: 5
   ideal_base_height: 0.5
   ideal_base_vel: 0.5
-  min_base_height: 0.3
   add_random_joint_state: False
   add_random_pitch: False
+  noise_scale: 1.0
   reward:
     weights: 
       # TODO: Define reward terms
@@ -24,11 +24,6 @@ env_config:
       run:        1.0
       alive:      1.0
       done:       0
-    sigmas:
-      height:     0.01
-      speed:      0.01
-      energy:     0.1
-      imitation:  0.03
     optimization:
       objectives:        [['vel_rate', 'accel_rate'], ["speed"]]
       shared_objectives: ['alive', 'run']

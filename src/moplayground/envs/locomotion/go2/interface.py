@@ -41,6 +41,14 @@ BASE_ACCELEROMETER = 'accelerometer'
 BASE_ORIENTATION   = 'orientation'
 UPVECTOR = 'upvector'
 
+# Noise scaling values for sensor data
+JOINT_VEL_NOISE = 1.5
+JOINT_ANGLE_NOISE = 0.03
+GYRO_NOISE = 0.2
+ACCEL_NOISE = 0.2
+GRAVITY_NOISE = 0.05
+
+
 # Sim-only sensors (global ones from go2_mjx.xml, the rest from scene_mjx.xml).
 # Use only in rewards or privileged obs, never in the policy obs.
 BASE_GLOBAL_POS    = 'global_position'

@@ -1,7 +1,8 @@
 """Multi-objective JAX/MuJoCo environments.
 
 Provides the registered MO-Playground environments (``MOCheetah``,
-``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``) and
+``MOHopper``, ``MOAnt``, ``MOWalker``, ``MOHumanoid``, ``NaviGait``,
+``MOGo2``) and
 the base classes (``MultiObjectiveBase``, ``Multi2SingleObjective``)
 they share. Use ``create_environment(env_name, env_params, ...)`` to
 construct one.

@@ -51,6 +51,7 @@ _EXPORTS = {
     'BipedalBase': 'moplayground.envs.locomotion.generic.bipedal',
     'NaviGait': 'moplayground.envs.locomotion.generic.navigait',
     'Bruce': 'moplayground.envs.locomotion.bruce.navigait',
+    'MOGo2': 'moplayground.envs.locomotion.go2.env',
     # the Bruce constants/kinematics module, surfaced whole (it is a big flat
     # namespace of MuJoCo ids and conversions, not a handful of symbols)
     'bruce_interface': ('moplayground.envs.locomotion.bruce.interface_westwood', None),
