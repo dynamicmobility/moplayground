@@ -18,9 +18,11 @@ _interface_model = mj.MjModel.from_xml_path(
 
 GROUND_GEOM = 'floor'
 TORSO       = 'base'
+IMU_SITE         = 'imu'
 
 GROUND_GEOM_ID = _interface_model.geom(GROUND_GEOM).id
 TORSO_ID       = _interface_model.body(TORSO).id
+IMU_SITE_ID    = _interface_model.site(IMU_SITE).id
 
 NDOF = 12
 
@@ -37,6 +39,7 @@ FEET_SITE_IDS = [_interface_model.site(site).id for site in FEET_SITES]
 BASE_GYRO          = 'gyro'
 BASE_ACCELEROMETER = 'accelerometer'
 BASE_ORIENTATION   = 'orientation'
+UPVECTOR = 'upvector'
 
 # Sim-only sensors (global ones from go2_mjx.xml, the rest from scene_mjx.xml).
 # Use only in rewards or privileged obs, never in the policy obs.
@@ -60,9 +63,9 @@ DEFAULT_FF = [0.0, 0.0, 0.284, 1.0, 0.0, 0.0, 0.0]
 # TODO: add get_raw_contacts / get_ground_contact once a foot touch sensor is
 # chosen (see the TODO in model/scene_mjx.xml).
 
-def get_gravity(_np, accel: jax.Array) -> jax.Array:
-    """Return the gravity vector in the world frame."""
-    return _np.array([accel @ _np.array([0, 0, -1])])
+def get_gravity(_np, data) -> jax.Array:
+    """Return the gravity vector in the body frame."""
+    return data.site_xmat[IMU_SITE_ID].reshape(3,3).T @ _np.array([0, 0, -1])
 
 def get_accelerometer(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the accelerometer readings in the local frame."""
@@ -108,3 +111,8 @@ def get_foot_vel(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
         mjx_env.get_sensor_data(mj_model, data, sensor)
         for sensor in FEET_GLOBAL_LINVEL
     ])
+
+def get_upvector(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the base (imu site) z-axis in the world frame, shape (3,)."""
+    return mjx_env.get_sensor_data(mj_model, data, UPVECTOR)
+

@@ -4,15 +4,10 @@ TODO list (remove items as they are done):
   [ ] Objectives: choose the tradeoffs for the Pareto front (e.g. vx vs vy,
       speed vs energy, speed vs yaw rate, speed vs foot clearance). Set
       `reward.optimization.objectives` / `shared_objectives` in the YAML.
-  [ ] Rewards: implement the per-key reward terms in `reward_function`.
-  [ ] Observations: policy obs = real-robot sensors only; privileged obs =
-      policy obs + sim-only sensors. See `_get_obs`.
   [ ] Privileged value obs: training never reads 'privileged_state' yet
       (TODO in learning/training.py).
-  [ ] Termination: thresholds for base height / flip (constants go in
+  [ ] Termination: base height threshold, if needed (constant goes in
       interface.py, see its TODO). See `fall_termination`.
-  [ ] Timing: pick sim_dt / ctrl_dt in the YAML (Go1 in Playground uses
-      sim_dt 0.004, ctrl_dt 0.02).
   [ ] Action: confirm action_scale (Go1 uses 0.5) and actuator order
       (FR, FL, RR, RL) vs qpos order (FL, FR, RL, RR). See interface.py TODO.
   [ ] Reset: randomize start pose / domain randomization (later).
@@ -23,9 +18,6 @@ TODO list (remove items as they are done):
       then add contact helpers to interface.py.
   [ ] Noise: sensor noise levels for sim-to-real (interface.py TODO).
   [ ] Cameras: named cameras for rendering (TODO in model/scene_mjx.xml).
-  [ ] Registration: `case 'MOGo2'` in envs/create.py, 'MOGo2' in
-      config.ENVS, entry in envs/__init__.py.
-  [ ] Config: config/mogo2.yaml (and config/amor/mogo2.yaml).
 """
 
 from typing import Any
@@ -73,16 +65,15 @@ class MOGo2(MultiObjectiveBase):
             time         = 0.0,
             xfrc_applied = self._np.zeros((self._mj_model.nbody, 6)),
         )
-        parent_state = super().reset(
-            rng            = rng,
-            data           = data,
-            history_length = self.params.history_length
-        )
-        # TODO: add any info the rewards need (e.g. last action).
-        info = {}
-        info = parent_state.info | info
-
         done = self._np.array(0.0)
+        info = {
+            'last_act':         self._np.zeros(self.action_size),
+            'second_last_act':  self._np.zeros(self.action_size),
+            'vx':               go2.get_base_local_linvel(self.mj_model, data)[0],
+            'posbefore':        0.0,
+            'posafter':         0.0,
+        }
+
         rewards = self.reward_function(
             data   = data,
             action = self._np.zeros(self.mj_model.nu),
@@ -90,41 +81,77 @@ class MOGo2(MultiObjectiveBase):
             done   = False,
         )
         reward, metrics = self.get_reward_and_metrics(rewards, {})
-
         obs = self._get_obs(data, info)
         return self._state_init_fn(data, obs, reward, done, metrics, info)
 
     def step(self, state: mjx_env.State, action: jax.Array) -> mjx_env.State:
+        
         # Position control (same as Go1 in Playground): action is an offset from
         # the default pose. Action order = actuator order (FR, FL, RR, RL).
         motor_targets = self._default_jt + self.params.action_scale * action
-        data = self._step_fn(state.data, motor_targets)
+        state.info['posbefore'] = state.data.qpos[0] 
 
+        data = self._step_fn(state.data, motor_targets)
+        
+        state.info['posafter'] = data.qpos[0]
+        state.info['vx'] = go2.get_base_local_linvel(self.mj_model, data)[0]
+        
         done = self.fall_termination(data)
+        
         rewards = self.reward_function(
             data   = data,
             action = action,
             info   = state.info,
             done   = done
         )
+
         reward, metrics = self.get_reward_and_metrics(rewards, state.metrics)
+
+        state.info['second_last_act'], state.info['last_act'] = state.info['last_act'], action
+
         obs = self._get_obs(data, state.info)
         done = done.astype(float)
         return self._state_init_fn(data, obs, reward, done, metrics, state.info)
 
     def fall_termination(self, data):
-        # TODO: add base height and flip checks (thresholds go in interface.py).
+        # TODO: consider additional termination conditions (height?)
+        flipped_over = go2.get_upvector(self.mj_model, data)[-1] < 0.0
         infinite_state = ~self._np.isfinite(data.qpos).all()
-        return infinite_state
+        return flipped_over | infinite_state
 
     def _get_obs(self, data: mjx.Data, info: dict[str, Any]) -> jax.Array:
-        # TODO: policy obs from real-robot sensors only (joint pos/vel, gyro,
-        # accelerometer/gravity, last action, history?).
-        # TODO: privileged obs = policy obs + sim-only sensors (go2.get_base_*,
-        # go2.get_foot_pos, go2.get_foot_vel).
-        
+        # TODO: observation history?
+        gyro = go2.get_gyro(self.mj_model, data) 
+        joint_angles = data.qpos[7:] - self._default_jt
+        joint_vel = data.qvel[6:]
+        accelerometer = go2.get_accelerometer(self.mj_model, data)
+        gravity = go2.get_gravity(self._np, data)
 
-        raise NotImplementedError('MOGo2._get_obs')
+        state = self._np.hstack([
+            joint_angles,
+            joint_vel,
+            gyro,
+            gravity,
+            accelerometer,
+            info["last_act"],
+        ])
+
+        base_local_linvel = go2.get_base_local_linvel(self.mj_model, data)
+        base_global_linvel = go2.get_base_global_linvel(self.mj_model, data)
+        base_global_angvel = go2.get_base_global_angvel(self.mj_model, data)
+
+        #TODO add feet sensor data
+        privileged_state = self._np.hstack([
+            state,
+            base_local_linvel,
+            base_global_linvel,
+            base_global_angvel
+        ])
+        
+        return {
+            "state": state, 
+            "privileged_state": privileged_state,
+        }
 
     @property
     def action_size(self):
@@ -137,7 +164,35 @@ class MOGo2(MultiObjectiveBase):
         info,
         done
     ):
-        # TODO: one entry per reward key used in the YAML weights /
-        # objectives (e.g. alive, energy, vx, vy, upright, base height,
-        # action rate, foot slip).
-        raise NotImplementedError('MOGo2.reward_function')
+
+        rewards = {
+           'vel_rate':      self.reward_vel_smoothness(action, info),
+           'accel_rate':    self.reward_accel_smoothness(action, info),
+           'speed':         self.reward_speed(info),
+           'alive':         self.reward_alive(),
+           'run':           self.reward_run(info),
+           'done':          self.reward_done(done)
+        }
+
+        return rewards
+
+    def reward_alive(self):
+        return 1.0
+
+    def reward_speed(self, info):
+        return info['vx']
+        
+    def reward_vel_smoothness(self, action, info):
+        vel_rate = self._np.sum((info[last_act] - action)**2)
+        return vel_rate
+    
+    def reward_accel_smoothness(self, action, info):
+        accel_rate = self._np.sum(((action - info[last_act]) - (info[last_act] - info[second_last_act]))**2)
+        return accel_rate
+
+    def reward_done(self, done):
+        return self._np.array(done)
+
+    def reward_run(self, info):
+        run = (info['posafter'] - info['posbefore']) / self.dt
+        return run
