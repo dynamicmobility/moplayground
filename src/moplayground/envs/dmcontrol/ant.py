@@ -39,17 +39,11 @@ class MOAnt(MultiObjectiveBase):
             time         = 0.0,
             xfrc_applied = self._np.zeros((self._mj_model.nbody, 6)),
         )
-        parent_state = super().reset(
-            rng            = rng,
-            data           = data,
-            history_length = self.params.history_length
-        )
         info = {}
         info['xposbefore'] = data.qpos[0]
         info['yposbefore'] = data.qpos[1]
         info['xposafter']  = data.qpos[0] + 0.01
         info['yposafter']  = data.qpos[1] + 0.01
-        info = parent_state.info | info
 
         done = self._np.array(0.0)
         rewards = self.reward_function(
@@ -60,7 +54,7 @@ class MOAnt(MultiObjectiveBase):
         )
         reward, metrics = self.get_reward_and_metrics(rewards, {})
         
-        obs = self._get_obs(data, parent_state.info)
+        obs = self._get_obs(data, info)
         return self._state_init_fn(data, obs, reward, done, metrics, info)
     
     def state_vector(self, data):

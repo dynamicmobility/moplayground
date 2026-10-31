@@ -85,17 +85,18 @@ class MultiObjectiveEvalWrapper(Wrapper):
             nstate.info['steps'],
             state_metrics.episode_steps,
         )
-        old_reward = state_metrics.episode_metrics['reward'].copy()
-        new_reward = nstate.metrics['reward'].copy()
-        del state_metrics.episode_metrics['reward']
-        del nstate.metrics['reward']
+        # The vector reward is accumulated separately (it has an objective axis).
+        # Use this step's nstate.reward: envs carry metrics forward, so
+        # nstate.metrics['reward'] would still hold the previous step's reward.
+        old_reward = state_metrics.episode_metrics.pop('reward')
+        nstate.metrics.pop('reward', None)
         episode_metrics = jax.tree_util.tree_map(
             lambda a, b: a + b * state_metrics.active_episodes,
             state_metrics.episode_metrics,
             nstate.metrics,
         )
         nstate.metrics['reward'] = nstate.reward
-        episode_metrics['reward'] = old_reward + new_reward * state_metrics.active_episodes[:, jnp.newaxis]
+        episode_metrics['reward'] = old_reward + nstate.reward * state_metrics.active_episodes[:, jnp.newaxis]
         active_episodes = state_metrics.active_episodes * (1 - nstate.done)
 
         eval_metrics = EvalMetrics(

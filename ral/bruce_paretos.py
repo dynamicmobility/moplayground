@@ -41,7 +41,7 @@ def main():
     if (save_path / 'the-obj.txt').exists():
         # Load existing results instead of running experiments
         paretos = np.array([pd.read_csv(save_path / f'the-obj.txt').iloc[:, 1:].values])
-        directives = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
+        tradeoffs = np.array(pd.read_csv(save_path / f'the-trade-off.txt').iloc[:, 1:].values)
     else:
         raise Exception('Run plot_bruce_2ds first')
 
@@ -75,7 +75,7 @@ def main():
                 return
                 
         pareto = paretos[-1, :, PAIR].T  # Select the last iteration's Pareto front and only the 3 objectives of interest
-        tradeoff = directives[:, PAIR]
+        tradeoff = tradeoffs[:, PAIR]
         fig, ax = plt.subplots()
         ax = mop.utils.plotting.plot_pareto(
             ax,
@@ -87,7 +87,7 @@ def main():
         )
         nd_idx = mop.eval.pareto.get_nondominated(pareto, epsilon=10)
         nd = pareto[nd_idx]
-        nd_td = directives[nd_idx]
+        nd_td = tradeoffs[nd_idx]
         max_x = np.argmax(nd[:, 0])
         max_y = np.argmax(nd[:, 1])
         for axis in ['top', 'bottom', 'left', 'right']:

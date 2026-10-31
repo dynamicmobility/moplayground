@@ -1,0 +1,31 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write     # gh-deploy pushes the built site to the gh-pages branch
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # mkdocstrings reads the source statically, so the package itself is not installed.
+      - name: Install docs tooling
+        run: python -m pip install mkdocs-material "mkdocstrings[python]"
+
+      - name: Build
+        run: mkdocs build --strict
+
+      - name: Publish to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: mkdocs gh-deploy --force

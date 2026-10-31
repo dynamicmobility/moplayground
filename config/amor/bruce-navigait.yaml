@@ -1,15 +1,11 @@
 name: longer-more-aggressive
 save_dir: bruce-results/6D/dr-first-try
 description: ""
-algorithm: morlax
+algorithm: amor
 env: NaviGait
-robot: BRUCE
 backend: jnp 
 # gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10
 gaitlib_path: src/moplayground/envs/locomotion/bruce/gaits/BRUCE_GL_4bar_noarms_v10_witharms
-mo2so:
-  enabled: false
-  weighting: [0.5, 0.5]
 env_config:
   ctrl_dt:          0.02    # Control (RL) timestep
   sim_dt:           0.004   # Simulation (mujoco) timestep
@@ -139,6 +135,9 @@ learning_params:
     num_features: 64
     policy_hidden_layer_sizes: [256, 256]
     value_hidden_layer_sizes: [256, 256]
+  amor_network_params:
+    policy_hidden_layer_sizes: [256, 256, 256]
+    value_hidden_layer_sizes: [256, 256, 256]
   ppo_network_params:
     policy_hidden_layer_sizes: [64, 64]
     value_hidden_layer_sizes: [64, 64]

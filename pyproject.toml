@@ -29,10 +29,21 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "black"]
-docs = ["lazydocs"]
+docs = ["mkdocs-material", "mkdocstrings[python]"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]  # so tests can import scripts.*
+addopts = "-m 'not gpu' -ra"
+markers = [
+  "gpu: end-to-end tests that train/evaluate on a CUDA device (run with `pytest -m gpu`)",
+]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]

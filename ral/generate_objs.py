@@ -25,7 +25,7 @@ if __name__ == '__main__':
     config = mm.utils.read_config(FINAL_YAMLS[args.algo][args.env])
     
     if args.algo == 'morlax':
-        rewards_over_iters, directives = mop.eval.pareto.get_morlax_fronts(
+        rewards_over_iters, tradeoffs = mop.eval.pareto.get_morlax_fronts(
             config          = config,
             rng             = jax.random.PRNGKey(0),
             env             = mop.envs.create_environment(config, for_training=True)[0],
@@ -34,7 +34,7 @@ if __name__ == '__main__':
             save_results    = True
         )
     elif args.algo == 'amor':
-        rewards_over_iters, directives = mop.eval.pareto.get_amor_fronts(
+        rewards_over_iters, tradeoffs = mop.eval.pareto.get_amor_fronts(
             config          = config,
             rng             = jax.random.PRNGKey(0),
             env             = mop.envs.create_environment(config, for_training=True)[0],

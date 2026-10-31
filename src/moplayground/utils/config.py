@@ -7,9 +7,14 @@ import numpy as np
 class MOConfig(mm.Config):
     
     @property
-    def default_scalarization(self) -> dict:
-        """Sampling settings: ``alpha``, ``k``, ``sampling``, ``warmup_frac``."""
+    def default_scalarization(self) -> np.ndarray:
+        """Objective weights used to scalarize the reward when ``algorithm: ppo``."""
         return np.array(self.cfg.env_config.reward.optimization.default_scalarization)
+
+    @property
+    def gaitlib_path(self):
+        """Gait library directory (``NaviGait`` only), or ``None`` if not set."""
+        return self.cfg.get('gaitlib_path')
 
     @property
     def sampling_params(self) -> dict:
@@ -23,12 +28,12 @@ class MOConfig(mm.Config):
     
     @property
     def morlax_network_params(self) -> dict:
-        """Network settings for the configured algorithm."""
+        """Network settings for MORLAX (hypernetwork + target MLP shapes)."""
         return self.cfg.learning_params[f'morlax_network_params'].to_dict()
-    
+
     @property
     def amor_network_params(self) -> dict:
-        """Network settings for the configured algorithm."""
+        """Network settings for AMOR."""
         return self.cfg.learning_params[f'amor_network_params'].to_dict()
     
     @property

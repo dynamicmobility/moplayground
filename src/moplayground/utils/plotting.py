@@ -16,7 +16,7 @@ class MOTrainingPlottingInfo:
     times         : list = field(default_factory=list)
     iterations    : list = field(default_factory=list)
     paretos       : list = field(default_factory=list)
-    directives    : list = field(default_factory=list)
+    tradeoffs    : list = field(default_factory=list)
     labels        : list = field(default_factory=list)
     hypervolumes  : list = field(default_factory=list)
     sparsities    : list = field(default_factory=list)
@@ -68,7 +68,7 @@ class MOProgress(mm.Progress):
         # save data from iteration
         self.training_data.iterations.append(num_steps)
         self.training_data.paretos.append(metrics['reward'])
-        self.training_data.directives.append(metrics['directive'])
+        self.training_data.tradeoffs.append(metrics['tradeoff'])
         self.training_data.times.append(time.time())
 
         # pareto statistics of the current front, logged natively as scalars
@@ -79,11 +79,11 @@ class MOProgress(mm.Progress):
         log = {"pareto/hypervolume": float(hv), "pareto/sparsity": float(sp)}
 
         # 2 objectives: the frontier itself is still worth a picture
-        if np.asarray(metrics['directive']).shape[-1] == 2:
+        if np.asarray(metrics['tradeoff']).shape[-1] == 2:
             fig, axs = plot_sequential_paretos(
                 ax_titles   = self.training_data.iterations,
                 paretos     = self.training_data.paretos,
-                directives  = self.training_data.directives,
+                tradeoffs  = self.training_data.tradeoffs,
                 objectives  = self.training_data.labels or None
             )
             fig.savefig(self.save_dir / 'progress.svg')
@@ -221,13 +221,13 @@ def plot_pareto(
 def plot_sequential_paretos(
     ax_titles: list[str],
     paretos: np.ndarray,
-    directives: np.ndarray = None,
+    tradeoffs: np.ndarray = None,
     objectives: list[str] = None
 ):
-    if len(ax_titles) != len(paretos) != len(directives):
+    if len(ax_titles) != len(paretos) != len(tradeoffs):
         raise Exception('Incompatible lengths of input arrays')
 
-    if directives is None: directives = np.zeros_like(paretos)
+    if tradeoffs is None: tradeoffs = np.zeros_like(paretos)
     if objectives is None: objectives = [''] * paretos[0].shape[1]
     
     nrows, ncols = mm.get_subplot_grid(len(ax_titles))
@@ -236,13 +236,13 @@ def plot_sequential_paretos(
     else: axs = [axs]
     
     paretos = np.array(paretos)
-    directives = np.array(directives)
+    tradeoffs = np.array(tradeoffs)
     xlim   = np.array((np.min(paretos[..., 0]), np.max(paretos[..., 0])))
     ylim   = np.array((np.min(paretos[..., 1]), np.max(paretos[..., 1])))
     border = np.array([-1., 1.])
     xlim   = xlim + border * np.abs(xlim[1] - xlim[0]) * 0.1
     ylim   = ylim + border * np.abs(ylim[1] - ylim[0]) * 0.1
-    for ax, x, y, d in zip(axs, ax_titles, paretos, directives):
+    for ax, x, y, d in zip(axs, ax_titles, paretos, tradeoffs):
         ax = plot_pareto(ax, y, default_coloring(d), objectives, set_lims=False)
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
