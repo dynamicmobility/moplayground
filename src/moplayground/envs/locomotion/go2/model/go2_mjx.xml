@@ -237,6 +237,7 @@
     <gyro site="imu" name="gyro"/>
     <accelerometer site="imu" name="accelerometer"/>
     <framequat objtype="site" objname="imu" name="orientation"/>
+    <framezaxis objtype="site" objname="imu" name="upvector"/>
     <framepos objtype="site" objname="imu" name="global_position"/>
     <framelinvel objtype="site" objname="imu" name="global_linvel"/>
     <frameangvel objtype="site" objname="imu" name="global_angvel"/>
