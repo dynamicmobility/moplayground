@@ -260,7 +260,7 @@ class MOG1(MultiObjectiveBase):
         state.info['posafter'] = data.qpos[0]
         state.info['vx'] = g1.get_base_local_linvel(self.mj_model, data)[0]
 
-        done = self.fall_termination(data)
+        done, blowup = self.fall_termination(data)
 
         rewards = self.reward_function(
             data   = data,
@@ -270,11 +270,15 @@ class MOG1(MultiObjectiveBase):
         )
 
         reward, metrics = self.get_reward_and_metrics(rewards, state.metrics)
+        reward = self._np.where(blowup, self._np.zeros_like(reward), reward)
 
         state.info['second_last_act'], state.info['last_act'] = state.info['last_act'], action
         frame = self._make_frame(sensors, state.info['last_act'])
-        state.info['obs_history'] = self._np.vstack([frame[None], state.info['obs_history'][:-1]])
+        new_history = self._np.vstack([frame[None], state.info['obs_history'][:-1]])
+
+        state.info['obs_history'] = self._np.where(blowup, state.info['obs_history'], new_history)
         obs = self._get_obs(data, state.info)
+        obs = {k: self._np.where(blowup, state.obs[k], v) for k, v in obs.items()}
         done = done.astype(float)
         return self._state_init_fn(data, obs, reward, done, metrics, state.info)
 
@@ -282,27 +286,31 @@ class MOG1(MultiObjectiveBase):
         """Return whether the episode should end.
 
         Ends when the base is tilted ``MAX_TILT_ANGLE`` (60 degrees) or
-        more from upright, the state has become non-finite, or, if
-        ``termination.enabled``, the base is below
+        more from upright, the sim has blown up (``qpos`` or ``qvel`` is
+        non-finite), or, if ``termination.enabled``, the base is below
         ``termination.base_height``.
 
         Args:
             data: MuJoCo data after the physics step.
 
         Returns:
-            Boolean scalar.
+            Tuple ``(done, blowup)`` of boolean scalars. ``done`` is True
+            for any termination. ``blowup`` is True only for a non-finite
+            state.
         """
-        # TODO: tune the fall check for a humanoid (see module TODO list).
         tilted = g1.get_tilt_angle(self._np, self.mj_model, data) >= g1.MAX_TILT_ANGLE
-        infinite_state = ~self._np.isfinite(data.qpos).all()
-        done = tilted | infinite_state
+        blowup = (
+            ~self._np.isfinite(data.qpos).all()
+            | ~self._np.isfinite(data.qvel).all()
+        )
+        done = tilted | blowup
 
         term = self.params.termination
         if term.enabled:
             too_low = data.qpos[2] < term.base_height
             done = done | too_low
 
-        return done
+        return done, blowup
 
     def _get_obs(self, data: mjx.Data, info: dict[str, Any]) -> dict[str, jax.Array]:
         """Build the policy and privileged observations.
