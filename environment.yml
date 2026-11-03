@@ -9,6 +9,7 @@ dependencies:
   - bzip2=1.0.8=h5eee18b_6
   - ca-certificates=2025.12.2=h06a4308_0
   - expat=2.7.3=h7354ed3_4
+  - ffmpeg
   - ld_impl_linux-64=2.44=h153f514_2
   - libexpat=2.7.3=h7354ed3_4
   - libffi=3.4.4=h6a678d5_1
