@@ -119,6 +119,7 @@ class MOG1(MultiObjectiveBase):
             'vx':               g1.get_base_local_linvel(self.mj_model, data)[0],
             'posbefore':        0.0,
             'posafter':         0.0,
+            'heading':          g1.get_base_heading(self._np, data),
             'rng': sensor_key,
             'obs_history': self._np.tile(frame, (self.params.history_length, 1))
         }
@@ -381,6 +382,8 @@ class MOG1(MultiObjectiveBase):
             'alive':      self.reward_alive(),
             'run':        self.reward_run(info),
             'done':       self.reward_done(done),
+            'perp_vel':   self.reward_perp_vel(data, info),
+            'heading_dev': self.reward_heading_dev(data, info),
         }
 
     def reward_alive(self):
@@ -408,3 +411,31 @@ class MOG1(MultiObjectiveBase):
     def reward_run(self, info):
         """World-frame x displacement of the base this step, divided by ``dt``."""
         return (info['posafter'] - info['posbefore']) / self.dt
+
+    def reward_perp_vel(self, data, info):
+        """Squared pelvis ground-plane velocity perpendicular to the set heading.
+
+        The set heading is ``info['heading']``, the pelvis x-axis on the ground
+        at reset. Vertical velocity is ignored. Returned positive; give it a
+        negative weight.
+        """
+        v_xy = g1.get_base_global_linvel(self.mj_model, data)[:2]
+        h = info['heading']
+        h_perp = self._np.array([-h[1], h[0]])
+        return self._np.dot(v_xy, h_perp)**2
+
+    def reward_heading_dev(self, data, info):
+        """Log penalty on the angle between motion direction and set heading.
+
+        Computes ``-log((1 + d) / 2 + HEADING_LOG_EPS)``, where ``d`` is the dot
+        product of the pelvis ground-plane motion direction and
+        ``info['heading']``. ``(1 + d) / 2 = 1 - (1 - d) / 2``, so this is a log
+        scale of ``1 - d``: 0 when aligned, ~0.69 when perpendicular, ~6.9 when
+        backward. Below ``MIN_HEADING_SPEED`` the direction shrinks toward zero,
+        so standing still gives ~0.69. Returned positive; give it a negative
+        weight.
+        """
+        v_xy = g1.get_base_global_linvel(self.mj_model, data)[:2]
+        v_hat = v_xy / self._np.maximum(self._np.linalg.norm(v_xy), g1.MIN_HEADING_SPEED)
+        d = self._np.dot(v_hat, info['heading'])
+        return -self._np.log((1.0 + d) / 2.0 + g1.HEADING_LOG_EPS)

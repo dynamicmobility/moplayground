@@ -82,6 +82,11 @@ DEFAULT_JT = _HOME_QPOS[7:].tolist()
 # Fall check: end the episode when get_tilt_angle reaches this (rad).
 MAX_TILT_ANGLE = math.radians(60.0)
 
+# Heading reward: speed (m/s) below which the motion direction is scaled down
+# toward zero, and the log floor that bounds the penalty (max -log(1e-3) ~ 6.9).
+MIN_HEADING_SPEED = 0.1
+HEADING_LOG_EPS   = 1e-3
+
 # TODO: add noise levels (e.g. GYRO_NOISE, QPOS_NOISE) and thresholds
 # (e.g. CONTACT_THRESHOLD, MIN_BASE_HEIGHT) once the env needs them.
 # Bruce's values do not fit Go2 (e.g. MIN_BASE_HEIGHT = 0.78).
@@ -139,6 +144,11 @@ def get_foot_vel(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
         mjx_env.get_sensor_data(mj_model, data, sensor)
         for sensor in FEET_GLOBAL_LINVEL
     ])
+
+def get_base_heading(_np, data: mjx.Data) -> jax.Array:
+    """Return the pelvis x-axis projected onto the ground, shape (2,), unit length."""
+    x_axis = data.xmat[TORSO_ID].reshape(3, 3)[:2, 0]
+    return x_axis / _np.maximum(_np.linalg.norm(x_axis), 1e-6)
 
 def get_upvector(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) z-axis in the world frame, shape (3,)."""
