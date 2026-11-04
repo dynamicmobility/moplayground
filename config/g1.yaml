@@ -47,7 +47,7 @@ learning_params:
     normalize_observations: true
     num_envs: 2048
     num_evals: 25
-    num_minibatches: 16
+    num_minibatches: 32
     num_timesteps: 500000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
