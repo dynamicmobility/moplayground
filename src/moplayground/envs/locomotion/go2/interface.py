@@ -94,6 +94,18 @@ def get_base_global_pos(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) position in the world frame."""
     return mjx_env.get_sensor_data(mj_model, data, BASE_GLOBAL_POS)
 
+def get_ground_reaction_force(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the net ground reaction force on the robot in the world frame, shape (3,), N.
+
+    From Newton's second law, ``F = m * (a - g)``: the accelerometer reads
+    ``a - g`` in the imu frame, which is rotated into the world frame and
+    scaled by the total mass. Uses the base's acceleration as the robot's,
+    so leg swing adds some error. Standing still gives about ``(0, 0, m*g)``.
+    """
+    mass = _np.sum(mj_model.body_mass)
+    R = data.site_xmat[IMU_SITE_ID].reshape(3, 3)
+    return mass * (R @ get_accelerometer(mj_model, data))
+
 def get_base_global_linvel(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) linear velocity in the world frame."""
     return mjx_env.get_sensor_data(mj_model, data, BASE_GLOBAL_LINVEL)

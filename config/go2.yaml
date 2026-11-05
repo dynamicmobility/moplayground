@@ -22,11 +22,15 @@ env_config:
       speed:      1.0
       run:        1.0
       alive:      1.0
+      energy:     -1.0e-3
+      softness:   -1.0
+      handstand:  1.0
+      heading:    -1.0
       done:       0
     optimization:
-      objectives:        [['vel_rate', 'accel_rate'], ["speed"]]
-      shared_objectives: ['alive', 'run']
-      labels:            ['Smoothness', 'Forward Velocity']
+      objectives:        [['vel_rate', 'accel_rate'], ['energy'], ['softness'], ['handstand']]
+      shared_objectives: ['alive', 'run', 'heading']
+      labels:            ['Smoothness', 'Energy Efficiency', 'Softness', 'Handstand']
       default_scalarization: [1, 1]
   termination:
     enabled: true        # Enable or disable early termination

@@ -108,9 +108,7 @@ class MOGo2(MultiObjectiveBase):
         info = {
             'last_act':         self._np.zeros(self.action_size),
             'second_last_act':  self._np.zeros(self.action_size),
-            'vx':               go2.get_base_local_linvel(self.mj_model, data)[0],
-            'posbefore':        0.0,
-            'posafter':         0.0,
+            'vx':               go2.get_base_global_linvel(self.mj_model, data)[0],
             'rng': sensor_key,
             'obs_history': self._np.tile(frame, (self.params.history_length, 1))
         }
@@ -243,13 +241,11 @@ class MOGo2(MultiObjectiveBase):
         # Position control (same as Go1 in Playground): action is an offset from
         # the default pose. Action order = actuator order (FR, FL, RR, RL).
         motor_targets = self._default_jt + self.params.action_scale * action
-        state.info['posbefore'] = state.data.qpos[0]
 
         data = self._step_fn(state.data, motor_targets)
 
         state.info["rng"], sensors = self.get_sensor_values(state.info["rng"], data)
-        state.info['posafter'] = data.qpos[0]
-        state.info['vx'] = go2.get_base_local_linvel(self.mj_model, data)[0]
+        state.info['vx'] = go2.get_base_global_linvel(self.mj_model, data)[0]
 
         done, blowup = self.fall_termination(data)
 
@@ -275,9 +271,8 @@ class MOGo2(MultiObjectiveBase):
     def fall_termination(self, data):
         """Return whether the episode should end.
 
-        Ends when the base is upside down (its z-axis points below the
-        horizon), the sim has blown up (``qpos`` or ``qvel`` is
-        non-finite), or, if ``termination.enabled``, the base is below
+        Ends when the sim has blown up (``qpos`` or ``qvel`` is
+        non-finite) or, if ``termination.enabled``, the base is below
         ``termination.base_height``.
 
         Args:
@@ -289,12 +284,11 @@ class MOGo2(MultiObjectiveBase):
             state.
         """
         # TODO: base height termination (see module TODO list).
-        flipped_over = go2.get_upvector(self.mj_model, data)[-1] < 0.0
         blowup = (
             ~self._np.isfinite(data.qpos).all()
             | ~self._np.isfinite(data.qvel).all()
         )
-        done = flipped_over | blowup
+        done = blowup
 
         term = self.params.termination
         if term.enabled:
@@ -367,19 +361,18 @@ class MOGo2(MultiObjectiveBase):
         return {
             'vel_rate':   self.reward_vel_smoothness(action, info),
             'accel_rate': self.reward_accel_smoothness(action, info),
-            'speed':      self.reward_speed(info),
             'alive':      self.reward_alive(),
             'run':        self.reward_run(info),
             'done':       self.reward_done(done),
+            'energy':     self.reward_energy(data, action, info),
+            'softness':   self.reward_softness(data, action, info),
+            'handstand':  self.reward_handstand(data, action, info),
+            'heading':    self.reward_heading(data, action, info),
         }
 
     def reward_alive(self):
         """Constant 1 per step."""
         return 1.0
-
-    def reward_speed(self, info):
-        """Forward (body-frame x) base velocity from the sim-only sensor."""
-        return info['vx']
 
     def reward_vel_smoothness(self, action, info):
         """Squared first difference of actions, summed over joints."""
@@ -396,5 +389,51 @@ class MOGo2(MultiObjectiveBase):
         return self._np.array(done)
 
     def reward_run(self, info):
-        """World-frame x displacement of the base this step, divided by ``dt``."""
-        return (info['posafter'] - info['posbefore']) / self.dt
+        """World-frame x base velocity from the sim-only sensor."""
+        return info['vx']
+
+    def reward_energy(self, data, action, info):
+        """Mechanical power, ``sum(|tau * qdot|)`` over the 12 joints, in watts.
+
+        Uses ``qfrc_actuator`` rather than ``actuator_force`` so torques are in
+        joint (qvel) order, matching ``qvel``. Absolute value so braking
+        (negative work) is not rewarded. Read from the last physics substep.
+        A penalty: returned positive, given a negative weight.
+        """
+        tau  = data.qfrc_actuator[6:]
+        qdot = data.qvel[6:]
+        return self._np.sum(self._np.abs(tau * qdot))
+
+    def reward_softness(self, data, action, info):
+        """Squared deviation of the vertical ground reaction force from body weight.
+
+        ``((F_z - m*g) / (m*g))^2``, with ``F`` from
+        ``go2.get_ground_reaction_force``. The time-average of ``F_z`` is
+        ``m*g`` whatever the gait, so the penalty targets the spikes from hard
+        landings rather than ``F_z`` itself. 0 when the body is not
+        accelerating vertically; 1 for a spike of one extra body weight.
+        A penalty: returned positive, given a negative weight.
+        """
+        weight = self._np.sum(self.mj_model.body_mass) * 9.81
+        f_z = go2.get_ground_reaction_force(self._np, self.mj_model, data)[2]
+        return ((f_z - weight) / weight)**2
+
+    def reward_handstand(self, data, action, info):
+        """``1 - (up . n)^2``: 1 when the base's up axis is perpendicular to the ground normal.
+
+        ``up`` is the base z-axis in the world frame (``go2.get_upvector``)
+        and ``n`` is the ground normal (world z), so the dot product is
+        ``up[2]``. The reward is 0 when the robot is upright or upside down.
+        """
+        ground_normal = self._np.array([0.0, 0.0, 1.0])
+        alignment = self._np.dot(go2.get_upvector(self.mj_model, data), ground_normal)
+        return 1.0 - alignment**2
+
+    def reward_heading(self, data, action, info):
+        """Squared yaw rate (world-frame z angular velocity) of the base.
+
+        Zero when the base is not turning, so the robot keeps its starting
+        heading and walks a straight line. A penalty: returned positive,
+        given a negative weight.
+        """
+        return go2.get_base_global_angvel(self.mj_model, data)[2]**2
