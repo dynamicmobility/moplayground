@@ -389,8 +389,15 @@ class MOGo2(MultiObjectiveBase):
         return self._np.array(done)
 
     def reward_run(self, info):
-        """World-frame x base velocity from the sim-only sensor."""
-        return info['vx']
+        """``exp(-(vx - ideal_base_vel)^2 / sigma)``: 1 at the target speed, toward 0 off it.
+
+        ``vx`` is the world-frame x base velocity. An unnormalized Gaussian
+        with standard deviation ``sqrt(sigma / 2)`` (~0.35 m/s for
+        ``sigma = 0.25``). Always positive, so a slow robot never prefers
+        ending the episode. Given a positive weight.
+        """
+        sigma = 0.25
+        return self._np.exp(-(info['vx'] - self.params.ideal_base_vel)**2 / sigma)
 
     def reward_energy(self, data, action, info):
         """Mechanical power, ``sum(|tau * qdot|)`` over the 12 joints, in watts.

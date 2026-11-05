@@ -10,7 +10,7 @@ env_config:
   action_scale: 0.5
   history_length: 5
   ideal_base_height: 0.28
-  ideal_base_vel: 0.5
+  ideal_base_vel: 1.5
   add_random_joint_state: False
   add_random_pitch: False
   noise_scale: 1.0
