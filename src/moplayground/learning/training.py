@@ -21,9 +21,6 @@ from mujoco_playground import wrapper
 from mujoco_playground._src import mjx_env
 import minimal_mjx as mm
 
-# TODO: support privileged value observations. Envs already return a 'privileged_state'
-# obs, but both factories default policy_obs_key and value_obs_key to 'state'. Add a
-# config key + getter in config.py and pass value_obs_key='privileged_state' here.
 def setup_morlax(train_fn_params, network_factory_params, resumed):
     
     network_factory = functools.partial(

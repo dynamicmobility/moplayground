@@ -72,8 +72,9 @@ def main(config_path):
         resume                  = False,
         overwrite               = cfg.name == 'test'
     )
-
-
+# TODO: add automatic rollout for training runs - save videos to scratch. random tradeoffs?
+#       or maximally separated - given n rollouts distribute them to have the greatest distance between each other
+    
 if __name__ == '__main__':
     # Parse CLI arguments
     parser = argparse.ArgumentParser()

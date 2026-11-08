@@ -18,19 +18,16 @@ Noise half-widths are the ``*_NOISE`` constants in
 groups them into objectives.
 """
 
-# TODO list (remove items as they are done):
+# TODO list:
 #   [ ] Objectives: choose the tradeoffs for the Pareto front (e.g. vx vs vy,
 #       speed vs energy, speed vs yaw rate, speed vs foot clearance). Set
 #       `reward.optimization.objectives` / `shared_objectives` in the YAML.
-#   [ ] Privileged value obs: training never reads 'privileged_state' yet
-#       (TODO in learning/training.py).
 #   [ ] Reset: randomize start pose / domain randomization (later).
 #   [ ] minimal_mjx bug: SwappableBase computes joint limits as
 #       `jnt_range[num_free:]`, which keeps only 6 of 12 joints when
 #       num_free=7. Do not use `add_random_joint_state` until fixed.
-#   [ ] Foot contact: choose a touch sensor (TODO in model/scene_mjx.xml),
-#       then add contact helpers to interface.py.
-#   [ ] Cameras: named cameras for rendering (TODO in model/scene_mjx.xml).
+#   [ ] Maybe add foot clearance and height objective 
+
 
 from typing import Any
 
@@ -339,7 +336,6 @@ class MOGo2(MultiObjectiveBase):
 
     @property
     def action_size(self):
-        """Number of actuators (12)."""
         return self.mj_model.nu
 
     def reward_function(self, data, action, info, done):
@@ -366,9 +362,30 @@ class MOGo2(MultiObjectiveBase):
             'done':       self.reward_done(done),
             'energy':     self.reward_energy(data, action, info),
             'softness':   self.reward_softness(data, action, info),
-            'handstand':  self.reward_handstand(data, action, info),
             'heading':    self.reward_heading(data, action, info),
+            'lin_vel_z':  self.cost_lin_vel_z(data),
+            'ang_vel_xy': self.cost_ang_vel_xy(data),
+            'orientation': self.cost_orientation(data),
+            'feet_slip':  self.cost_feet_slip(data),
         }
+
+    def cost_feet_slip(self, data):
+        """Squared x/y foot speed, summed over feet in floor contact."""
+        contact = go2.get_feet_contact(self._np, data)
+        vel_xy = go2.get_foot_vel(self._np, self.mj_model, data)[:, :2]
+        return self._np.sum(self._np.sum(vel_xy**2, axis=-1) * contact)
+
+    def cost_lin_vel_z(self, data):
+        """Squared world-frame z base linear velocity."""
+        return go2.get_base_global_linvel(self.mj_model, data)[2]**2
+
+    def cost_ang_vel_xy(self, data):
+        """Squared world-frame x/y base angular velocity, summed."""
+        return self._np.sum(go2.get_base_global_angvel(self.mj_model, data)[:2]**2)
+
+    def cost_orientation(self, data):
+        """Squared x/y components of the base up axis, summed (0 when flat)."""
+        return self._np.sum(go2.get_upvector(self.mj_model, data)[:2]**2)
 
     def reward_alive(self):
         """Constant 1 per step."""
@@ -389,27 +406,13 @@ class MOGo2(MultiObjectiveBase):
         return self._np.array(done)
 
     def reward_run(self, info):
-        """``exp(-(vx - ideal_base_vel)^2 / sigma)``: 1 at the target speed, toward 0 off it.
-
-        ``vx`` is the world-frame x base velocity. An unnormalized Gaussian
-        with standard deviation ``sqrt(sigma / 2)`` (~0.35 m/s for
-        ``sigma = 0.25``). Always positive, so a slow robot never prefers
-        ending the episode. Given a positive weight.
-        """
-        sigma = 0.25
-        return self._np.exp(-(info['vx'] - self.params.ideal_base_vel)**2 / sigma)
+        """Gaussian tracking of ``ideal_base_vel`` (world-frame vx)."""
+        err = info['vx'] - self.params.ideal_base_vel
+        return self._np.exp(-err**2 / (2 * self.params.reward.sigmas.run**2))
 
     def reward_energy(self, data, action, info):
-        """Mechanical power, ``sum(|tau * qdot|)`` over the 12 joints, in watts.
-
-        Uses ``qfrc_actuator`` rather than ``actuator_force`` so torques are in
-        joint (qvel) order, matching ``qvel``. Absolute value so braking
-        (negative work) is not rewarded. Read from the last physics substep.
-        A penalty: returned positive, given a negative weight.
-        """
-        tau  = data.qfrc_actuator[6:]
-        qdot = data.qvel[6:]
-        return self._np.sum(self._np.abs(tau * qdot))
+        """``sum(|force * velocity|)`` over actuators."""
+        return self._np.sum(self._np.abs(data.actuator_force * data.actuator_velocity))
 
     def reward_softness(self, data, action, info):
         """Squared deviation of the vertical ground reaction force from body weight.
@@ -425,22 +428,8 @@ class MOGo2(MultiObjectiveBase):
         f_z = go2.get_ground_reaction_force(self._np, self.mj_model, data)[2]
         return ((f_z - weight) / weight)**2
 
-    def reward_handstand(self, data, action, info):
-        """``1 - (up . n)^2``: 1 when the base's up axis is perpendicular to the ground normal.
-
-        ``up`` is the base z-axis in the world frame (``go2.get_upvector``)
-        and ``n`` is the ground normal (world z), so the dot product is
-        ``up[2]``. The reward is 0 when the robot is upright or upside down.
-        """
-        ground_normal = self._np.array([0.0, 0.0, 1.0])
-        alignment = self._np.dot(go2.get_upvector(self.mj_model, data), ground_normal)
-        return 1.0 - alignment**2
-
     def reward_heading(self, data, action, info):
-        """Squared yaw rate (world-frame z angular velocity) of the base.
-
-        Zero when the base is not turning, so the robot keeps its starting
-        heading and walks a straight line. A penalty: returned positive,
-        given a negative weight.
-        """
-        return go2.get_base_global_angvel(self.mj_model, data)[2]**2
+        """Gaussian tracking of ``ideal_yaw_rate`` (world-frame wz)."""
+        yaw_rate = go2.get_base_global_angvel(self.mj_model, data)[2]
+        err = yaw_rate - self.params.ideal_yaw_rate
+        return self._np.exp(-err**2 / (2 * self.params.reward.sigmas.heading**2))   

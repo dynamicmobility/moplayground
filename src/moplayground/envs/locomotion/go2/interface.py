@@ -132,6 +132,18 @@ def get_foot_vel(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
         for sensor in FEET_GLOBAL_LINVEL
     ])
 
+def get_feet_contact(_np, data: mjx.Data) -> jax.Array:
+    """Return whether each foot touches the floor, shape (4,) bool, order FL, FR, RL, RR.
+
+    Checks ``data.contact`` for a foot-floor contact with ``dist < 0`` (penetrating).
+    """
+    geom = data.contact.geom                                    # (ncon, 2)
+    touching = data.contact.dist < 0                            # (ncon,)
+    with_floor = (geom == GROUND_GEOM_ID).any(axis=1)           # (ncon,)
+    feet = _np.array(FEET_GEOM_IDS)[:, None]                    # (4, 1)
+    has_foot = (geom[None, :, 0] == feet) | (geom[None, :, 1] == feet)  # (4, ncon)
+    return (has_foot & (with_floor & touching)[None]).any(axis=1)
+
 def get_upvector(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) z-axis in the world frame, shape (3,)."""
     return mjx_env.get_sensor_data(mj_model, data, UPVECTOR)
