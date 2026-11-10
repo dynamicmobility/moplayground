@@ -30,19 +30,9 @@ IMU_SITE_ID    = _interface_model.site(IMU_SITE).id
 
 NDOF = _interface_model.nu  # 29: one position actuator per hinge joint
 
-# Not used: the observation space does not need foot geom or site IDs.
-# TODO (G1 port): if needed later, use the G1 names: sites 'left_foot' and
-# 'right_foot', and 3 floor-contact capsules per foot
-# ('{side}_foot{1,2,3}_collision'). The Go2 joint <-> actuator mapping note
-# does not apply: the G1 actuator order equals the qpos order.
-# Feet in body order (FL, FR, RL, RR).
-# NOTE: qpos/qvel joints go FL, FR, RL, RR, but actuators (ctrl) go FR, FL, RR, RL.
-# TODO: add a joint <-> actuator order mapping once the env needs it.
-# FEET = ['FL', 'FR', 'RL', 'RR']
-# FEET_GEOMS = FEET
-# FEET_SITES = [f'{foot}_foot' for foot in FEET]
-# FEET_GEOM_IDS = [_interface_model.geom(geom).id for geom in FEET_GEOMS]
-# FEET_SITE_IDS = [_interface_model.site(site).id for site in FEET_SITES]
+FEET = ['left', 'right']
+FEET_GEOMS = [[f'{foot}_foot{i}_collision' for i in (1, 2, 3)] for foot in FEET]
+FEET_GEOM_IDS = [[_interface_model.geom(g).id for g in geoms] for geoms in FEET_GEOMS]
 
 # Real-robot sensors (from g1_mjx.xml, pelvis IMU)
 BASE_GYRO          = 'gyro_pelvis'
@@ -65,12 +55,14 @@ GRAVITY_NOISE = 0.05
 BASE_GLOBAL_LINVEL = 'global_linvel_pelvis'
 BASE_GLOBAL_ANGVEL = 'global_angvel_pelvis'
 BASE_LOCAL_LINVEL  = 'local_linvel_pelvis'
+TORSO_GLOBAL_LINVEL = 'global_linvel_torso'
 # Foot sensors on the 'left_foot' / 'right_foot' sites, order left, right.
 FEET_GLOBAL_POS    = ['left_foot_global_pos', 'right_foot_global_pos']
 FEET_GLOBAL_LINVEL = ['left_foot_global_linvel', 'right_foot_global_linvel']
 # Foot touch sensors on the 'left_sole' / 'right_sole' sites, order left, right.
 # Each reads the summed normal contact force (N); threshold it for a 1/0 flag.
 FEET_CONTACT       = ['left_foot_contact', 'right_foot_contact']
+HAND_THIGH_CONTACT = ['left_hand_left_thigh_found', 'right_hand_right_thigh_found']
 
 # Menagerie 'home' keyframe (model/scene_mjx.xml). The first 7 qpos values are
 # the free joint (position, quaternion); the rest are the joints in qpos order.
@@ -86,6 +78,8 @@ MAX_TILT_ANGLE = math.radians(60.0)
 # toward zero, and the log floor that bounds the penalty (max -log(1e-3) ~ 6.9).
 MIN_HEADING_SPEED = 0.1
 HEADING_LOG_EPS   = 1e-3
+
+MAX_CONTACT_FORCE = 500.0
 
 # TODO: add noise levels (e.g. GYRO_NOISE, QPOS_NOISE) and thresholds
 # (e.g. CONTACT_THRESHOLD, MIN_BASE_HEIGHT) once the env needs them.
@@ -127,6 +121,10 @@ def get_base_global_angvel(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) angular velocity in the world frame."""
     return mjx_env.get_sensor_data(mj_model, data, BASE_GLOBAL_ANGVEL)
 
+def get_torso_global_linvel(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the torso (imu site) linear velocity in the world frame."""
+    return mjx_env.get_sensor_data(mj_model, data, TORSO_GLOBAL_LINVEL)
+
 def get_base_local_linvel(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) linear velocity in the local frame."""
     return mjx_env.get_sensor_data(mj_model, data, BASE_LOCAL_LINVEL)
@@ -144,6 +142,33 @@ def get_foot_vel(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
         mjx_env.get_sensor_data(mj_model, data, sensor)
         for sensor in FEET_GLOBAL_LINVEL
     ])
+
+def get_foot_contact_force(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the summed normal contact force (N) on each sole, shape (2,), order left, right."""
+    return _np.hstack([
+        mjx_env.get_sensor_data(mj_model, data, sensor)
+        for sensor in FEET_CONTACT
+    ])
+
+def get_hand_thigh_contact(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the number of hand-thigh contacts found per side, shape (2,), order left, right."""
+    return _np.hstack([
+        mjx_env.get_sensor_data(mj_model, data, sensor)
+        for sensor in HAND_THIGH_CONTACT
+    ])
+
+def get_feet_contact(_np, data: mjx.Data) -> jax.Array:
+    """Return whether each foot touches the floor, shape (2,) bool, order left, right.
+
+    A foot touches when any of its 3 collision capsules has a floor contact in
+    ``data.contact`` with ``dist < 0`` (penetrating).
+    """
+    geom = data.contact.geom
+    touching = data.contact.dist < 0
+    with_floor = (geom == GROUND_GEOM_ID).any(axis=1)
+    feet = _np.array(FEET_GEOM_IDS)[..., None]
+    has_foot = (geom[None, None, :, 0] == feet) | (geom[None, None, :, 1] == feet)
+    return (has_foot & (with_floor & touching)).any(axis=(1, 2))
 
 def get_base_heading(_np, data: mjx.Data) -> jax.Array:
     """Return the pelvis x-axis projected onto the ground, shape (2,), unit length."""

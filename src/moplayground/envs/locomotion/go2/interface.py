@@ -132,6 +132,14 @@ def get_foot_vel(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
         for sensor in FEET_GLOBAL_LINVEL
     ])
 
+def get_foot_dist(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the base-to-foot distances ``||p_foot - p_base||``, shape (4,), order FL, FR, RL, RR.
+
+    The base is the imu site. The distance is the same in any frame.
+    """
+    foot_pos = get_foot_pos(_np, mj_model, data)
+    return _np.linalg.norm(foot_pos - get_base_global_pos(mj_model, data), axis=-1)
+
 def get_feet_contact(_np, data: mjx.Data) -> jax.Array:
     """Return whether each foot touches the floor, shape (4,) bool, order FL, FR, RL, RR.
 

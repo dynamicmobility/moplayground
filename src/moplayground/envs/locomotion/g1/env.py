@@ -116,7 +116,7 @@ class MOG1(MultiObjectiveBase):
         info = {
             'last_act':         self._np.zeros(self.action_size),
             'second_last_act':  self._np.zeros(self.action_size),
-            'vx':               g1.get_base_local_linvel(self.mj_model, data)[0],
+            'vx':               g1.get_base_global_linvel(self.mj_model, data)[0],
             'posbefore':        0.0,
             'posafter':         0.0,
             'heading':          g1.get_base_heading(self._np, data),
@@ -259,7 +259,7 @@ class MOG1(MultiObjectiveBase):
 
         state.info["rng"], sensors = self.get_sensor_values(state.info["rng"], data)
         state.info['posafter'] = data.qpos[0]
-        state.info['vx'] = g1.get_base_local_linvel(self.mj_model, data)[0]
+        state.info['vx'] = g1.get_base_global_linvel(self.mj_model, data)[0]
 
         done, blowup = self.fall_termination(data)
 
@@ -378,21 +378,25 @@ class MOG1(MultiObjectiveBase):
         return {
             'vel_rate':   self.reward_vel_smoothness(action, info),
             'accel_rate': self.reward_accel_smoothness(action, info),
-            'speed':      self.reward_speed(info),
             'alive':      self.reward_alive(),
             'run':        self.reward_run(info),
             'done':       self.reward_done(done),
             'perp_vel':   self.reward_perp_vel(data, info),
             'heading_dev': self.reward_heading_dev(data, info),
+            'heading':    self.reward_heading(data, action, info),
+            'energy':     self.reward_energy(data, action, info),
+            'torques':    self.cost_torques(data),
+            'feet_slip':  self.cost_feet_slip(data),
+            'base_height': self.cost_base_height(data),
+            'lin_vel_z':  self.cost_lin_vel_z(data),
+            'ang_vel_xy': self.cost_ang_vel_xy(data),
+            'contact_force': self.reward_contact_force(data),
+            'collision':     self.reward_collision(data),
         }
 
     def reward_alive(self):
         """Constant 1 per step."""
         return 1.0
-
-    def reward_speed(self, info):
-        """Forward (body-frame x) base velocity from the sim-only sensor."""
-        return info['vx']
 
     def reward_vel_smoothness(self, action, info):
         """Squared first difference of actions, summed over joints."""
@@ -409,8 +413,44 @@ class MOG1(MultiObjectiveBase):
         return self._np.array(done)
 
     def reward_run(self, info):
-        """World-frame x displacement of the base this step, divided by ``dt``."""
-        return (info['posafter'] - info['posbefore']) / self.dt
+        """Gaussian tracking of ``ideal_base_vel`` (world-frame vx)."""
+        err = info['vx'] - self.params.ideal_base_vel
+        return self._np.exp(-err**2 / (2 * self.params.reward.sigmas.run**2))
+
+    def reward_heading(self, data, action, info):
+        """Gaussian tracking of ``ideal_yaw_rate`` (world-frame wz)."""
+        yaw_rate = g1.get_base_global_angvel(self.mj_model, data)[2]
+        err = yaw_rate - self.params.ideal_yaw_rate
+        return self._np.exp(-err**2 / (2 * self.params.reward.sigmas.heading**2))
+
+    def reward_energy(self, data, action, info):
+        """``sum(|force * velocity|)`` over actuators."""
+        return self._np.sum(self._np.abs(data.actuator_force * data.actuator_velocity))
+
+    def cost_torques(self, data):
+        """L2 norm plus L1 norm of the actuator torques."""
+        tau = data.actuator_force
+        return self._np.sqrt(self._np.sum(tau**2)) + self._np.sum(self._np.abs(tau))
+
+    def cost_feet_slip(self, data):
+        """Squared x/y foot speed, summed over feet in floor contact."""
+        contact = g1.get_feet_contact(self._np, data)
+        vel_xy = g1.get_foot_vel(self._np, self.mj_model, data)[:, :2]
+        return self._np.sum(self._np.sum(vel_xy**2, axis=-1) * contact)
+
+    def cost_base_height(self, data):
+        """Squared error between the pelvis height (``qpos[2]``) and ``ideal_base_height``."""
+        return (data.qpos[2] - self.params.ideal_base_height)**2
+
+    def cost_lin_vel_z(self, data):
+        """Absolute world-frame z linear velocity of the pelvis plus that of the torso."""
+        pelvis_vz = g1.get_base_global_linvel(self.mj_model, data)[2]
+        torso_vz = g1.get_torso_global_linvel(self.mj_model, data)[2]
+        return self._np.abs(pelvis_vz) + self._np.abs(torso_vz)
+
+    def cost_ang_vel_xy(self, data):
+        """Absolute world-frame x/y base angular velocity, summed."""
+        return self._np.sum(self._np.abs(g1.get_base_global_angvel(self.mj_model, data)[:2]))
 
     def reward_perp_vel(self, data, info):
         """Squared pelvis ground-plane velocity perpendicular to the set heading.
@@ -439,3 +479,23 @@ class MOG1(MultiObjectiveBase):
         v_hat = v_xy / self._np.maximum(self._np.linalg.norm(v_xy), g1.MIN_HEADING_SPEED)
         d = self._np.dot(v_hat, info['heading'])
         return -self._np.log((1.0 + d) / 2.0 + g1.HEADING_LOG_EPS)
+
+    def reward_contact_force(self, data):
+        """Foot contact force above ``MAX_CONTACT_FORCE``, summed over both feet.
+
+        Reads the sole touch sensors (summed normal contact force, N) at the
+        current step. A foot under the limit adds 0. Adapted from the
+        Playground G1 ``_cost_contact_force``, which reads a foot force
+        sensor instead. Returned positive; give it a negative weight.
+        """
+        force = g1.get_foot_contact_force(self._np, self.mj_model, data)
+        return self._np.sum(self._np.clip(force - g1.MAX_CONTACT_FORCE, 0.0, None))
+
+    def reward_collision(self, data):
+        """1 if either hand touches its own thigh, else 0.
+
+        Adapted from the Playground G1 ``_cost_collision``. Returned positive;
+        give it a negative weight.
+        """
+        found = g1.get_hand_thigh_contact(self._np, self.mj_model, data)
+        return self._np.any(found > 0).astype(float)

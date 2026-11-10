@@ -43,12 +43,15 @@ def main(
 
     # Collect the tradeoffs (one one-hot per objective unless some are given)
     n_objs = cfg.num_objectives
-    if tradeoffs is None:
-        named = default_tradeoffs(cfg)
+    if cfg.algorithm == 'ppo':
+        named = {'ppo': None}
     else:
-        named = {'-'.join(f'{w:g}' for w in t): np.asarray(t, dtype=float) for t in tradeoffs}
-    for key, tradeoff in named.items():
-        assert tradeoff.shape == (n_objs,), f'Tradeoff {key}: expected {n_objs} weights, got {tradeoff.shape[0]}'
+        if tradeoffs is None:
+            named = default_tradeoffs(cfg)
+        else:
+            named = {'-'.join(f'{w:g}' for w in t): np.asarray(t, dtype=float) for t in tradeoffs}
+        for key, tradeoff in named.items():
+            assert tradeoff.shape == (n_objs,), f'Tradeoff {key}: expected {n_objs} weights, got {tradeoff.shape[0]}'
 
     # Roll out the policy once per tradeoff and save one video per tradeoff
     for key, tradeoff in named.items():

@@ -10,7 +10,7 @@ velocities and body-frame gravity are read with zero-mean uniform noise and
 stacked with the last action into one frame (see ``_make_frame``). The policy
 observation is the last ``history_length`` frames, newest first. The
 privileged observation used by the critic appends clean, sim-only quantities
-to it (see ``_get_obs``).
+and the per-foot gait state to it (see ``_get_obs``).
 
 Noise half-widths are the ``*_NOISE`` constants in
 ``moplayground.envs.locomotion.go2.interface``, scaled by ``noise_scale`` in
@@ -32,6 +32,8 @@ groups them into objectives.
 from typing import Any
 
 import jax
+import mujoco
+import numpy as np
 from ml_collections import config_dict
 from mujoco import mjx
 from mujoco_playground._src import mjx_env
@@ -50,8 +52,8 @@ class MOGo2(MultiObjectiveBase):
 
     Args:
         env_params: ``env_config`` from the YAML. Reads ``ctrl_dt``,
-            ``sim_dt``, ``action_scale``, ``history_length``, ``noise_scale``
-            and ``reward``.
+            ``sim_dt``, ``action_scale``, ``history_length``, ``noise_scale``,
+            ``swing_retraction``, ``min_air_time`` and ``reward``.
         backend: ``'jnp'`` for JAX (training) or ``'np'`` for NumPy (eval).
     """
 
@@ -68,6 +70,12 @@ class MOGo2(MultiObjectiveBase):
         )
         # Default joint pose; same for every leg, so valid in qpos and actuator order.
         self._default_jt = self._np.array(go2.DEFAULT_JT)
+        standing = mujoco.MjData(self.mj_model)
+        standing.qpos[:] = np.hstack([go2.DEFAULT_FF, go2.DEFAULT_JT])
+        mujoco.mj_forward(self.mj_model, standing)
+        self._ideal_foot_dist = self._np.array(
+            go2.get_foot_dist(np, self.mj_model, standing) - self.params.swing_retraction
+        )
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
         """Start an episode standing still in the default pose.
@@ -107,7 +115,11 @@ class MOGo2(MultiObjectiveBase):
             'second_last_act':  self._np.zeros(self.action_size),
             'vx':               go2.get_base_global_linvel(self.mj_model, data)[0],
             'rng': sensor_key,
-            'obs_history': self._np.tile(frame, (self.params.history_length, 1))
+            'obs_history': self._np.tile(frame, (self.params.history_length, 1)),
+            'feet_air_time':  self._np.zeros(4),
+            'swing_min_dist': go2.get_foot_dist(self._np, self.mj_model, data),
+            'last_contact':   self._np.zeros(4, dtype=bool),
+            'touchdown':      self._np.zeros(4, dtype=bool),
         }
 
         rewards = self.reward_function(
@@ -244,6 +256,12 @@ class MOGo2(MultiObjectiveBase):
         state.info["rng"], sensors = self.get_sensor_values(state.info["rng"], data)
         state.info['vx'] = go2.get_base_global_linvel(self.mj_model, data)[0]
 
+        contact = go2.get_feet_contact(self._np, data)
+        foot_dist = go2.get_foot_dist(self._np, self.mj_model, data)
+        state.info['touchdown'] = (state.info['feet_air_time'] > 0) & contact
+        state.info['feet_air_time'] += self.params.ctrl_dt
+        state.info['swing_min_dist'] = self._np.minimum(state.info['swing_min_dist'], foot_dist)
+
         done, blowup = self.fall_termination(data)
 
         rewards = self.reward_function(
@@ -255,6 +273,10 @@ class MOGo2(MultiObjectiveBase):
 
         reward, metrics = self.get_reward_and_metrics(rewards, state.metrics)
         reward = self._np.where(blowup, self._np.zeros_like(reward), reward)
+
+        state.info['feet_air_time'] *= ~contact
+        state.info['swing_min_dist'] = self._np.where(contact, foot_dist, state.info['swing_min_dist'])
+        state.info['last_contact'] = contact
 
         state.info['second_last_act'], state.info['last_act'] = state.info['last_act'], action
         frame = self._make_frame(sensors, state.info['last_act'])
@@ -299,14 +321,16 @@ class MOGo2(MultiObjectiveBase):
 
         Args:
             data: MuJoCo data after the physics step.
-            info: State info; reads ``obs_history``.
+            info: State info; reads ``obs_history``, ``feet_air_time``,
+                ``swing_min_dist`` and ``last_contact``.
 
         Returns:
             Dict with ``state``, the flattened noisy observation history,
             and ``privileged_state``, which appends clean gyro (3),
             body-frame base linear velocity (3), body-frame foot velocities
-            (4 x 3) and body-frame base-minus-foot positions (4 x 3), feet
-            in order FL, FR, RL, RR.
+            (4 x 3), body-frame base-minus-foot positions (4 x 3), and the
+            gait state: air time (4), swing minimum base-to-foot distance
+            (4) and last contact (4). Feet in order FL, FR, RL, RR.
         """
         state = info['obs_history'].flatten()
 
@@ -327,6 +351,9 @@ class MOGo2(MultiObjectiveBase):
             base_local_linvel,
             local_foot_vel,
             local_foot_pos,
+            info['feet_air_time'],
+            info['swing_min_dist'],
+            info['last_contact'].astype(float),
         ])
 
         return {
@@ -367,6 +394,10 @@ class MOGo2(MultiObjectiveBase):
             'ang_vel_xy': self.cost_ang_vel_xy(data),
             'orientation': self.cost_orientation(data),
             'feet_slip':  self.cost_feet_slip(data),
+            'torque':     self.cost_torque(data),
+            'feet_clearance': self.cost_feet_clearance(data),
+            'feet_height':    self.cost_feet_height(info),
+            'feet_air_time':  self.reward_feet_air_time(info),
         }
 
     def cost_feet_slip(self, data):
@@ -374,6 +405,37 @@ class MOGo2(MultiObjectiveBase):
         contact = go2.get_feet_contact(self._np, data)
         vel_xy = go2.get_foot_vel(self._np, self.mj_model, data)[:, :2]
         return self._np.sum(self._np.sum(vel_xy**2, axis=-1) * contact)
+
+    def cost_torque(self, data):
+        """L2 norm of the actuator torques, ``sqrt(sum(tau^2))``.
+        """
+        return self._np.sqrt(self._np.sum(data.actuator_force**2))
+
+    def cost_feet_clearance(self, data):
+        """Swing distance error, gated by horizontal foot speed, summed over feet.
+
+        Per foot: ``|dist - ideal| * sqrt(||v_xy||)``. ``dist`` is the
+        base-to-foot distance; ``ideal`` is the standing distance minus
+        ``swing_retraction``. ``v_xy`` is the world-frame x/y foot velocity,
+        so stance feet, which do not slide, cost about 0.
+        """
+        dist = go2.get_foot_dist(self._np, self.mj_model, data)
+        vel_xy = go2.get_foot_vel(self._np, self.mj_model, data)[:, :2]
+        speed = self._np.sqrt(self._np.linalg.norm(vel_xy, axis=-1))
+        return self._np.sum(self._np.abs(dist - self._ideal_foot_dist) * speed)
+
+    def cost_feet_height(self, info):
+        """Squared relative error of each swing's closest base-to-foot distance, at touchdown.
+
+        Per foot: ``(swing_min_dist / ideal - 1)^2`` on the step the foot
+        lands, else 0. Summed over feet.
+        """
+        error = info['swing_min_dist'] / self._ideal_foot_dist - 1.0
+        return self._np.sum(error**2 * info['touchdown'])
+
+    def reward_feet_air_time(self, info):
+        """``air_time - min_air_time`` per foot on the step it lands, summed over feet."""
+        return self._np.sum((info['feet_air_time'] - self.params.min_air_time) * info['touchdown'])
 
     def cost_lin_vel_z(self, data):
         """Squared world-frame z base linear velocity."""

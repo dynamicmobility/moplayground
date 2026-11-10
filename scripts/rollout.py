@@ -45,7 +45,7 @@ def main(
     cfg    = mop.MOConfig(config_path)
     kwargs = {} if cfg.env_name != 'NaviGait' else {
         'manual_speed'    : [0.12, 0.0, 0.0],
-        'track_yaw'       : False,
+        'track_yaw'       : False,  
         'idealistic'      : True
     }
     env, env_params = mop.create_environment(

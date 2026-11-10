@@ -1,8 +1,13 @@
+import os
+os.environ["MUJOCO_GL"] = "egl"
 import matplotlib
 matplotlib.use('Agg')
 import moplayground as mop
 import minimal_mjx as mm
 import argparse
+import traceback
+from pathlib import Path
+from scripts import comparison_videos
 
 def get_handle_params(cfg: mop.MOConfig):
     match cfg.algorithm:
@@ -72,9 +77,19 @@ def main(config_path):
         resume                  = False,
         overwrite               = cfg.name == 'test'
     )
-# TODO: add automatic rollout for training runs - save videos to scratch. random tradeoffs?
-#       or maximally separated - given n rollouts distribute them to have the greatest distance between each other
-    
+
+    # TODO: sample tradeoffs with a Sobol sequence on the simplex (pass as tradeoffs=)
+    video_dir = Path('output/videos') / cfg.name
+    video_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        comparison_videos.main(
+            config_path = cfg.run_dir / 'config.yaml',
+            out_dir     = video_dir,
+        )
+    except Exception:
+        print('Rollout failed; training output is saved.')
+        traceback.print_exc()
+
 if __name__ == '__main__':
     # Parse CLI arguments
     parser = argparse.ArgumentParser()

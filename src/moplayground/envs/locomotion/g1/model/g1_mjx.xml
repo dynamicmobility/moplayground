@@ -425,6 +425,8 @@
     <frameangvel objtype="site" objname="imu_in_pelvis" name="global_angvel_pelvis"/>
     <touch site="left_sole" name="left_foot_contact"/>
     <touch site="right_sole" name="right_foot_contact"/>
+    <contact name="left_hand_left_thigh_found" geom1="left_hand_collision" geom2="left_thigh_collision" num="1" data="found"/>
+    <contact name="right_hand_right_thigh_found" geom1="right_hand_collision" geom2="right_thigh_collision" num="1" data="found"/>
     <!-- Foot position and linear velocity (world frame) at the foot sites. Sim-only. -->
     <framepos objtype="site" objname="left_foot" name="left_foot_global_pos"/>
     <framepos objtype="site" objname="right_foot" name="right_foot_global_pos"/>
