@@ -19,10 +19,9 @@ env_config:
   noise_scale: 1.0
   reward:
     sigmas:
-      run:     0.35
-      heading: 0.5
+      run:     0.25
+      heading: 0.25
     weights: 
-      # TODO: Define reward terms
       vel_rate:   -0.5
       accel_rate: -0.5
       run:        0.5
@@ -33,7 +32,7 @@ env_config:
       lin_vel_z:  -0.5
       ang_vel_xy: -0.05
       orientation: -5.0
-      feet_slip:  -0.01
+      feet_slip:  -0.1
       feet_clearance: -2.0
       feet_height: -0.2
       feet_air_time: 0.1

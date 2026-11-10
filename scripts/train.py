@@ -6,8 +6,16 @@ import moplayground as mop
 import minimal_mjx as mm
 import argparse
 import traceback
+import numpy as np
 from pathlib import Path
+from scipy.stats import qmc
 from scripts import comparison_videos
+
+def sobol_tradeoffs(n_obj, m, seed=0):
+    """2**m scrambled Sobol tradeoffs, spread evenly on the simplex (sort-and-diff)."""
+    u = np.sort(qmc.Sobol(d=n_obj - 1, scramble=True, seed=seed).random_base2(m), axis=1)
+    edges = np.hstack([np.zeros((len(u), 1)), u, np.ones((len(u), 1))])
+    return np.diff(edges, axis=1)
 
 def get_handle_params(cfg: mop.MOConfig):
     match cfg.algorithm:
@@ -78,13 +86,15 @@ def main(config_path):
         overwrite               = cfg.name == 'test'
     )
 
-    # TODO: sample tradeoffs with a Sobol sequence on the simplex (pass as tradeoffs=)
+    n_obj     = cfg.num_objectives
+    tradeoffs = list(np.eye(n_obj)) + list(sobol_tradeoffs(n_obj, m=2))
     video_dir = Path('output/videos') / cfg.name
     video_dir.mkdir(parents=True, exist_ok=True)
     try:
         comparison_videos.main(
             config_path = cfg.run_dir / 'config.yaml',
             out_dir     = video_dir,
+            tradeoffs   = tradeoffs,
         )
     except Exception:
         print('Rollout failed; training output is saved.')
