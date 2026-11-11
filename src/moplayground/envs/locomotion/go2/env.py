@@ -53,7 +53,8 @@ class MOGo2(MultiObjectiveBase):
     Args:
         env_params: ``env_config`` from the YAML. Reads ``ctrl_dt``,
             ``sim_dt``, ``action_scale``, ``history_length``, ``noise_scale``,
-            ``swing_retraction``, ``min_air_time`` and ``reward``.
+            ``swing_retraction``, ``min_air_time``, ``max_stance_time`` and
+            ``reward``.
         backend: ``'jnp'`` for JAX (training) or ``'np'`` for NumPy (eval).
     """
 
@@ -117,6 +118,7 @@ class MOGo2(MultiObjectiveBase):
             'rng': sensor_key,
             'obs_history': self._np.tile(frame, (self.params.history_length, 1)),
             'feet_air_time':  self._np.zeros(4),
+            'stance_time':    self._np.zeros(4),
             'swing_min_dist': go2.get_foot_dist(self._np, self.mj_model, data),
             'last_contact':   self._np.zeros(4, dtype=bool),
             'touchdown':      self._np.zeros(4, dtype=bool),
@@ -260,6 +262,7 @@ class MOGo2(MultiObjectiveBase):
         foot_dist = go2.get_foot_dist(self._np, self.mj_model, data)
         state.info['touchdown'] = (state.info['feet_air_time'] > 0) & contact
         state.info['feet_air_time'] += self.params.ctrl_dt
+        state.info['stance_time'] += self.params.ctrl_dt
         state.info['swing_min_dist'] = self._np.minimum(state.info['swing_min_dist'], foot_dist)
 
         done, blowup = self.fall_termination(data)
@@ -275,6 +278,7 @@ class MOGo2(MultiObjectiveBase):
         reward = self._np.where(blowup, self._np.zeros_like(reward), reward)
 
         state.info['feet_air_time'] *= ~contact
+        state.info['stance_time'] *= contact
         state.info['swing_min_dist'] = self._np.where(contact, foot_dist, state.info['swing_min_dist'])
         state.info['last_contact'] = contact
 
@@ -322,15 +326,15 @@ class MOGo2(MultiObjectiveBase):
         Args:
             data: MuJoCo data after the physics step.
             info: State info; reads ``obs_history``, ``feet_air_time``,
-                ``swing_min_dist`` and ``last_contact``.
+                ``stance_time``, ``swing_min_dist`` and ``last_contact``.
 
         Returns:
             Dict with ``state``, the flattened noisy observation history,
             and ``privileged_state``, which appends clean gyro (3),
             body-frame base linear velocity (3), body-frame foot velocities
             (4 x 3), body-frame base-minus-foot positions (4 x 3), and the
-            gait state: air time (4), swing minimum base-to-foot distance
-            (4) and last contact (4). Feet in order FL, FR, RL, RR.
+            gait state: air time (4), stance time (4), swing minimum
+            base-to-foot distance (4) and last contact (4). Feet in order FL, FR, RL, RR.
         """
         state = info['obs_history'].flatten()
 
@@ -352,6 +356,7 @@ class MOGo2(MultiObjectiveBase):
             local_foot_vel,
             local_foot_pos,
             info['feet_air_time'],
+            info['stance_time'],
             info['swing_min_dist'],
             info['last_contact'].astype(float),
         ])
@@ -398,7 +403,17 @@ class MOGo2(MultiObjectiveBase):
             'feet_clearance': self.cost_feet_clearance(data),
             'feet_height':    self.cost_feet_height(info),
             'feet_air_time':  self.reward_feet_air_time(info),
+            'stance_time':    self.cost_stance_time(info),
         }
+
+    def cost_stance_time(self, info):
+        """Stance time beyond ``max_stance_time``, summed over feet.
+
+        Per foot: ``max(0, stance_time - max_stance_time)``. Grows while a
+        foot stays planted, so it penalizes a robot that stops stepping.
+        """
+        excess = info['stance_time'] - self.params.max_stance_time
+        return self._np.sum(self._np.maximum(excess, 0.0))
 
     def cost_feet_slip(self, data):
         """Squared x/y foot speed, summed over feet in floor contact."""

@@ -1,9 +1,8 @@
 """Multi-objective Unitree G1 humanoid environment.
 
-Work in progress. This file is a copy of the Go2 environment
-(``moplayground.envs.locomotion.go2.env``) that is being adapted for the G1.
-It reads all model constants and helpers from
-``moplayground.envs.locomotion.g1.interface``.
+Matches the Go2 environment (``moplayground.envs.locomotion.go2.env``),
+except where the body geometry differs. It reads all model constants and
+helpers from ``moplayground.envs.locomotion.g1.interface``.
 
 The G1 walks on flat ground under position control: each action is an
 offset from the default joint pose, scaled by ``action_scale``, in the
@@ -15,7 +14,7 @@ velocities and body-frame gravity are read with zero-mean uniform noise and
 stacked with the last action into one frame (see ``_make_frame``). The policy
 observation is the last ``history_length`` frames, newest first. The
 privileged observation used by the critic appends clean, sim-only quantities
-to it (see ``_get_obs``).
+and the per-foot gait state to it (see ``_get_obs``).
 
 Noise half-widths are the ``*_NOISE`` constants in
 ``moplayground.envs.locomotion.g1.interface``, scaled by ``noise_scale`` in
@@ -25,7 +24,7 @@ groups them into objectives.
 
 # TODO list (remove items as they are done):
 #   [ ] Termination: a humanoid falls well before it flips over. The base
-#       height check (termination.base_height = 0.6 m in config/g1.yaml) is
+#       height check (termination.base_height = 0.3 m in config/g1.yaml) is
 #       a first guess; tune it and consider a tilt limit.
 #   [ ] Objectives: choose the tradeoffs for the Pareto front (e.g. vx vs vy,
 #       speed vs energy, speed vs yaw rate, speed vs foot clearance). Set
@@ -42,6 +41,8 @@ groups them into objectives.
 from typing import Any
 
 import jax
+import mujoco
+import numpy as np
 from ml_collections import config_dict
 from mujoco import mjx
 from mujoco_playground._src import mjx_env
@@ -51,7 +52,7 @@ from moplayground.envs.locomotion.g1 import interface as g1
 
 
 class MOG1(MultiObjectiveBase):
-    """Multi-objective Unitree G1 environment (adapted from the Go2 env).
+    """Multi-objective Unitree G1 environment.
 
     Emits one reward per objective. Which reward terms make up each objective
     is set by ``reward.optimization.objectives`` and ``shared_objectives`` in
@@ -60,8 +61,9 @@ class MOG1(MultiObjectiveBase):
 
     Args:
         env_params: ``env_config`` from the YAML. Reads ``ctrl_dt``,
-            ``sim_dt``, ``action_scale``, ``history_length``, ``noise_scale``
-            and ``reward``.
+            ``sim_dt``, ``action_scale``, ``history_length``, ``noise_scale``,
+            ``swing_retraction``, ``min_air_time``, ``max_stance_time`` and
+            ``reward``.
         backend: ``'jnp'`` for JAX (training) or ``'np'`` for NumPy (eval).
     """
 
@@ -79,6 +81,12 @@ class MOG1(MultiObjectiveBase):
         # Default joint pose. The G1 actuator order equals the qpos order, so it
         # is valid for both.
         self._default_jt = self._np.array(g1.DEFAULT_JT)
+        standing = mujoco.MjData(self.mj_model)
+        standing.qpos[:] = np.hstack([g1.DEFAULT_FF, g1.DEFAULT_JT])
+        mujoco.mj_forward(self.mj_model, standing)
+        self._ideal_foot_dist = self._np.array(
+            g1.get_foot_dist(np, self.mj_model, standing) - self.params.swing_retraction
+        )
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
         """Start an episode standing still in the default pose.
@@ -112,16 +120,19 @@ class MOG1(MultiObjectiveBase):
         sensor_key, sensors = self.get_sensor_values(sensor_key, data)
         frame = self._make_frame(sensors, self._np.zeros(self.action_size))
 
+        n_feet = len(g1.FEET)
         done = self._np.array(0.0)
         info = {
             'last_act':         self._np.zeros(self.action_size),
             'second_last_act':  self._np.zeros(self.action_size),
             'vx':               g1.get_base_global_linvel(self.mj_model, data)[0],
-            'posbefore':        0.0,
-            'posafter':         0.0,
-            'heading':          g1.get_base_heading(self._np, data),
             'rng': sensor_key,
-            'obs_history': self._np.tile(frame, (self.params.history_length, 1))
+            'obs_history': self._np.tile(frame, (self.params.history_length, 1)),
+            'feet_air_time':  self._np.zeros(n_feet),
+            'stance_time':    self._np.zeros(n_feet),
+            'swing_min_dist': g1.get_foot_dist(self._np, self.mj_model, data),
+            'last_contact':   self._np.zeros(n_feet, dtype=bool),
+            'touchdown':      self._np.zeros(n_feet, dtype=bool),
         }
 
         rewards = self.reward_function(
@@ -253,13 +264,18 @@ class MOG1(MultiObjectiveBase):
         # Position control (same as Go1 in Playground): action is an offset from
         # the default pose. Action order = actuator order of the G1 model.
         motor_targets = self._default_jt + self.params.action_scale * action
-        state.info['posbefore'] = state.data.qpos[0]
 
         data = self._step_fn(state.data, motor_targets)
 
         state.info["rng"], sensors = self.get_sensor_values(state.info["rng"], data)
-        state.info['posafter'] = data.qpos[0]
         state.info['vx'] = g1.get_base_global_linvel(self.mj_model, data)[0]
+
+        contact = g1.get_feet_contact(self._np, data)
+        foot_dist = g1.get_foot_dist(self._np, self.mj_model, data)
+        state.info['touchdown'] = (state.info['feet_air_time'] > 0) & contact
+        state.info['feet_air_time'] += self.params.ctrl_dt
+        state.info['stance_time'] += self.params.ctrl_dt
+        state.info['swing_min_dist'] = self._np.minimum(state.info['swing_min_dist'], foot_dist)
 
         done, blowup = self.fall_termination(data)
 
@@ -273,10 +289,14 @@ class MOG1(MultiObjectiveBase):
         reward, metrics = self.get_reward_and_metrics(rewards, state.metrics)
         reward = self._np.where(blowup, self._np.zeros_like(reward), reward)
 
+        state.info['feet_air_time'] *= ~contact
+        state.info['stance_time'] *= contact
+        state.info['swing_min_dist'] = self._np.where(contact, foot_dist, state.info['swing_min_dist'])
+        state.info['last_contact'] = contact
+
         state.info['second_last_act'], state.info['last_act'] = state.info['last_act'], action
         frame = self._make_frame(sensors, state.info['last_act'])
         new_history = self._np.vstack([frame[None], state.info['obs_history'][:-1]])
-
         state.info['obs_history'] = self._np.where(blowup, state.info['obs_history'], new_history)
         obs = self._get_obs(data, state.info)
         obs = {k: self._np.where(blowup, state.obs[k], v) for k, v in obs.items()}
@@ -318,15 +338,17 @@ class MOG1(MultiObjectiveBase):
 
         Args:
             data: MuJoCo data after the physics step.
-            info: State info; reads ``obs_history``.
+            info: State info; reads ``obs_history``, ``feet_air_time``,
+                ``stance_time``, ``swing_min_dist`` and ``last_contact``.
 
         Returns:
             Dict with ``state``, the flattened noisy observation history,
             and ``privileged_state``, which appends clean gyro (3),
-            body-frame base linear velocity (3) and body-frame foot
-            velocities (n_feet x 3). The G1 has 2 feet; the foot order
-            comes from the G1 interface. Base-minus-foot positions are
-            commented out for now.
+            body-frame base linear velocity (3), body-frame foot velocities
+            (2 x 3), body-frame base-minus-foot positions (2 x 3), and the
+            gait state: air time (2), stance time (2), swing minimum
+            base-to-foot distance (2) and last contact (2). Feet in order
+            left, right. The base is the pelvis imu site.
         """
         state = info['obs_history'].flatten()
 
@@ -334,11 +356,11 @@ class MOG1(MultiObjectiveBase):
         base_local_linvel = g1.get_base_local_linvel(self.mj_model, data)
 
         foot_vel = g1.get_foot_vel(self._np, self.mj_model, data)
-        # base_pos = g1.get_base_global_pos(self.mj_model, data)
-        # foot_pos = g1.get_foot_pos(self._np, self.mj_model, data)
+        base_pos = g1.get_base_global_pos(self.mj_model, data)
+        foot_pos = g1.get_foot_pos(self._np, self.mj_model, data)
         # Row vectors times R rotate world-frame vectors into the body frame.
         R = data.site_xmat[g1.IMU_SITE_ID].reshape(3, 3)
-        # local_foot_pos = ((base_pos - foot_pos) @ R).flatten()
+        local_foot_pos = ((base_pos - foot_pos) @ R).flatten()
         local_foot_vel = (foot_vel @ R).flatten()
 
         privileged_state = self._np.hstack([
@@ -346,7 +368,11 @@ class MOG1(MultiObjectiveBase):
             base_gyro,
             base_local_linvel,
             local_foot_vel,
-            # local_foot_pos,
+            local_foot_pos,
+            info['feet_air_time'],
+            info['stance_time'],
+            info['swing_min_dist'],
+            info['last_contact'].astype(float),
         ])
 
         return {
@@ -381,18 +407,77 @@ class MOG1(MultiObjectiveBase):
             'alive':      self.reward_alive(),
             'run':        self.reward_run(info),
             'done':       self.reward_done(done),
-            'perp_vel':   self.reward_perp_vel(data, info),
-            'heading_dev': self.reward_heading_dev(data, info),
-            'heading':    self.reward_heading(data, action, info),
             'energy':     self.reward_energy(data, action, info),
-            'torques':    self.cost_torques(data),
-            'feet_slip':  self.cost_feet_slip(data),
-            'base_height': self.cost_base_height(data),
+            'softness':   self.reward_softness(data, action, info),
+            'heading':    self.reward_heading(data, action, info),
             'lin_vel_z':  self.cost_lin_vel_z(data),
             'ang_vel_xy': self.cost_ang_vel_xy(data),
-            'contact_force': self.reward_contact_force(data),
-            'collision':     self.reward_collision(data),
+            'orientation': self.cost_orientation(data),
+            'feet_slip':  self.cost_feet_slip(data),
+            'torque':     self.cost_torque(data),
+            'feet_clearance': self.cost_feet_clearance(data),
+            'feet_height':    self.cost_feet_height(info),
+            'feet_air_time':  self.reward_feet_air_time(info),
+            'stance_time':    self.cost_stance_time(info),
         }
+
+    def cost_stance_time(self, info):
+        """Stance time beyond ``max_stance_time``, summed over feet.
+
+        Per foot: ``max(0, stance_time - max_stance_time)``. Grows while a
+        foot stays planted, so it penalizes a robot that stops stepping.
+        """
+        excess = info['stance_time'] - self.params.max_stance_time
+        return self._np.sum(self._np.maximum(excess, 0.0))
+
+    def cost_feet_slip(self, data):
+        """Squared x/y foot speed, summed over feet in floor contact."""
+        contact = g1.get_feet_contact(self._np, data)
+        vel_xy = g1.get_foot_vel(self._np, self.mj_model, data)[:, :2]
+        return self._np.sum(self._np.sum(vel_xy**2, axis=-1) * contact)
+
+    def cost_torque(self, data):
+        """L2 norm of the actuator torques, ``sqrt(sum(tau^2))``.
+        """
+        return self._np.sqrt(self._np.sum(data.actuator_force**2))
+
+    def cost_feet_clearance(self, data):
+        """Swing distance error, gated by horizontal foot speed, summed over feet.
+
+        Per foot: ``|dist - ideal| * sqrt(||v_xy||)``. ``dist`` is the
+        pelvis-to-foot distance; ``ideal`` is the standing distance minus
+        ``swing_retraction``. ``v_xy`` is the world-frame x/y foot velocity,
+        so stance feet, which do not slide, cost about 0.
+        """
+        dist = g1.get_foot_dist(self._np, self.mj_model, data)
+        vel_xy = g1.get_foot_vel(self._np, self.mj_model, data)[:, :2]
+        speed = self._np.sqrt(self._np.linalg.norm(vel_xy, axis=-1))
+        return self._np.sum(self._np.abs(dist - self._ideal_foot_dist) * speed)
+
+    def cost_feet_height(self, info):
+        """Squared relative error of each swing's closest pelvis-to-foot distance, at touchdown.
+
+        Per foot: ``(swing_min_dist / ideal - 1)^2`` on the step the foot
+        lands, else 0. Summed over feet.
+        """
+        error = info['swing_min_dist'] / self._ideal_foot_dist - 1.0
+        return self._np.sum(error**2 * info['touchdown'])
+
+    def reward_feet_air_time(self, info):
+        """``air_time - min_air_time`` per foot on the step it lands, summed over feet."""
+        return self._np.sum((info['feet_air_time'] - self.params.min_air_time) * info['touchdown'])
+
+    def cost_lin_vel_z(self, data):
+        """Squared world-frame z base linear velocity."""
+        return g1.get_base_global_linvel(self.mj_model, data)[2]**2
+
+    def cost_ang_vel_xy(self, data):
+        """Squared world-frame x/y base angular velocity, summed."""
+        return self._np.sum(g1.get_base_global_angvel(self.mj_model, data)[:2]**2)
+
+    def cost_orientation(self, data):
+        """Squared x/y components of the torso up axis, summed (0 when upright)."""
+        return self._np.sum(g1.get_torso_upvector(self.mj_model, data)[:2]**2)
 
     def reward_alive(self):
         """Constant 1 per step."""
@@ -417,85 +502,26 @@ class MOG1(MultiObjectiveBase):
         err = info['vx'] - self.params.ideal_base_vel
         return self._np.exp(-err**2 / (2 * self.params.reward.sigmas.run**2))
 
+    def reward_energy(self, data, action, info):
+        """``sum(|force * velocity|)`` over actuators."""
+        return self._np.sum(self._np.abs(data.actuator_force * data.actuator_velocity))
+
+    def reward_softness(self, data, action, info):
+        """Squared deviation of the vertical ground reaction force from body weight.
+
+        ``((F_z - m*g) / (m*g))^2``, with ``F`` from
+        ``g1.get_ground_reaction_force``. The time-average of ``F_z`` is
+        ``m*g`` whatever the gait, so the penalty targets the spikes from hard
+        landings rather than ``F_z`` itself. 0 when the body is not
+        accelerating vertically; 1 for a spike of one extra body weight.
+        A penalty: returned positive, given a negative weight.
+        """
+        weight = self._np.sum(self.mj_model.body_mass) * 9.81
+        f_z = g1.get_ground_reaction_force(self._np, self.mj_model, data)[2]
+        return ((f_z - weight) / weight)**2
+
     def reward_heading(self, data, action, info):
         """Gaussian tracking of ``ideal_yaw_rate`` (world-frame wz)."""
         yaw_rate = g1.get_base_global_angvel(self.mj_model, data)[2]
         err = yaw_rate - self.params.ideal_yaw_rate
         return self._np.exp(-err**2 / (2 * self.params.reward.sigmas.heading**2))
-
-    def reward_energy(self, data, action, info):
-        """``sum(|force * velocity|)`` over actuators."""
-        return self._np.sum(self._np.abs(data.actuator_force * data.actuator_velocity))
-
-    def cost_torques(self, data):
-        """L2 norm plus L1 norm of the actuator torques."""
-        tau = data.actuator_force
-        return self._np.sqrt(self._np.sum(tau**2)) + self._np.sum(self._np.abs(tau))
-
-    def cost_feet_slip(self, data):
-        """Squared x/y foot speed, summed over feet in floor contact."""
-        contact = g1.get_feet_contact(self._np, data)
-        vel_xy = g1.get_foot_vel(self._np, self.mj_model, data)[:, :2]
-        return self._np.sum(self._np.sum(vel_xy**2, axis=-1) * contact)
-
-    def cost_base_height(self, data):
-        """Squared error between the pelvis height (``qpos[2]``) and ``ideal_base_height``."""
-        return (data.qpos[2] - self.params.ideal_base_height)**2
-
-    def cost_lin_vel_z(self, data):
-        """Absolute world-frame z linear velocity of the pelvis plus that of the torso."""
-        pelvis_vz = g1.get_base_global_linvel(self.mj_model, data)[2]
-        torso_vz = g1.get_torso_global_linvel(self.mj_model, data)[2]
-        return self._np.abs(pelvis_vz) + self._np.abs(torso_vz)
-
-    def cost_ang_vel_xy(self, data):
-        """Absolute world-frame x/y base angular velocity, summed."""
-        return self._np.sum(self._np.abs(g1.get_base_global_angvel(self.mj_model, data)[:2]))
-
-    def reward_perp_vel(self, data, info):
-        """Squared pelvis ground-plane velocity perpendicular to the set heading.
-
-        The set heading is ``info['heading']``, the pelvis x-axis on the ground
-        at reset. Vertical velocity is ignored. Returned positive; give it a
-        negative weight.
-        """
-        v_xy = g1.get_base_global_linvel(self.mj_model, data)[:2]
-        h = info['heading']
-        h_perp = self._np.array([-h[1], h[0]])
-        return self._np.dot(v_xy, h_perp)**2
-
-    def reward_heading_dev(self, data, info):
-        """Log penalty on the angle between motion direction and set heading.
-
-        Computes ``-log((1 + d) / 2 + HEADING_LOG_EPS)``, where ``d`` is the dot
-        product of the pelvis ground-plane motion direction and
-        ``info['heading']``. ``(1 + d) / 2 = 1 - (1 - d) / 2``, so this is a log
-        scale of ``1 - d``: 0 when aligned, ~0.69 when perpendicular, ~6.9 when
-        backward. Below ``MIN_HEADING_SPEED`` the direction shrinks toward zero,
-        so standing still gives ~0.69. Returned positive; give it a negative
-        weight.
-        """
-        v_xy = g1.get_base_global_linvel(self.mj_model, data)[:2]
-        v_hat = v_xy / self._np.maximum(self._np.linalg.norm(v_xy), g1.MIN_HEADING_SPEED)
-        d = self._np.dot(v_hat, info['heading'])
-        return -self._np.log((1.0 + d) / 2.0 + g1.HEADING_LOG_EPS)
-
-    def reward_contact_force(self, data):
-        """Foot contact force above ``MAX_CONTACT_FORCE``, summed over both feet.
-
-        Reads the sole touch sensors (summed normal contact force, N) at the
-        current step. A foot under the limit adds 0. Adapted from the
-        Playground G1 ``_cost_contact_force``, which reads a foot force
-        sensor instead. Returned positive; give it a negative weight.
-        """
-        force = g1.get_foot_contact_force(self._np, self.mj_model, data)
-        return self._np.sum(self._np.clip(force - g1.MAX_CONTACT_FORCE, 0.0, None))
-
-    def reward_collision(self, data):
-        """1 if either hand touches its own thigh, else 0.
-
-        Adapted from the Playground G1 ``_cost_collision``. Returned positive;
-        give it a negative weight.
-        """
-        found = g1.get_hand_thigh_contact(self._np, self.mj_model, data)
-        return self._np.any(found > 0).astype(float)

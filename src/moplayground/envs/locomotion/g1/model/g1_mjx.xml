@@ -423,6 +423,7 @@
     <framelinvel objtype="site" objname="imu_in_pelvis" name="global_linvel_pelvis"/>
     <frameangvel objtype="site" objname="imu_in_torso" name="global_angvel_torso"/>
     <frameangvel objtype="site" objname="imu_in_pelvis" name="global_angvel_pelvis"/>
+    <framepos objtype="site" objname="imu_in_pelvis" name="global_position_pelvis"/>
     <touch site="left_sole" name="left_foot_contact"/>
     <touch site="right_sole" name="right_foot_contact"/>
     <contact name="left_hand_left_thigh_found" geom1="left_hand_collision" geom2="left_thigh_collision" num="1" data="found"/>

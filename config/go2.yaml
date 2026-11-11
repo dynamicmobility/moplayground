@@ -12,6 +12,7 @@ env_config:
   ideal_base_height: 0.28
   swing_retraction: 0.07
   min_air_time: 0.1
+  max_stance_time: 0.5
   ideal_base_vel: 1.5
   ideal_yaw_rate: 0.0
   add_random_joint_state: False
@@ -19,16 +20,16 @@ env_config:
   noise_scale: 1.0
   reward:
     sigmas:
-      run:     0.25
+      run:     0.75
       heading: 0.25
     weights: 
-      vel_rate:   -0.5
-      accel_rate: -0.5
-      run:        0.5
+      vel_rate:   -0.01
+      accel_rate: -0.01
+      run:        2.0
       alive:      0.0
-      energy:     -1e-3
+      energy:     -1.0e-4
       softness:   0.0
-      heading:    1.0
+      heading:    0.5
       lin_vel_z:  -0.5
       ang_vel_xy: -0.05
       orientation: -5.0
@@ -37,10 +38,11 @@ env_config:
       feet_height: -0.2
       feet_air_time: 0.1
       done:       -1.0
-      torque:     -2e-4
+      torque:     -2.0e-4
+      stance_time: 0.0
     optimization:
       objectives:        [['vel_rate', 'accel_rate'], ['energy'], ['softness']]
-      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time']
+      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done']
       labels:            ['Smoothness', 'Energy Efficiency', 'Softness']
       default_scalarization: [1, 1, 1]
   termination:
@@ -61,7 +63,7 @@ learning_params:
     num_envs: 1024
     num_evals: 15
     num_minibatches: 16
-    num_timesteps: 125000000
+    num_timesteps: 250000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 20

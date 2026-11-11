@@ -39,6 +39,7 @@ BASE_GYRO          = 'gyro_pelvis'
 BASE_ACCELEROMETER = 'accelerometer_pelvis'
 BASE_ORIENTATION   = 'orientation_pelvis'
 UPVECTOR           = 'upvector_pelvis'
+TORSO_UPVECTOR     = 'upvector_torso'
 
 # TODO (G1 port): Go2 noise values. Tune them for the G1 sensors.
 # Noise scaling values for sensor data
@@ -51,7 +52,7 @@ GRAVITY_NOISE = 0.05
 
 # Sim-only sensors (from g1_mjx.xml, pelvis IMU).
 # Use only in rewards or privileged obs, never in the policy obs.
-# BASE_GLOBAL_POS    = 'global_position'  # not used: no base position sensor
+BASE_GLOBAL_POS    = 'global_position_pelvis'
 BASE_GLOBAL_LINVEL = 'global_linvel_pelvis'
 BASE_GLOBAL_ANGVEL = 'global_angvel_pelvis'
 BASE_LOCAL_LINVEL  = 'local_linvel_pelvis'
@@ -109,9 +110,22 @@ def get_base_orientation(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
 ##################################
 # Sim-only helpers
 
-# def get_base_global_pos(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
-#     """Return the base (imu site) position in the world frame."""
-#     return mjx_env.get_sensor_data(mj_model, data, BASE_GLOBAL_POS)
+def get_base_global_pos(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the base (pelvis imu site) position in the world frame."""
+    return mjx_env.get_sensor_data(mj_model, data, BASE_GLOBAL_POS)
+
+def get_ground_reaction_force(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the net ground reaction force on the robot in the world frame, shape (3,), N.
+
+    From Newton's second law, ``F = m * (a - g)``: the pelvis accelerometer
+    reads ``a - g`` in the imu frame, which is rotated into the world frame
+    and scaled by the total mass. Uses the pelvis acceleration as the
+    robot's, so leg and arm swing add some error. Standing still gives about
+    ``(0, 0, m*g)``.
+    """
+    mass = _np.sum(mj_model.body_mass)
+    R = data.site_xmat[IMU_SITE_ID].reshape(3, 3)
+    return mass * (R @ get_accelerometer(mj_model, data))
 
 def get_base_global_linvel(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) linear velocity in the world frame."""
@@ -142,6 +156,14 @@ def get_foot_vel(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
         mjx_env.get_sensor_data(mj_model, data, sensor)
         for sensor in FEET_GLOBAL_LINVEL
     ])
+
+def get_foot_dist(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the base-to-foot distances ``||p_foot - p_base||``, shape (2,), order left, right.
+
+    The base is the pelvis imu site. The distance is the same in any frame.
+    """
+    foot_pos = get_foot_pos(_np, mj_model, data)
+    return _np.linalg.norm(foot_pos - get_base_global_pos(mj_model, data), axis=-1)
 
 def get_foot_contact_force(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the summed normal contact force (N) on each sole, shape (2,), order left, right."""
@@ -178,6 +200,10 @@ def get_base_heading(_np, data: mjx.Data) -> jax.Array:
 def get_upvector(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) z-axis in the world frame, shape (3,)."""
     return mjx_env.get_sensor_data(mj_model, data, UPVECTOR)
+
+def get_torso_upvector(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the torso (imu site) z-axis in the world frame, shape (3,)."""
+    return mjx_env.get_sensor_data(mj_model, data, TORSO_UPVECTOR)
 
 def get_tilt_angle(_np, mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the angle (rad) between the base z-axis and the world z-axis.

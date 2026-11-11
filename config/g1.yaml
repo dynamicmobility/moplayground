@@ -1,50 +1,54 @@
 name: mog1
 save_dir: /storage/scratch1/1/mfangajei3/moplayground/mog1
 description: "?"
-algorithm: morlax
+algorithm: ppo
 env: "MOG1"
 backend: np # jnp or np. Always uses jnp for training
 env_config:
   ctrl_dt: 0.02
-  sim_dt: 0.004
+  sim_dt: 0.005
   action_scale: 0.5
   history_length: 5
   ideal_base_height: 0.5
-  ideal_base_vel: 0.5
+  swing_retraction: 0.17
+  min_air_time: 0.1
+  max_stance_time: 1.0
+  ideal_base_vel: 1.5
   ideal_yaw_rate: 0.0
   add_random_joint_state: False
   add_random_pitch: False
   noise_scale: 1.0
   reward:
     sigmas:
-      run:     0.35
-      heading: 0.5
+      run:     0.75
+      heading: 0.25
     weights:
       # TODO: increase alive and decrease done  
-      vel_rate:   0.0
-      accel_rate: -1.0
-      run:        1.0
-      alive:      1.0
-      done:       0
-      perp_vel:   -1.0
-      heading_dev: -1.0
-      heading:    1.0
-      energy:     -1.0e-3
-      torques:    -1.0e-3
-      feet_slip:  -0.1
-      base_height: 0.0
+      vel_rate:   -0.01
+      accel_rate: -0.01
+      run:        2.0
+      alive:      0.0
+      energy:     -1.0e-4
+      softness:   0.0
+      heading:    0.5
       lin_vel_z:  -0.5
       ang_vel_xy: -0.05
-      contact_force: 0.0
-      collision:  0.0
+      orientation: -5.0
+      feet_slip:  -0.1
+      feet_clearance: -2.0
+      feet_height: -0.2
+      feet_air_time: 0.1
+      done:       -1.0
+      torque:     -2.0e-4
+      stance_time: 0.0
     optimization:
-      objectives:        [['vel_rate', 'accel_rate']]
-      shared_objectives: ['alive', 'run', 'perp_vel', 'heading_dev', 'heading', 'energy', 'torques', 'feet_slip', 'base_height', 'lin_vel_z', 'ang_vel_xy', 'contact_force', 'collision']
-      labels:            ['Smoothness']
-      default_scalarization: [1]
+      objectives:        [['vel_rate', 'accel_rate'], ['energy'], ['softness']]
+      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done']
+      labels:            ['Smoothness', 'Energy Efficiency', 'Softness']
+      default_scalarization: [1, 1, 1]
   termination:
     enabled: true        # Enable or disable early termination
-    base_height: 0.6
+    base_height: 0.3
 learning_params:
   ppo_params:
     action_repeat: 1
@@ -75,12 +79,13 @@ learning_params:
     num_features: 16
     policy_hidden_layer_sizes: [256, 256] #TODO: increase sizes to 128x128
     value_hidden_layer_sizes: [256, 256]
+    value_obs_key: 'privileged_state'
   amor_network_params:
     policy_hidden_layer_sizes: [256, 256, 256]
     value_hidden_layer_sizes: [256, 256, 256]
   ppo_network_params:
-    policy_hidden_layer_sizes: [64, 64]
-    value_hidden_layer_sizes: [64, 64]
+    policy_hidden_layer_sizes: [256, 256]
+    value_hidden_layer_sizes: [256, 256]
   morlax_warmup_params:
     enabled: false
     policy: playground-results/SO-MOCheetah/a-good-policy/config.yaml
