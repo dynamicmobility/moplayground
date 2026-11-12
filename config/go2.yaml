@@ -34,9 +34,9 @@ env_config:
       ang_vel_xy: -0.05
       orientation: -5.0
       feet_slip:  -0.1
-      feet_clearance: -2.0
-      feet_height: -0.2
-      feet_air_time: 0.1
+      feet_clearance: -3.0
+      feet_height: -0.5
+      feet_air_time: 0.5
       done:       -1.0
       torque:     -2.0e-4
       stance_time: 0.0

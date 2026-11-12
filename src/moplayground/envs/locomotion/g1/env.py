@@ -520,6 +520,12 @@ class MOG1(MultiObjectiveBase):
         f_z = g1.get_ground_reaction_force(self._np, self.mj_model, data)[2]
         return ((f_z - weight) / weight)**2
 
+    # TODO: add extra gait terms for g1:
+    #   gait phase 
+    #   collisions
+    #   contact force
+    #   pose (?)
+
     def reward_heading(self, data, action, info):
         """Gaussian tracking of ``ideal_yaw_rate`` (world-frame wz)."""
         yaw_rate = g1.get_base_global_angvel(self.mj_model, data)[2]
