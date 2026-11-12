@@ -13,6 +13,7 @@ env_config:
   swing_retraction: 0.07
   min_air_time: 0.1
   max_stance_time: 0.5
+  soft_joint_pos_limit_factor: 0.95
   ideal_base_vel: 1.5
   ideal_yaw_rate: 0.0
   add_random_joint_state: False
@@ -20,29 +21,30 @@ env_config:
   noise_scale: 1.0
   reward:
     sigmas:
-      run:     0.75
-      heading: 0.25
-    weights: 
-      vel_rate:   -0.01
-      accel_rate: -0.01
-      run:        2.0
-      alive:      0.0
-      energy:     -1.0e-4
-      softness:   0.0
+      run:     0.354
+      heading: 0.354
+    weights:
+      run:        1.0
       heading:    0.5
       lin_vel_z:  -0.5
       ang_vel_xy: -0.05
       orientation: -5.0
-      feet_slip:  -0.1
-      feet_clearance: -3.0
-      feet_height: -0.5
-      feet_air_time: 0.5
+      dof_pos_limits: -1.0
       done:       -1.0
       torque:     -2.0e-4
+      vel_rate:   -0.01
+      energy:     -1.0e-3
+      feet_clearance: -2.0
+      feet_height: -0.2
+      feet_slip:  -0.1
+      feet_air_time: 0.1
+      accel_rate: 0.0
+      alive:      0.0
+      softness:   0.0
       stance_time: 0.0
     optimization:
       objectives:        [['vel_rate', 'accel_rate'], ['energy'], ['softness']]
-      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done']
+      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done', 'dof_pos_limits']
       labels:            ['Smoothness', 'Energy Efficiency', 'Softness']
       default_scalarization: [1, 1, 1]
   termination:

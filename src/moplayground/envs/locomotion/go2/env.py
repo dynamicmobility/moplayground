@@ -53,8 +53,8 @@ class MOGo2(MultiObjectiveBase):
     Args:
         env_params: ``env_config`` from the YAML. Reads ``ctrl_dt``,
             ``sim_dt``, ``action_scale``, ``history_length``, ``noise_scale``,
-            ``swing_retraction``, ``min_air_time``, ``max_stance_time`` and
-            ``reward``.
+            ``swing_retraction``, ``min_air_time``, ``max_stance_time``,
+            ``soft_joint_pos_limit_factor`` and ``reward``.
         backend: ``'jnp'`` for JAX (training) or ``'np'`` for NumPy (eval).
     """
 
@@ -77,6 +77,10 @@ class MOGo2(MultiObjectiveBase):
         self._ideal_foot_dist = self._np.array(
             go2.get_foot_dist(np, self.mj_model, standing) - self.params.swing_retraction
         )
+        lowers, uppers = self.mj_model.jnt_range[1:].T
+        factor = self.params.soft_joint_pos_limit_factor
+        self._soft_lowers = self._np.array(lowers * factor)
+        self._soft_uppers = self._np.array(uppers * factor)
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
         """Start an episode standing still in the default pose.
@@ -404,7 +408,15 @@ class MOGo2(MultiObjectiveBase):
             'feet_height':    self.cost_feet_height(info),
             'feet_air_time':  self.reward_feet_air_time(info),
             'stance_time':    self.cost_stance_time(info),
+            'dof_pos_limits': self.cost_dof_pos_limits(data),
         }
+
+    def cost_dof_pos_limits(self, data):
+        """Distance past the soft joint limits, summed over joints."""
+        qpos = data.qpos[7:]
+        below = self._np.maximum(self._soft_lowers - qpos, 0.0)
+        above = self._np.maximum(qpos - self._soft_uppers, 0.0)
+        return self._np.sum(below + above)
 
     def cost_stance_time(self, info):
         """Stance time beyond ``max_stance_time``, summed over feet.
