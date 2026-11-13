@@ -13,6 +13,8 @@ env_config:
   swing_retraction: 0.17
   min_air_time: 0.1
   max_stance_time: 1.0
+  max_contact_force: 500.0
+  soft_joint_pos_limit_factor: 0.95
   ideal_base_vel: 1.5
   ideal_yaw_rate: 0.0
   add_random_joint_state: False
@@ -20,30 +22,37 @@ env_config:
   noise_scale: 1.0
   reward:
     sigmas:
-      run:     0.75
-      heading: 0.25
+      run:     0.354
+      heading: 0.354
     weights:
-      # TODO: increase alive and decrease done  
+      # TODO: increase alive and decrease done
       vel_rate:   -0.0
       accel_rate: -0.0
       run:        1.0
       alive:      0.0
-      energy:     -1.0e-4
+      energy:     0.0
       softness:   0.0
-      heading:    0.5
+      heading:    0.75
       lin_vel_z:  -0.0
       ang_vel_xy: -0.15
       orientation: -2.0
-      feet_slip:  -0.1
+      feet_slip:  -0.25
       feet_clearance: 0.0
-      feet_height: -0.5
+      feet_height: 0.0
       feet_air_time: 2.0
-      done:       -1.0
+      done:       -100.0
       torque:     0.0
       stance_time: 0.0
+      dof_pos_limits: -1.0
+      contact_force: -0.01
+      pose: -0.1
+      collision: -0.1
+      joint_deviation_knee: -0.1
+      joint_deviation_hip: -0.25
+      # TODO: feet_phase: 1.0
     optimization:
       objectives:        [['vel_rate', 'accel_rate'], ['energy'], ['softness']]
-      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done']
+      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done', 'dof_pos_limits', 'contact_force', 'pose', 'collision', 'joint_deviation_hip', 'joint_deviation_knee']
       labels:            ['Smoothness', 'Energy Efficiency', 'Softness']
       default_scalarization: [1, 1, 1]
   termination:

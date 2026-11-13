@@ -65,12 +65,20 @@ FEET_GLOBAL_LINVEL = ['left_foot_global_linvel', 'right_foot_global_linvel']
 FEET_CONTACT       = ['left_foot_contact', 'right_foot_contact']
 HAND_THIGH_CONTACT = ['left_hand_left_thigh_found', 'right_hand_right_thigh_found']
 
+HIP_JOINTS  = ['left_hip_roll_joint', 'left_hip_yaw_joint',
+               'right_hip_roll_joint', 'right_hip_yaw_joint']
+KNEE_JOINTS = ['left_knee_joint', 'right_knee_joint']
+
 # Menagerie 'home' keyframe (model/scene_mjx.xml). The first 7 qpos values are
 # the free joint (position, quaternion); the rest are the joints in qpos order.
 # The keyframe's ctrl equals its joint qpos, so actuator order = qpos order.
 _HOME_QPOS = _interface_model.keyframe('home').qpos
 DEFAULT_FF = _HOME_QPOS[:7].tolist()
 DEFAULT_JT = _HOME_QPOS[7:].tolist()
+
+# Indices into the joint vector qpos[7:].
+HIP_JOINT_IDS  = [_interface_model.joint(j).qposadr[0] - 7 for j in HIP_JOINTS]
+KNEE_JOINT_IDS = [_interface_model.joint(j).qposadr[0] - 7 for j in KNEE_JOINTS]
 
 # Fall check: end the episode when get_tilt_angle reaches this (rad).
 MAX_TILT_ANGLE = math.radians(60.0)
