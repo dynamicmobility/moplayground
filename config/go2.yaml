@@ -21,32 +21,33 @@ env_config:
   noise_scale: 1.0
   reward:
     sigmas:
-      run:     0.354
-      heading: 0.354
+      run:     0.5
+      heading: 0.3
     weights:
       run:        1.0
-      heading:    0.5
-      lin_vel_z:  -0.5
-      ang_vel_xy: -0.05
-      orientation: -5.0
-      dof_pos_limits: -1.0
-      done:       -1.0
-      torque:     -2.0e-4
-      vel_rate:   -0.01
-      energy:     -1.0e-3
-      feet_clearance: -2.0
-      feet_height: -0.2
-      feet_slip:  -0.1
-      feet_air_time: 0.1
-      accel_rate: 0.0
-      alive:      0.0
-      softness:   0.0
+      heading:    0.0 #0.5
+      lin_vel_z:  0.0 #-0.5
+      ang_vel_xy: 0.0 #-0.05
+      orientation: 0.0 #-5.0
+      dof_pos_limits: 0.0 #-1.0
+      done:       0.0 #-1.0
+      torque:     0.0 #-2.0e-4
+      vel_rate:   -0.1 #-0.01
+      energy:     0.0 #-1.0e-3
+      feet_clearance: 0.0 #-2.0
+      feet_height: 0.0 #-0.2
+      feet_slip:  0.0 #-0.1
+      feet_air_time: 0.0 #0.1
+      accel_rate: -0.5 #0.0
+      alive:      0.0 #0.0
+      softness:   -0.5
       stance_time: 0.0
     optimization:
-      objectives:        [['vel_rate', 'accel_rate'], ['energy'], ['softness']]
-      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done', 'dof_pos_limits']
-      labels:            ['Smoothness', 'Energy Efficiency', 'Softness']
-      default_scalarization: [1, 1, 1]
+      # TODO: with algorithm: ppo, Multi2SingleObjective sums the reward vector, so each shared term counts len(objectives) times.
+      objectives:       [['softness']]
+      shared_objectives: ['torque', 'vel_rate', 'accel_rate', 'energy', 'alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done', 'dof_pos_limits']
+      labels:            ['Softness']
+      default_scalarization: [1]
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.2
@@ -65,7 +66,7 @@ learning_params:
     num_envs: 1024
     num_evals: 15
     num_minibatches: 16
-    num_timesteps: 250000000
+    num_timesteps: 75000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 20

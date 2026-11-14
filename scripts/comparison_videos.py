@@ -4,6 +4,7 @@ os.environ['JAX_PLATFORMS']='cpu'
 import argparse
 import jax
 import numpy as np
+import wandb
 import moplayground as mop
 import minimal_mjx as mm
 from pathlib import Path
@@ -24,7 +25,8 @@ def main(
     camera     : str = 'track',
     width      : int = 1280,
     height     : int = 720,
-    out_dir    : Path = Path('output/videos')
+    out_dir    : Path = Path('output/videos'),
+    run        : wandb.Run | None = None
 ):
     # Read the config file and create the environment
     cfg    = mop.MOConfig(config_path)
@@ -65,11 +67,10 @@ def main(
             width        = width,
             height       = height
         )
-        mm.save_video(
-            frames,
-            env.dt,
-            Path(out_dir) / f'{cfg.env_name}-{key}.mp4'
-        )
+        video_path = Path(out_dir) / f'{cfg.env_name}-{key}.mp4'
+        mm.save_video(frames, env.dt, video_path)
+        if run is not None:
+            run.log({f'rollout/{key}': wandb.Video(str(video_path), caption=key, format='mp4')})
         mm.save_metrics(
             reward_plotter,
             Path(out_dir) / f'{cfg.env_name}-{key}-reward.pdf'

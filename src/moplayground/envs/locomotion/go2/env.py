@@ -118,7 +118,7 @@ class MOGo2(MultiObjectiveBase):
         info = {
             'last_act':         self._np.zeros(self.action_size),
             'second_last_act':  self._np.zeros(self.action_size),
-            'vx':               go2.get_base_global_linvel(self.mj_model, data)[0],
+            'vx':               go2.get_base_local_linvel(self.mj_model, data)[0],
             'rng': sensor_key,
             'obs_history': self._np.tile(frame, (self.params.history_length, 1)),
             'feet_air_time':  self._np.zeros(4),
@@ -251,7 +251,8 @@ class MOGo2(MultiObjectiveBase):
 
         Returns:
             The next ``mjx_env.State``. ``done`` is 1.0 if
-            ``fall_termination`` fired.
+            ``fall_termination`` fired. Each reward component is clipped
+            below at 0, as in Playground's Go1.
         """
         # Position control (same as Go1 in Playground): action is an offset from
         # the default pose. Action order = actuator order (FR, FL, RR, RL).
@@ -260,7 +261,7 @@ class MOGo2(MultiObjectiveBase):
         data = self._step_fn(state.data, motor_targets)
 
         state.info["rng"], sensors = self.get_sensor_values(state.info["rng"], data)
-        state.info['vx'] = go2.get_base_global_linvel(self.mj_model, data)[0]
+        state.info['vx'] = go2.get_base_local_linvel(self.mj_model, data)[0]
 
         contact = go2.get_feet_contact(self._np, data)
         foot_dist = go2.get_foot_dist(self._np, self.mj_model, data)
@@ -279,6 +280,7 @@ class MOGo2(MultiObjectiveBase):
         )
 
         reward, metrics = self.get_reward_and_metrics(rewards, state.metrics)
+        reward = self._np.maximum(reward, 0.0)
         reward = self._np.where(blowup, self._np.zeros_like(reward), reward)
 
         state.info['feet_air_time'] *= ~contact
@@ -495,7 +497,7 @@ class MOGo2(MultiObjectiveBase):
         return self._np.array(done)
 
     def reward_run(self, info):
-        """Gaussian tracking of ``ideal_base_vel`` (world-frame vx)."""
+        """Gaussian tracking of ``ideal_base_vel`` (body-frame vx)."""
         err = info['vx'] - self.params.ideal_base_vel
         return self._np.exp(-err**2 / (2 * self.params.reward.sigmas.run**2))
 

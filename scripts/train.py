@@ -95,6 +95,7 @@ def main(config_path):
             config_path = cfg.run_dir / 'config.yaml',
             out_dir     = video_dir,
             tradeoffs   = tradeoffs,
+            run         = run,
         )
     except Exception:
         print('Rollout failed; training output is saved.')

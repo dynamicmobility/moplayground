@@ -9,6 +9,7 @@ from pathlib import Path
 # JAX and Mujoco imports
 import jax
 import mujoco as mj
+import numpy as np
 from mujoco_playground._src.dm_control_suite import common
 from mujoco import mjx
 from mujoco_playground._src import mjx_env
@@ -77,8 +78,8 @@ DEFAULT_FF = _HOME_QPOS[:7].tolist()
 DEFAULT_JT = _HOME_QPOS[7:].tolist()
 
 # Indices into the joint vector qpos[7:].
-HIP_JOINT_IDS  = [_interface_model.joint(j).qposadr[0] - 7 for j in HIP_JOINTS]
-KNEE_JOINT_IDS = [_interface_model.joint(j).qposadr[0] - 7 for j in KNEE_JOINTS]
+HIP_JOINT_IDS  = np.array([_interface_model.joint(j).qposadr[0] - 7 for j in HIP_JOINTS])
+KNEE_JOINT_IDS = np.array([_interface_model.joint(j).qposadr[0] - 7 for j in KNEE_JOINTS])
 
 # Fall check: end the episode when get_tilt_angle reaches this (rad).
 MAX_TILT_ANGLE = math.radians(60.0)

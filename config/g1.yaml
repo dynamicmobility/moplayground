@@ -51,10 +51,10 @@ env_config:
       joint_deviation_hip: -0.25
       # TODO: feet_phase: 1.0
     optimization:
-      objectives:        [['vel_rate', 'accel_rate'], ['energy'], ['softness']]
-      shared_objectives: ['alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done', 'dof_pos_limits', 'contact_force', 'pose', 'collision', 'joint_deviation_hip', 'joint_deviation_knee']
-      labels:            ['Smoothness', 'Energy Efficiency', 'Softness']
-      default_scalarization: [1, 1, 1]
+      objectives:        [['softness']]
+      shared_objectives: ['vel_rate', 'accel_rate', 'energy', 'alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done', 'dof_pos_limits', 'contact_force', 'pose', 'collision', 'joint_deviation_hip', 'joint_deviation_knee']
+      labels:            ['Softness']
+      default_scalarization: [1]
   termination:
     enabled: true        # Enable or disable early termination
     base_height: 0.3
@@ -73,7 +73,7 @@ learning_params:
     num_envs: 2048
     num_evals: 50
     num_minibatches: 32
-    num_timesteps: 250000000
+    num_timesteps: 500000000
     num_updates_per_batch: 4
     reward_scaling: 1.0
     unroll_length: 20
