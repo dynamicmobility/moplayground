@@ -14,17 +14,17 @@ env_config:
   min_air_time: 0.1
   max_stance_time: 0.5
   soft_joint_pos_limit_factor: 0.95
-  ideal_base_vel: 1.5
+  ideal_base_vel: 0.5
   ideal_yaw_rate: 0.0
   add_random_joint_state: False
   add_random_pitch: False
   noise_scale: 1.0
   reward:
     sigmas:
-      run:     0.5
+      run:     0.3
       heading: 0.3
     weights:
-      run:        1.0
+      run:        2.0
       heading:    0.0 #0.5
       lin_vel_z:  0.0 #-0.5
       ang_vel_xy: 0.0 #-0.05
@@ -32,15 +32,15 @@ env_config:
       dof_pos_limits: 0.0 #-1.0
       done:       0.0 #-1.0
       torque:     0.0 #-2.0e-4
-      vel_rate:   -0.1 #-0.01
+      vel_rate:   -0.01 #-0.01
       energy:     0.0 #-1.0e-3
       feet_clearance: 0.0 #-2.0
       feet_height: 0.0 #-0.2
       feet_slip:  0.0 #-0.1
       feet_air_time: 0.0 #0.1
-      accel_rate: -0.5 #0.0
+      accel_rate: -0.05 #0.0
       alive:      0.0 #0.0
-      softness:   -0.5
+      softness:   0.0 #-0.5
       stance_time: 0.0
     optimization:
       # TODO: with algorithm: ppo, Multi2SingleObjective sums the reward vector, so each shared term counts len(objectives) times.
