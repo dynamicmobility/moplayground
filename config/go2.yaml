@@ -25,7 +25,7 @@ env_config:
       heading: 0.3
     weights:
       run:        2.0
-      heading:    0.0 #0.5
+      heading:    0.5 #0.5
       lin_vel_z:  0.0 #-0.5
       ang_vel_xy: 0.0 #-0.05
       orientation: 0.0 #-5.0
@@ -38,9 +38,9 @@ env_config:
       feet_height: 0.0 #-0.2
       feet_slip:  0.0 #-0.1
       feet_air_time: 0.0 #0.1
-      accel_rate: -0.05 #0.0
+      accel_rate: -0.01 #0.0
       alive:      0.0 #0.0
-      softness:   0.0 #-0.5
+      softness:   -0.25 #-0.5
       stance_time: 0.0
     optimization:
       # TODO: with algorithm: ppo, Multi2SingleObjective sums the reward vector, so each shared term counts len(objectives) times.
