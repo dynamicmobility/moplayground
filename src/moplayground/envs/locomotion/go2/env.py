@@ -81,6 +81,7 @@ class MOGo2(MultiObjectiveBase):
         factor = self.params.soft_joint_pos_limit_factor
         self._soft_lowers = self._np.array(lowers * factor)
         self._soft_uppers = self._np.array(uppers * factor)
+        self._pose_weights = self._np.array([1.0, 1.0, 0.1] * 4)
 
     def reset(self, rng: jax.Array) -> mjx_env.State:
         """Start an episode standing still in the default pose.
@@ -411,7 +412,19 @@ class MOGo2(MultiObjectiveBase):
             'feet_air_time':  self.reward_feet_air_time(info),
             'stance_time':    self.cost_stance_time(info),
             'dof_pos_limits': self.cost_dof_pos_limits(data),
+            'pose':           self.reward_pose(data),
         }
+
+    def reward_pose(self, data):
+        """Gaussian closeness of the joint angles to the default pose.
+
+        ``exp(-sum(w * (q - q_default)^2))``, with ``w = [1.0, 1.0, 0.1]``
+        per leg (hip, thigh, calf), as in Playground's Go1. 1 at the default
+        pose. The calf has a small weight because the knee must bend to swing
+        the foot.
+        """
+        error = data.qpos[7:] - self._default_jt
+        return self._np.exp(-self._np.sum(error**2 * self._pose_weights))
 
     def cost_dof_pos_limits(self, data):
         """Distance past the soft joint limits, summed over joints."""
