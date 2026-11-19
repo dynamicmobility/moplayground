@@ -97,6 +97,7 @@ dependencies:
       - pexpect==4.9.0
       - pillow==12.1.0
       - playground==0.0.5
+      - plotly==6.3.0
       - prompt-toolkit==3.0.52
       - protobuf==6.33.4
       - psutil==7.2.2

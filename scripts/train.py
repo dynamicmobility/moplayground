@@ -9,7 +9,10 @@ import traceback
 import numpy as np
 from pathlib import Path
 from scipy.stats import qmc
-from scripts import comparison_videos
+from scripts import comparison_videos, morlax_fronts
+
+ENTITY  = 'njanwani-gatech'
+PROJECT = 'MO-Playground-2'
 
 def sobol_tradeoffs(n_obj, m, seed=0):
     """2**m scrambled Sobol tradeoffs, spread evenly on the simplex (sort-and-diff)."""
@@ -65,11 +68,13 @@ def main(config_path):
 
     run = mm.initialize_wandb(
         name    = str(cfg.run_dir).replace('/', ''),
-        entity  = 'njanwani-gatech',
-        project = 'MO-Playground-2',
+        entity  = ENTITY,
+        project = PROJECT,
         config  = cfg.cfg.to_dict()
     )
-    
+    if run is not None:
+        (cfg.run_dir / morlax_fronts.RUN_PATH_FILE).write_text(run.path)
+
     handle_params, train_fn_params, network_factory_params = get_handle_params(cfg)
     progress = get_progress(cfg)
 
@@ -85,6 +90,13 @@ def main(config_path):
         resume                  = False,
         overwrite               = cfg.name == 'test'
     )
+
+    if cfg.algorithm == 'morlax':
+        try:
+            morlax_fronts.main(config_path=cfg.run_dir / 'config.yaml', run=run)
+        except Exception:
+            print('Pareto front evaluation failed; training output is saved.')
+            traceback.print_exc()
 
     n_obj     = cfg.num_objectives
     tradeoffs = list(np.eye(n_obj)) + list(sobol_tradeoffs(n_obj, m=2))

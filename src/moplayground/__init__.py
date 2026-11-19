@@ -131,6 +131,7 @@ _EXPORTS = {
     'MOTrainingPlottingInfo': 'moplayground.utils.plotting',
     'MOProgress': 'moplayground.utils.plotting',
     'plot_pareto': 'moplayground.utils.plotting',
+    'plot_pareto_plotly': 'moplayground.utils.plotting',
     'plot_sequential_paretos': 'moplayground.utils.plotting',
     'plot_sequential_hypervolume': 'moplayground.utils.plotting',
     'default_coloring': 'moplayground.utils.plotting',
@@ -299,6 +300,7 @@ if TYPE_CHECKING:  # static analysers / IDE completion
         MOTrainingPlottingInfo as MOTrainingPlottingInfo,
         default_coloring as default_coloring,
         plot_pareto as plot_pareto,
+        plot_pareto_plotly as plot_pareto_plotly,
         plot_sequential_hypervolume as plot_sequential_hypervolume,
         plot_sequential_paretos as plot_sequential_paretos,
     )

@@ -32,6 +32,15 @@ def test_plot_pareto(M):
 
 
 @pytest.mark.parametrize('M', [2, 3])
+def test_plot_pareto_plotly(M):
+    rng = np.random.default_rng(0)
+    tradeoffs = rng.dirichlet(np.ones(M), 20)
+    fig = mop.plot_pareto_plotly(rng.normal(size=(20, M)), tradeoffs, [f'o{i}' for i in range(M)])
+    assert {t.type for t in fig.data} == {'scatter3d' if M == 3 else 'scatter'}
+    assert sum(len(t.x) for t in fig.data) == 20
+
+
+@pytest.mark.parametrize('M', [2, 3])
 def test_mo_progress(tmp_path, M):
     progress = mop.MOProgress(tmp_path, total_timesteps=100, labels=[f'o{i}' for i in range(M)])
     rng = np.random.default_rng(0)

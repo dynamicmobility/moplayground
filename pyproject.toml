@@ -25,6 +25,8 @@ dependencies = [
   "tqdm",
   "mediapy",
   "minimal-mjx",
+  "plotly",
+  "wandb",
 ]
 
 [project.optional-dependencies]

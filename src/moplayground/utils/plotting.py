@@ -8,6 +8,7 @@ import time
 import minimal_mjx as mm
 from moplayground.utils.pareto import get_pareto_statistics, get_nondominated
 import wandb
+import plotly.graph_objects as go
 from pathlib import Path
 
 @dataclass(frozen=False)
@@ -217,6 +218,59 @@ def plot_pareto(
         ax.set_zlabel(objective[2], fontsize=label_fontsize)
 
     return ax
+
+def plot_pareto_plotly(
+    pareto      : np.ndarray,
+    tradeoffs   : np.ndarray = None,
+    objective   : list[str] = None,
+) -> go.Figure:
+    """Interactive 2D/3D Pareto scatter colored by tradeoff, non-dominated points outlined."""
+    pareto = np.asarray(pareto)
+    num_objs = pareto.shape[1]
+    if num_objs not in (2, 3):
+        raise NotImplementedError(f'Only 2D and 3D paretos are supported for plotting, yours has {num_objs}')
+
+    if objective is None: objective = [f'obj{i}' for i in range(num_objs)]
+    if tradeoffs is None:
+        colors = np.full(pareto.shape[0], 'rgb(31,119,180)')
+        hover = np.full(pareto.shape[0], '')
+    else:
+        tradeoffs = np.asarray(tradeoffs)
+        rgb = np.round(default_coloring(tradeoffs) * 255).astype(int)
+        colors = np.array([f'rgb({r},{g},{b})' for r, g, b in rgb])
+        hover = np.array(['tradeoff: [' + ', '.join(f'{w:.3f}' for w in t) + ']' for t in tradeoffs])
+
+    nd_idx = get_nondominated(pareto)
+    d_idx = np.setdiff1d(np.arange(pareto.shape[0]), nd_idx)
+    scatter = go.Scatter3d if num_objs == 3 else go.Scatter
+    size_scale = 0.5 if num_objs == 3 else 1.0
+
+    fig = go.Figure()
+    for name, idx, size, opacity, outline in (
+        ('dominated',     d_idx,  6,  0.4, 0),
+        ('non-dominated', nd_idx, 10, 1.0, 1),
+    ):
+        fig.add_trace(scatter(
+            **dict(zip('xyz', pareto[idx].T)),
+            mode          = 'markers',
+            name          = name,
+            text          = hover[idx],
+            hovertemplate = '%{text}<extra></extra>' if tradeoffs is not None else None,
+            marker        = dict(
+                size    = size * size_scale,
+                color   = colors[idx],
+                opacity = opacity,
+                line    = dict(width=outline, color='black'),
+            ),
+        ))
+
+    if num_objs == 3:
+        fig.update_layout(scene=dict(
+            xaxis_title=objective[0], yaxis_title=objective[1], zaxis_title=objective[2],
+        ))
+    else:
+        fig.update_layout(xaxis_title=objective[0], yaxis_title=objective[1])
+    return fig
 
 def plot_sequential_paretos(
     ax_titles: list[str],

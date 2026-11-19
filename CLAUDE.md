@@ -33,6 +33,7 @@ python -m scripts.train config/mocheetah.yaml               # or: bash scripts/t
 python -m scripts.rollout <save_dir>/<name>/config.yaml     # roll out a trained run (use the run's saved config)
 python -m scripts.rollout config/mocheetah.yaml --inference_fn zero   # dummy zero/random controller, no checkpoint
 python -m scripts.draw_frontier <save_dir>/<name>/config.yaml  # evaluate a trained run's Pareto front
+python -m scripts.morlax_fronts <save_dir>/<name>/config.yaml  # MORLAX final front -> PDF + Plotly/HV logged to the training wandb run
 ```
 
 Tests (`pip install -e .[dev]`; layout in `tests/`):
