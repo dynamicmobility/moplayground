@@ -72,8 +72,6 @@ def main(config_path):
         project = PROJECT,
         config  = cfg.cfg.to_dict()
     )
-    if run is not None:
-        (cfg.run_dir / morlax_fronts.RUN_PATH_FILE).write_text(run.path)
 
     handle_params, train_fn_params, network_factory_params = get_handle_params(cfg)
     progress = get_progress(cfg)
@@ -90,6 +88,8 @@ def main(config_path):
         resume                  = False,
         overwrite               = cfg.name == 'test'
     )
+    if run is not None:
+        (cfg.run_dir / morlax_fronts.RUN_PATH_FILE).write_text(run.path)
 
     if cfg.algorithm == 'morlax':
         try:

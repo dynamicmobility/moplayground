@@ -53,7 +53,8 @@ class MOGo2(MultiObjectiveBase):
     Args:
         env_params: ``env_config`` from the YAML. Reads ``ctrl_dt``,
             ``sim_dt``, ``action_scale``, ``history_length``, ``noise_scale``,
-            ``swing_retraction``, ``min_air_time``, ``max_stance_time``,
+            ``swing_retraction``, ``min_air_time``, ``max_air_time``,
+            ``max_stance_time``,
             ``soft_joint_pos_limit_factor`` and ``reward``.
         backend: ``'jnp'`` for JAX (training) or ``'np'`` for NumPy (eval).
     """
@@ -476,8 +477,15 @@ class MOGo2(MultiObjectiveBase):
         return self._np.sum(error**2 * info['touchdown'])
 
     def reward_feet_air_time(self, info):
-        """``air_time - min_air_time`` per foot on the step it lands, summed over feet."""
-        return self._np.sum((info['feet_air_time'] - self.params.min_air_time) * info['touchdown'])
+        """Air time reward per foot on the step it lands, summed over feet.
+
+        Per foot: ``min(air_time - min_air_time, max_air_time - min_air_time)``
+        on touchdown, else 0. The cap stops long swings from earning more
+        reward, as in Playground's Go1.
+        """
+        air_time = (info['feet_air_time'] - self.params.min_air_time) * info['touchdown']
+        air_time = self._np.minimum(air_time, self.params.max_air_time - self.params.min_air_time)
+        return self._np.sum(air_time)
 
     def cost_lin_vel_z(self, data):
         """Squared world-frame z base linear velocity."""
