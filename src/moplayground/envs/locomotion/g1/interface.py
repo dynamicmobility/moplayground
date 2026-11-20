@@ -9,7 +9,6 @@ from pathlib import Path
 # JAX and Mujoco imports
 import jax
 import mujoco as mj
-import numpy as np
 from mujoco_playground._src.dm_control_suite import common
 from mujoco import mjx
 from mujoco_playground._src import mjx_env
@@ -58,6 +57,7 @@ BASE_GLOBAL_LINVEL = 'global_linvel_pelvis'
 BASE_GLOBAL_ANGVEL = 'global_angvel_pelvis'
 BASE_LOCAL_LINVEL  = 'local_linvel_pelvis'
 TORSO_GLOBAL_LINVEL = 'global_linvel_torso'
+TORSO_GLOBAL_POS   = 'global_position_torso'
 # Foot sensors on the 'left_foot' / 'right_foot' sites, order left, right.
 FEET_GLOBAL_POS    = ['left_foot_global_pos', 'right_foot_global_pos']
 FEET_GLOBAL_LINVEL = ['left_foot_global_linvel', 'right_foot_global_linvel']
@@ -66,20 +66,12 @@ FEET_GLOBAL_LINVEL = ['left_foot_global_linvel', 'right_foot_global_linvel']
 FEET_CONTACT       = ['left_foot_contact', 'right_foot_contact']
 HAND_THIGH_CONTACT = ['left_hand_left_thigh_found', 'right_hand_right_thigh_found']
 
-HIP_JOINTS  = ['left_hip_roll_joint', 'left_hip_yaw_joint',
-               'right_hip_roll_joint', 'right_hip_yaw_joint']
-KNEE_JOINTS = ['left_knee_joint', 'right_knee_joint']
-
 # Menagerie 'home' keyframe (model/scene_mjx.xml). The first 7 qpos values are
 # the free joint (position, quaternion); the rest are the joints in qpos order.
 # The keyframe's ctrl equals its joint qpos, so actuator order = qpos order.
 _HOME_QPOS = _interface_model.keyframe('home').qpos
 DEFAULT_FF = _HOME_QPOS[:7].tolist()
 DEFAULT_JT = _HOME_QPOS[7:].tolist()
-
-# Indices into the joint vector qpos[7:].
-HIP_JOINT_IDS  = np.array([_interface_model.joint(j).qposadr[0] - 7 for j in HIP_JOINTS])
-KNEE_JOINT_IDS = np.array([_interface_model.joint(j).qposadr[0] - 7 for j in KNEE_JOINTS])
 
 # Fall check: end the episode when get_tilt_angle reaches this (rad).
 MAX_TILT_ANGLE = math.radians(60.0)
@@ -147,6 +139,10 @@ def get_base_global_angvel(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
 def get_torso_global_linvel(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the torso (imu site) linear velocity in the world frame."""
     return mjx_env.get_sensor_data(mj_model, data, TORSO_GLOBAL_LINVEL)
+
+def get_torso_global_pos(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
+    """Return the torso (imu site) position in the world frame."""
+    return mjx_env.get_sensor_data(mj_model, data, TORSO_GLOBAL_POS)
 
 def get_base_local_linvel(mj_model: mj.MjModel, data: mjx.Data) -> jax.Array:
     """Return the base (imu site) linear velocity in the local frame."""

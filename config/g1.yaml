@@ -28,31 +28,31 @@ env_config:
       # TODO: increase alive and decrease done
       vel_rate:   -0.0
       accel_rate: -0.0
-      run:        1.0
-      alive:      0.0
+      run:        0.0
+      alive:      1.0
       energy:     0.0
       softness:   0.0
-      heading:    0.75
+      heading:    0.0
       lin_vel_z:  -0.0
-      ang_vel_xy: -0.15
-      orientation: -2.0
-      feet_slip:  -0.25
+      ang_vel_xy: -0.0
+      orientation: -0.0
+      feet_slip:  -0.0
       feet_clearance: 0.0
       feet_height: 0.0
-      feet_air_time: 2.0
+      feet_air_time: 0.0
       done:       -100.0
       torque:     0.0
       stance_time: 0.0
-      dof_pos_limits: -1.0
-      contact_force: -0.01
-      pose: -0.1
-      collision: -0.1
-      joint_deviation_knee: -0.1
-      joint_deviation_hip: -0.25
+      dof_pos_limits: -0.0
+      contact_force: -0.0
+      joint_space: -0.1
+      cartesian_deviation: -1.0
+      base_height: -1.0
+      collision: -0.0
       # TODO: feet_phase: 1.0
     optimization:
       objectives:        [['softness']]
-      shared_objectives: ['vel_rate', 'accel_rate', 'energy', 'alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done', 'dof_pos_limits', 'contact_force', 'pose', 'collision', 'joint_deviation_hip', 'joint_deviation_knee']
+      shared_objectives: ['vel_rate', 'accel_rate', 'energy', 'alive', 'run', 'heading', 'lin_vel_z', 'ang_vel_xy', 'orientation', 'feet_slip', 'feet_clearance', 'feet_height', 'feet_air_time', 'done', 'dof_pos_limits', 'contact_force', 'joint_space', 'cartesian_deviation', 'base_height', 'collision']
       labels:            ['Softness']
       default_scalarization: [1]
   termination:

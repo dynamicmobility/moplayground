@@ -88,6 +88,9 @@ class MOG1(MultiObjectiveBase):
         self._ideal_foot_dist = self._np.array(
             g1.get_foot_dist(np, self.mj_model, standing) - self.params.swing_retraction
         )
+        self._default_torso_pos = self._np.array(
+            g1.get_torso_global_pos(self.mj_model, standing)
+        )
         lowers, uppers = self.mj_model.jnt_range[1:].T
         factor = self.params.soft_joint_pos_limit_factor
         self._soft_lowers = self._np.array(lowers * factor)
@@ -426,30 +429,29 @@ class MOG1(MultiObjectiveBase):
             'stance_time':    self.cost_stance_time(info),
             'dof_pos_limits': self.cost_dof_pos_limits(data),
             'contact_force':  self.cost_contact_force(data),
-            'pose':           self.cost_pose(data),
+            'joint_space':    self.cost_joint_space(data),
+            'cartesian_deviation': self.cost_cartesian_deviation(data),
+            'base_height':    self.cost_base_height(data),
             'collision':      self.cost_collision(data),
-            'joint_deviation_hip':  self.cost_joint_deviation_hip(data),
-            'joint_deviation_knee': self.cost_joint_deviation_knee(data),
         }
-
-    def cost_joint_deviation_hip(self, data):
-        """Absolute hip roll/yaw deviation from the default pose, summed."""
-        ids = g1.HIP_JOINT_IDS
-        return self._np.sum(self._np.abs(data.qpos[7:][ids] - self._default_jt[ids]))
-
-    def cost_joint_deviation_knee(self, data):
-        """Absolute knee deviation from the default pose, summed."""
-        ids = g1.KNEE_JOINT_IDS
-        return self._np.sum(self._np.abs(data.qpos[7:][ids] - self._default_jt[ids]))
 
     def cost_collision(self, data):
         """1 if either hand touches its same-side thigh, else 0."""
         found = g1.get_hand_thigh_contact(self._np, self.mj_model, data)
         return self._np.any(found > 0).astype(float)
 
-    def cost_pose(self, data):
+    def cost_joint_space(self, data):
         """Squared joint deviation from the default pose, summed over joints."""
         return self._np.sum((data.qpos[7:] - self._default_jt)**2)
+
+    def cost_cartesian_deviation(self, data):
+        """Squared world-frame torso position error from the start pose, summed over xyz."""
+        torso_pos = g1.get_torso_global_pos(self.mj_model, data)
+        return self._np.sum((torso_pos - self._default_torso_pos)**2)
+
+    def cost_base_height(self, data):
+        """Squared base height error from the start pose."""
+        return (data.qpos[2] - g1.DEFAULT_FF[2])**2
 
     def cost_contact_force(self, data):
         """Sole normal force beyond ``max_contact_force``, summed over feet."""
@@ -551,19 +553,10 @@ class MOG1(MultiObjectiveBase):
     def reward_softness(self, data, action, info):
         """Squared deviation of the vertical ground reaction force from body weight.
 
-        ``((F_z - m*g) / (m*g))^2``, with ``F`` from
-        ``g1.get_ground_reaction_force``. The time-average of ``F_z`` is
-        ``m*g`` whatever the gait, so the penalty targets the spikes from hard
-        landings rather than ``F_z`` itself. 0 when the body is not
-        accelerating vertically; 1 for a spike of one extra body weight.
-        A penalty: returned positive, given a negative weight.
         """
         weight = self._np.sum(self.mj_model.body_mass) * 9.81
         f_z = g1.get_ground_reaction_force(self._np, self.mj_model, data)[2]
         return ((f_z - weight) / weight)**2
-
-    # TODO: add extra gait terms for g1:
-    #   gait phase
 
     def reward_heading(self, data, action, info):
         """Gaussian tracking of ``ideal_yaw_rate`` (world-frame wz)."""
